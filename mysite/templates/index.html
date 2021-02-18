@@ -2,24 +2,19 @@
 <!DOCTYPE html>
 <html>
   <meta charset="UTF-8">
-<!-- <head>
-  
-  <title>Iconicity</title>
- 
-  <link rel="icon" href="logo.png" type="image/png">
-</head> -->
 <link rel="stylesheet" type  = "text/css"
-href = "{% static 'css/login-page.css' %}">
-<body>
-
-
-<h1 id="login-header">Iconicity</h1>
+href = "{% static 'css/signup-page.css' %}">
+<h1 id="signup-header">Iconicity</h1>
 <h1 id="logo-img" alt="Logo image"></h1>
 
+<body>
+<p>Sign up today to pretend to be free from centralization and reality</p>
 <input type="text" name="email" id="email-field" placeholder="Email">
 <input type="password" name="password" id="password-field" placeholder="Password">
+<input type="password" name="comfirm password" id="comfirm-password-field" placeholder="Comfirm Password">
+<input type="text" name="username" id="username" placeholder="Username">
+<input type="url" name="github url" id="github-url" placeholder="Github">
 <input type="submit" value="Sign In" id="sign-in">
-<input type="submit" value="Sign Up" id="sign-up">
 </body>
 
 </html>
