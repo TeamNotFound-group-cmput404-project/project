@@ -97,3 +97,4 @@ def main_page(request):
 		'posts': posts
 	}
 	return render(request, 'Iconicity/main_page.html', context)
+

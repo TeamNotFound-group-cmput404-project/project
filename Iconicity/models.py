@@ -1,7 +1,7 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 # Create your models here.
 
 """Reference (move to other locations later)
@@ -14,7 +14,7 @@ class UserProfile(models.Model):
     max_name_length = 30 
 
     # user type
-    user_type = models.CharField(default="author")
+    user_type = models.CharField(max_length=10, default="author")
 
     # user id field
     user_id = models.UUIDField(primary_key=True, 
@@ -46,7 +46,7 @@ class Post(models.Model):
     title = models.CharField(max_length=100, default="")
 
     # type field, default is post
-    type = models.CharField(default="post")
+    type = models.CharField(max_length=10, default="post")
 
     # source field, default is ""
     # where did you get this post from?
@@ -62,11 +62,11 @@ class Post(models.Model):
     
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
-                                   choices=(('text/markdown', 'text/markdown'),
+                                   choices=[('text/markdown', 'text/markdown'),
                                             ('text/plain', 'text/plain'),
                                             ('application/base64', 'application/base64'),
                                             ('image/png;base64', 'image/png;base64'),
-                                            ('image/jpeg;base64', 'image/jpeg;base64')),
+                                            ('image/jpeg;base64', 'image/jpeg;base64')],
                                    default="")
 
     # content itself
@@ -76,7 +76,7 @@ class Post(models.Model):
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     # categories field
-    categories = models.JSONField(default=[])
+    categories = models.JSONField(default={})
 
     # count field
     count = models.IntegerField(default=0)
@@ -92,7 +92,7 @@ class Post(models.Model):
     # comments should be a list stores several comments objects,
     # but there's no arrayfield support sqlite3, so use json encode the comment
     # object before store the value.
-    comments = models.JSONField(default=[])
+    comments = models.JSONField(default={})
 
     # ISO 8601 TIMESTAMP
     # publish time
@@ -100,7 +100,7 @@ class Post(models.Model):
 
     # visibility ["PUBLIC","FRIENDS"]
     visibility = models.CharField(max_length=10, 
-                                  choices=("PUBLIC", "FRIENDS"),
+                                  choices=[("PUBLIC", "PUBLIC"),("FRIENDS","FRIENDS")],
                                   default="PUBLIC")
 
     # unlisted means it is public if you know the post name -- use this for 
@@ -108,13 +108,13 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False)
 
 class FriendRequest(models.Model):
-    type = models.CharField(default="Follow")
+    type = models.CharField(max_length=10, default="Follow")
     summary = models.TextField(default="")
-    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
+    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
 
 class Comment(models.Model):
-    type = models.CharField(default="comment")
+    type = models.CharField(max_length=10, default="comment")
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     # ISO 8601 TIMESTAMP
     # publish time
@@ -151,7 +151,7 @@ class LikeSingle(models.Model):
     id = models.UUIDField(primary_key=True, 
                           default=uuid.uuid4, 
                           editable=False)
-    type = models.CharField(default="Like")
+    type = models.CharField(max_length=10, default="Like")
     context = models.URLField(default="")
     summary = models.TextField(default="")
 
@@ -160,12 +160,12 @@ class LikeSingle(models.Model):
     post_object = models.URLField(default="")
 
 class Inbox(models.Model):
-    type = models.CharField(default="inbox")
+    type = models.CharField(max_length=10, default="inbox")
     author = models.URLField(default="")
     # stores a list of Post items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     # a list of Post. 
-    items = models.JSONField(default=[])
+    items = models.JSONField(default={})
 
 
