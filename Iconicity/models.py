@@ -107,13 +107,13 @@ class Post(models.Model):
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
 
-class FriendRequest(model.Model):
+class FriendRequest(models.Model):
     type = models.CharField(default="Follow")
     summary = models.TextField(default="")
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
-class Comment(model.Model):
+class Comment(models.Model):
     type = models.CharField(default="comment")
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     # ISO 8601 TIMESTAMP
@@ -132,7 +132,7 @@ class Comment(model.Model):
                                             ('image/jpeg;base64', 'image/jpeg;base64')),
                                    default="")
 
-class LikeSingle(model.Model):
+class LikeSingle(models.Model):
     """
     looks like:
     {
@@ -159,7 +159,7 @@ class LikeSingle(model.Model):
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     post_object = models.URLField(default="")
 
-class Inbox(model.Model):
+class Inbox(models.Model):
     type = models.CharField(default="inbox")
     author = models.URLField(default="")
     # stores a list of Post items to display,
