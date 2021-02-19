@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+# Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
 	{
