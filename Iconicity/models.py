@@ -9,7 +9,7 @@ model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
 generate uuid: https://www.geeksforgeeks.org/generating-random-ids-using-uuid-python/
 user: https://docs.djangoproject.com/en/3.1/ref/contrib/auth/
 """
-class userProfile(models.Model):
+class UserProfile(models.Model):
     # max length for the user display name
     max_name_length = 30 
 
@@ -17,7 +17,9 @@ class userProfile(models.Model):
     user_type = models.CharField(default="author")
 
     # user id field
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.UUIDField(primary_key=True, 
+                               default=uuid.uuid4, 
+                               editable=False)
 
     # user name field
     display_name = models.CharField(max_length=max_name_length, default="")
@@ -73,7 +75,7 @@ class Post(model.Model):
     content = models.TextField(default="")
 
     # author field, make a foreign key to the userProfile class
-    author = models.ForeignKey(userProfile, on_delete=models.CASCADE)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     # categories field
     categories = models.JSONField(default=[])
@@ -106,4 +108,66 @@ class Post(model.Model):
     # unlisted means it is public if you know the post name -- use this for 
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
+
+class FriendRequest(model.Model):
+    type = models.CharField(default="Follow")
+    summary = models.TextField(default="")
+    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+
+class Comment(model.Model):
+    type = models.CharField(default="comment")
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    # ISO 8601 TIMESTAMP
+    # publish time
+    published = models.DateTimeField(default=timezone.now)
+    id = models.UUIDField(primary_key=True, 
+                          default=uuid.uuid4, 
+                          editable=False)
+    comment = models.TextField(default="")
+    # contentType field, support different kinds of type choices
+    contentType = models.CharField(max_length=40,
+                                   choices=(('text/markdown', 'text/markdown'),
+                                            ('text/plain', 'text/plain'),
+                                            ('application/base64', 'application/base64'),
+                                            ('image/png;base64', 'image/png;base64'),
+                                            ('image/jpeg;base64', 'image/jpeg;base64')),
+                                   default="")
+
+class LikeSingle(model.Model):
+    """
+    looks like:
+    {
+        id: (primary key)
+        type:liked
+        context:...
+        summary:...
+        author: object
+        post_object:url
+    }
+    different from the spec
+    If you need to save a list of liked objs in other class
+    just query some liked objects, encode into json format
+    then the model can use this liked list. Same thing for comments.
+    """
+    id = models.UUIDField(primary_key=True, 
+                          default=uuid.uuid4, 
+                          editable=False)
+    type = models.CharField(default="Like")
+    context = models.URLField(default="")
+    summary = models.TextField(default="")
+
+    # foreign key to the author
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    post_object = models.URLField(default="")
+
+class Inbox(model.Model):
+    type = models.CharField(default="inbox")
+    author = models.URLField(default="")
+    # stores a list of Post items to display,
+    # better consider converting your Post list to json
+    # if you wish to get the item list, just parse it then you will get
+    # a list of Post. 
+    items = models.JSONField(default=[])
+
 
