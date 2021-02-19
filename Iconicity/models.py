@@ -1,8 +1,8 @@
 from django.db import models
+import uuid
+from django.contrib.auth.models import User
 
 # Create your models here.
-<<<<<<< HEAD
-=======
 
 """Reference (move to other locations later)
 model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
@@ -32,11 +32,9 @@ class UserProfile(models.Model):
 
     # user url
     url = models.URLField(default="")
+ 
 
-    def get_id(self):
-        return user_id   
-
-class Post(model.Model):
+class Post(models.Model):
     # reference:
     # https://docs.djangoproject.com/en/3.1/ref/models/fields/
 
@@ -171,4 +169,3 @@ class Inbox(model.Model):
     items = models.JSONField(default=[])
 
 
->>>>>>> 0a880134da2df1523847f56c744eb2e6940744de
