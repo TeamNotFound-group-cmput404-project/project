@@ -47,9 +47,9 @@ color: rgba(0, 0, 0, 0.5);
   
 }
 input{
-  width: 50%;
+  width: 100%;
   padding: 15px 16px;
-  margin: 5px 0;
+  margin: 7px 0;
   align-items: center;
   display: inline-block;
   border: 1px solid #ccc;
@@ -58,8 +58,9 @@ input{
   background-color: #e0dcdc
 }
 
+
 #sign-in {
-  width:50%;
+  width:100%;
   margin:10px 0;
   display:inline-block;
   color: #fdfbfb;
@@ -71,3 +72,4 @@ input{
   border-radius: 20px;
   font-size: 20px;
 }
+  
