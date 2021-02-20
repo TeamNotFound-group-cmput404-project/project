@@ -32,6 +32,10 @@ class UserProfile(models.Model):
 
     # user url
     url = models.URLField(default="")
+
+    # I'm following / friend
+    follow = models.JSONField(default=dict)
+
  
 
 class Post(models.Model):
@@ -76,15 +80,13 @@ class Post(models.Model):
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     # categories field
-    categories = models.JSONField(default={})
+    categories = models.JSONField(default=dict)
 
     # count field
     count = models.IntegerField(default=0)
 
     size = models.IntegerField(default=0)
 
-    # the first page of comments
-    comments = models.URLField(default="")
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)
@@ -92,7 +94,7 @@ class Post(models.Model):
     # comments should be a list stores several comments objects,
     # but there's no arrayfield support sqlite3, so use json encode the comment
     # object before store the value.
-    comments = models.JSONField(default={})
+    comments = models.JSONField(default=dict)
 
     # ISO 8601 TIMESTAMP
     # publish time
@@ -166,6 +168,6 @@ class Inbox(models.Model):
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     # a list of Post. 
-    items = models.JSONField(default={})
+    items = models.JSONField(default=dict)
 
 
