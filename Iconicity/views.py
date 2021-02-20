@@ -167,6 +167,20 @@ posts = [
 	}
 ]
 
+author = {
+    "type":"author",
+    # ID of the Author
+    "id":"http://127.0.0.1:5454/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+    # the home host of the author
+    "host":"http://127.0.0.1:5454/",
+    # the display name of the author
+    "displayName":"Lara Croft",
+    # url to the authors profile
+    "url":"http://127.0.0.1:5454/author/9de17f29c12e8f97bcbbd34cc908f1baba40658e",
+    # HATEOS url for Github API
+    "github": "http://github.com/laracroft"
+}
+
 
 # Create your views here.
 
@@ -176,6 +190,7 @@ def signup(request):
 	return render(request, 'Iconicity/signup.html')
 def main_page(request):
 	context = {
-		'posts': posts
+		'posts': posts,
+		'author': author
 	}
 	return render(request, 'Iconicity/main_page.html', context)
