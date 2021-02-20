@@ -28,14 +28,26 @@
 html, body, h1, h2, h3, h4, h5 {font-family: "Open Sans", sans-serif}
 
 img {
-    max-width:200px;
-    max-height:200px;
+    max-width:300px;
+    max-height:300px;
     width:auto;
     height:auto;
 }
 
 article, aside, figure, footer, header, hgroup, 
     menu, nav, section { display: block; }
+
+.button {
+  background-color: transparent; /* Green */
+  border: none;
+  color: black;
+  padding: 0px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
 </style>
 
 <body class="w3-theme-l3">
@@ -106,7 +118,6 @@ article, aside, figure, footer, header, hgroup,
       <div class="w3-card w3-round w3-white">
         <div class="w3-container">
          <h4 class="w3-center">My Profile</h4>
-         <p class="w3-center"><img src="/w3images/avatar3.png" class="w3-circle" style="height:106px;width:106px" alt="Avatar"></p>
          <hr>
          <p><i class="fa fa-pencil fa-fw w3-margin-right w3-text-theme"></i> Designer, UI</p>
          <p><i class="fa fa-home fa-fw w3-margin-right w3-text-theme"></i> London, UK</p>
@@ -226,7 +237,7 @@ article, aside, figure, footer, header, hgroup,
       {% for post in posts %}
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
         <h1>{{ post.title }}</h1><br>
-        <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px">
+        <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
         <span class="w3-right w3-opacity">1 min</span>
         <h4>{{ post.author.displayName }}</h4><br>
         <hr class="w3-clear">
@@ -234,15 +245,37 @@ article, aside, figure, footer, header, hgroup,
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
-            <img src="/w3images/lights.jpg" style="width:100%" alt="Northern Lights" class="w3-margin-bottom">
+            <img src="/static/css/nothernlight.jpg" style="width:100%" alt="Northern Lights" class="w3-margin-bottom">
           </div>
-          <div class="w3-half">
-            <img src="/w3images/nature.jpg" style="width:100%" alt="Nature" class="w3-margin-bottom">
-        </div>
+        
         <!-- Below are the like and comment buttons -->
         </div>
-        <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom"><i class="fa fa-thumbs-up"></i>  Like</button> 
-        <button type="button" class="w3-button w3-theme-d2 w3-margin-bottom"><i class="fa fa-comment"></i>  Comment</button> 
+        <!-- <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-heart-o" style="font-size:20px;" ></i></button> 
+        <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button> 
+        <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
+         -->
+        <hr class="w3-clear">
+        
+        <button class="button w3-margin-bottom"><i class="fa fa-heart-o" style="font-size:20px;" ></i></button> 
+
+        <button class="button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
+
+        <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
+
+        <button onclick="myFunction('comment_id')" class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+          <div id="comment_id" class="w3-hide">
+            <!-- Comment Box-->
+            <h6 class="w3-opacity">Your Comment:</h6>
+            <p contenteditable="true" class="w3-border w3-padding"> </p>
+            <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
+          </div>
+
+        
+        
+        
+        
+        
+
       </div>
       {% endfor %}
       <!-- This is the end of a post -->
@@ -314,11 +347,11 @@ function myFunction(id) {
   var x = document.getElementById(id);
   if (x.className.indexOf("w3-show") == -1) {
     x.className += " w3-show";
-    x.previousElementSibling.className += " w3-theme-d1";
+    x.previousElementSibling.className += "";
   } else { 
     x.className = x.className.replace("w3-show", "");
     x.previousElementSibling.className = 
-    x.previousElementSibling.className.replace(" w3-theme-d1", "");
+    x.previousElementSibling.className.replace("", "");
   }
 }
 
