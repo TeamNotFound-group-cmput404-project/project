@@ -91,7 +91,8 @@ posts = [
 
 def login(request):
 	return render(request, 'Iconicity/login.html')
-
+def signup(request):
+	return render(request, 'Iconicity/signup.html')
 def main_page(request):
 	context = {
 		'posts': posts
