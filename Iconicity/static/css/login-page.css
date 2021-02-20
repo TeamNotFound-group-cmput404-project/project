@@ -4,32 +4,28 @@ body {
     display: grid;
     justify-items: center;
     background-color: #ffffff;
-
 }
 
+.header h2{
+  background: url(../css/logo.png) no-repeat;
+  float:left;
+  width:150px;
+  height:150px;
+  border: none;
+}
 h1{
-position: absolute;
-width: 524px;
+position: relative;
+width: 300px;
 height: 69px;
-left:500px;
 display: grid;
-top: 0px;
 justify-items: center;
 font-family: Roboto;
 font-style: italic;
 font-weight: bold;
 font-size: 88px;
-line-height: 103px;
 color: rgba(0, 0, 0, 0.5);
 }
-#logo-img {
-  background: url(../css/logo.png) no-repeat;
-  top:-50px;
-  left:450px;
-  width: 150px;
-  height: 150px;
-  
-}
+
 input[type=text], input[type=password] {
   width: 50%;
   padding: 12px 20px;
@@ -41,35 +37,38 @@ input[type=text], input[type=password] {
   color: #555151;
   background-color: #e0dcdc
 }
+.sign{
+  position:relative;
+  float:left;
+  width:50%;
+  text-align:center;
   
-#sign-in {
-    position: absolute;
-    width: 200px;
-    height: 33px;
-    left: 460px;
-    top: 350px;
-    border-color: rgb(255, 80, 118);
-    font-family: Roboto;
-    font-style: italic;
-    font-weight: bold;
-    font-size: 20px;
-    line-height: 35px;
-    color: #918b8b;
-    background-color: #fafafa;
-  }
+}
+.button1{
+  width:50%;
+  margin:10px 0;
+  display:inline-block;
+  color: #fdfbfb;
+  height:33px;
+  background-color: #F87575;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  border-radius: 20px;
+  font-size: 20px;
 
-#sign-up {
-      position: absolute;
-      width: 200px;
-      height: 33px;
-      left: 780px;
-      top: 350px;
-      
-      font-family: Roboto;
-      font-style: italic;
-      font-weight: bold;
-      font-size: 20px;
-     
-      color: #fdfbfb;
-      background-color: #F87575;
+}
+  
+.button{
+  width:50%;
+  margin:10px 0;
+  display:inline-block;
+  height:33px;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 20px;
+  color: #918b8b;
+  background-color: #fafafa;
 }

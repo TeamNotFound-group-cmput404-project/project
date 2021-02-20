@@ -1,5 +1,4 @@
 body {
-
     margin: 200px;
     justify-items: center;
     background-color: #ffffff;
@@ -8,20 +7,19 @@ body {
     border: 2px solid rgb(129, 124, 124);
     border-style:dotted solid;
     box-sizing:border-box;
-    /* color: #555151; */
+
 }
-p{
-position: absolute;
-width: 524px;
-height: 60px;
-left:500px;
+h2{
+position: relative;
+width: 300px;
+height: 69px;
 display: grid;
-top: 80px;
+justify-items: center;
 font-family: Roboto;
 font-style: italic;
 font-weight: bold;
-font-size: 30px;
-line-height: 40px;
+font-size: 25px;
+line-height: 30px;
 color: rgba(209, 140, 140, 0.5);
 
 }
@@ -50,7 +48,7 @@ color: rgba(0, 0, 0, 0.5);
 }
 input{
   width: 50%;
-  padding: 12px 20px;
+  padding: 15px 16px;
   margin: 5px 0;
   align-items: center;
   display: inline-block;
@@ -61,17 +59,15 @@ input{
 }
 
 #sign-in {
-      position: absolute;
-      width: 300px;
-      height: 40px;
-      left: 550px;
-      top: 500px;
-      
-      font-family: Roboto;
-      font-style: italic;
-      font-weight: bold;
-      font-size: 20px;
-     
-      color: #fdfbfb;
-      background-color: #F87575;
+  width:50%;
+  margin:10px 0;
+  display:inline-block;
+  color: #fdfbfb;
+  height:50px;
+  background-color: #F87575;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  border-radius: 20px;
+  font-size: 20px;
 }
