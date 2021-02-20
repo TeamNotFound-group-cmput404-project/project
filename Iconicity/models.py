@@ -32,7 +32,14 @@ class UserProfile(models.Model):
 
     # user url
     url = models.URLField(default="")
- 
+
+
+class FriendRequest(models.Model):
+    type = models.CharField(max_length=10, default="Follow")
+    summary = models.TextField(default="")
+    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
+    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
+
 
 class Post(models.Model):
     # reference:
@@ -106,12 +113,6 @@ class Post(models.Model):
     # unlisted means it is public if you know the post name -- use this for 
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
-
-class FriendRequest(models.Model):
-    type = models.CharField(max_length=10, default="Follow")
-    summary = models.TextField(default="")
-    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
-    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
 
 class Comment(models.Model):
     type = models.CharField(max_length=10, default="comment")
