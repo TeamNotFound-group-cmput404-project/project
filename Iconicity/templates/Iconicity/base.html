@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- mata data tags -->
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+	<link rel="stylesheet" type  = "text/css" href = "{% static 'css/login-page.css' %}">
+	<link rel="stylesheet" type  = "text/css" href = "{% static 'css/signup-page.css' %}">
+
+	<!-- Title -->
+	{% if title %}
+		<title>Iconicity {{ title }}</title>
+	{% else %}
+		<title>Iconicity</title>
+	{% endif %}
+</head>
+<body>
+	{% block content %}{% endblock %}
+	<!--
+	<div class = "header">
+		<h2 id="logo-img" alt="Logo image"></h1>
+		<h1>Iconicity</h1>
+	</div>
+		<input type="text" name="email" id="email-field" placeholder="Email">
+		<input type="password" name="password" id="password-field" placeholder="Password">
+	<div class = "sign">
+		<button class = button1>sign up </button>
+		<button class = button>sign in </button>
+	</div>
+	-->
+</body>
+</html>
