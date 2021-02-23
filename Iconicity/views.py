@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core import serializers
 import json
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
@@ -146,15 +149,24 @@ def getFollowers(id):
 
 
 
-
-def login(request):
+# citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
+def login(request,user):
     print("your are at login page")
     return render(request, 'Iconicity/login.html')
-
 def signup(request):
-
-        
-    return render(request, 'Iconicity/signup.html')
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('main_page')
+            
+    else:
+        form = UserCreationForm()
+    return render(request, 'Iconicity/signup.html', {'form': form})
 
 def main_page(request):
     context = {
