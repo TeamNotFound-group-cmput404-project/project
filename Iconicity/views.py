@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse
 from django.http import HttpResponse
 from .models import *
 from rest_framework.views import APIView
@@ -6,12 +6,15 @@ from rest_framework.response import Response
 from django.core import serializers
 import json
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
 from .forms import ProfileUpdateForm
 
 from .forms import SignUpForm
+from django.contrib.auth.decorators import login_required
+from django.views import View
 
+#https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
@@ -154,13 +157,29 @@ def getFollowers(id):
     print(authorfollow)
     #print(json.loads(authorfollow))
     
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    def post(self,request):
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            try:
+                form.clean()
+            except ValidationError:
+                return render(
+                    request,
+                    'Iconicity/login.html',
+                    { 'form': form, 'invalid_creds': True }
+                )
 
+            login(request, form.get_user())
 
+            return redirect(reverse('main_page'))
+
+        return render(request, 'Iconicity/login.html', { 'form': form })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
-def login(request):
-    print("your are at login page")
-    return render(request, 'Iconicity/login.html')
+
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -176,7 +195,10 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
+@login_required
 def main_page(request):
+    print(request.user.id)
+    print(request.user.username)
     context = {
         'posts': posts
     }
