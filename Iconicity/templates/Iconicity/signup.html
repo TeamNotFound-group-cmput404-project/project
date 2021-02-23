@@ -1,28 +1,25 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" type  = "text/css"
-href = "{% static 'css/signup-page.css' %}">
-<h1 id="signup-header">Iconicity</h1>
-<h1 id="logo-img" alt="Logo image"></h1>
-<h2>Sign up today to pretend to be free from centralization and reality</h2>
-  </head>
-<body>
 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<h2>Sign up</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <p>
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <small style="color: grey">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <p style="color: red">{{ error }}</p>
+        {% endfor %}
+      </p>
+    {% endfor %}
+    <button type="submit">Sign up</button>
+  </form>
 
-<input type="text" name="email" id="email-field" placeholder="Email">
-<input type="password" name="password" id="password-field" placeholder="Password">
-<input type="password" name="comfirm password" id="comfirm-password-field" placeholder="Comfirm Password">
-<input type="text" name="username" id="username" placeholder="Username">
-<input type="url" name="github url" id="github-url" placeholder="Github">
-<a href="main">
-<input type="submit" value="Sign In" id="sign-in">
-</a>
-
-</body>
-
-</html> 
-
+</html>
+  
