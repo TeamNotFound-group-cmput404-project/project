@@ -109,33 +109,64 @@ author = {
 
 
 
-def get(id):
+def getAuthor(id):
     author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+    jsonload = json.loads(author_profile)[0]
+    raw_id = jsonload['pk']
+    jsonload = jsonload['fields']
+    temp = str(jsonload['host']) + '/author/' + str(raw_id)
+    jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
+    jsonload['url'] = jsonload['user_id']
+    print(jsonload)
+    return Response(jsonload)
 
-    return Response(json.loads(author_profile)[0]['fields'])
-
+# not in use at this moment
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
         author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
-        return Response(json.loads(author_profile)[0]['fields'])
+        jsonload = json.loads(author_profile)[0]
+        raw_id = jsonload['pk']
+        jsonload = jsonload['fields']
+        temp = str(jsonload['host']) + '/author/' + str(raw_id)
+        jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
+        jsonload['url'] = jsonload['user_id']
+        return Response(jsonload)
+        
+# get all followers this author has
+# id is the author's id
+def getFollowers(id):
+    authorfollow = getAuthor(id).data['follow'] # return followe list of this author
+    # now it should be a list of urls.
+
+    
+    print(type(authorfollow))
+    print(authorfollow)
+    #print(json.loads(authorfollow))
+    
+
 
 
 
 def login(request):
+    print("your are at login page")
     return render(request, 'Iconicity/login.html')
+
 def signup(request):
+
+        
     return render(request, 'Iconicity/signup.html')
+
 def main_page(request):
     context = {
         'posts': posts
     }
     return render(request, 'Iconicity/main_page.html', context)
-
-#john = UserProfile.objects.create(user_id="c5c6d006-337d-4e3f-b86e-19f991331d24",display_name="john",host="www.1233213")
-#ryan = UserProfile.objects.create(user_id="c5c6d006-337d-4e3f-b86e-19f991331d25",display_name="ryan",host="www.1233213")
-#john.save()
-#ryan.save()
+'''
+john3 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b88e-19f991331d24",display_name="john3",host="www.1233213",follow=["http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25"])
+ryan2 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25",display_name="ryan2",host="www.1233213")
+john3.save()
+ryan2.save()'''
 '''
 print("herererre")
 new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
@@ -149,3 +180,4 @@ print(json.loads(data)[0]['fields'])'''
 #new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
 #print(new)
 #print(new.data)
+#print(getFollowers("c5c6d006-338d-4e3f-b88e-19f991331d24"))
