@@ -8,6 +8,10 @@ import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from .forms import ProfileUpdateForm
+
+from .forms import SignUpForm
+
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
@@ -154,12 +158,12 @@ def getFollowers(id):
 
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
-def login(request,user):
+def login(request):
     print("your are at login page")
     return render(request, 'Iconicity/login.html')
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
@@ -169,7 +173,7 @@ def signup(request):
             return redirect('main_page')
             
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
 def main_page(request):
@@ -177,22 +181,3 @@ def main_page(request):
         'posts': posts
     }
     return render(request, 'Iconicity/main_page.html', context)
-'''
-john3 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b88e-19f991331d24",display_name="john3",host="www.1233213",follow=["http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25"])
-ryan2 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25",display_name="ryan2",host="www.1233213")
-john3.save()
-ryan2.save()'''
-'''
-print("herererre")
-new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-data = serializers.serialize("json", UserProfile.objects.filter(user_id="c5c6d006-337d-4e3f-b86e-19f991331d24"))
-print(data)
-print(type(data))
-print(type(get("c5c6d006-337d-4e3f-b86e-19f991331d24")))
-print(new.display_name)
-
-print(json.loads(data)[0]['fields'])'''
-#new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-#print(new)
-#print(new.data)
-#print(getFollowers("c5c6d006-338d-4e3f-b88e-19f991331d24"))
