@@ -110,21 +110,24 @@ author = {
 
 
 def getAuthor(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
     raw_id = jsonload['pk']
     jsonload = jsonload['fields']
     temp = str(jsonload['host']) + '/author/' + str(raw_id)
     jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
     jsonload['url'] = jsonload['user_id']
-    print(jsonload)
     return Response(jsonload)
+
+def postAuthor(id):
+    # update author profile
+    pass
 
 # not in use at this moment
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
         jsonload = json.loads(author_profile)[0]
         raw_id = jsonload['pk']
         jsonload = jsonload['fields']
