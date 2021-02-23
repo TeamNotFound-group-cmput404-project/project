@@ -17,9 +17,11 @@ class UserProfile(models.Model):
     user_type = models.CharField(max_length=10, default="author")
 
     # user id field
-    user_id = models.UUIDField(primary_key=True, 
-                               default=uuid.uuid4, 
-                               editable=False)
+    uid = models.UUIDField(primary_key=True, 
+                          default=uuid.uuid4, 
+                          editable=False)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # user name field
     display_name = models.CharField(max_length=max_name_length, default="")
@@ -33,13 +35,8 @@ class UserProfile(models.Model):
     # user url
     url = models.URLField(default="")
 
-
-class FriendRequest(models.Model):
-    type = models.CharField(max_length=10, default="Follow")
-    summary = models.TextField(default="")
-    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
-    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
-
+    # I'm following / friend
+    follow = models.JSONField(default=dict)
 
 class Post(models.Model):
     # reference:
@@ -90,8 +87,6 @@ class Post(models.Model):
 
     size = models.IntegerField(default=0)
 
-    # the first page of comments
-    comments = models.URLField(default="")
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)

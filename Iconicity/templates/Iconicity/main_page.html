@@ -48,6 +48,44 @@ article, aside, figure, footer, header, hgroup,
   font-size: 16px;
 }
 
+.image-upload > input
+{
+    display: none;
+}
+
+.image-upload img
+{
+    width: 30px;
+    cursor: pointer;
+}
+
+.center {
+  text-align: center;
+}
+
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+  background-color: #ffffff;
+  border: 1px solid rgb(255, 255, 255);
+  margin: 0 4px;
+}
+
+.pagination a.active {
+  background-color: #4CAF50;
+  color: white;
+  border: 1px solid #4CAF50;
+}
+
+.pagination a:hover:not(.active) {background-color: rgb(255, 255, 255);}
+
 </style>
 
 <body class="w3-theme-l3">
@@ -115,85 +153,16 @@ article, aside, figure, footer, header, hgroup,
     <!-- Left Column -->
     <div class="w3-col m3">
       <!-- Profile -->
-      <div class="w3-card w3-round w3-white">
+      <div class="w3-card w3-round w3-white" >
         <div class="w3-container">
-         <h4 class="w3-center">My Profile</h4>
+         <h4 class="w3-center w3-margin-top">My Profile</h4>
          <hr>
-         <p><i class="fa fa-pencil fa-fw w3-margin-right w3-text-theme"></i> Designer, UI</p>
-         <p><i class="fa fa-home fa-fw w3-margin-right w3-text-theme"></i> London, UK</p>
-         <p><i class="fa fa-birthday-cake fa-fw w3-margin-right w3-text-theme"></i> April 1, 1988</p>
+         <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i> {{ author.displayName }}</p>
+         <p><i class="fa fa-github fa-fw w3-margin-right w3-text-theme"></i> <a href="{{ author.github }}">{{ author.github }}</a>
         </div>
-      </div>
-      <br>
-      
-      <!-- Accordion -->
-      <!-- <div class="w3-card w3-round">
-        <div class="w3-white">
-          <button onclick="myFunction('Demo1')" class="w3-button w3-block w3-theme-l1 w3-left-align"><i class="fa fa-circle-o-notch fa-fw w3-margin-right"></i> My Groups</button>
-          <div id="Demo1" class="w3-hide w3-container">
-            <p>Some text..</p>
-          </div>
-          <button onclick="myFunction('Demo2')" class="w3-button w3-block w3-theme-l1 w3-left-align"><i class="fa fa-calendar-check-o fa-fw w3-margin-right"></i> My Events</button>
-          <div id="Demo2" class="w3-hide w3-container">
-            <p>Some other text..</p>
-          </div>
-          <button onclick="myFunction('Demo3')" class="w3-button w3-block w3-theme-l1 w3-left-align"><i class="fa fa-users fa-fw w3-margin-right"></i> My Photos</button>
-          <div id="Demo3" class="w3-hide w3-container">
-         <div class="w3-row-padding">
-         <br>
-           <div class="w3-half">
-             <img src="/w3images/lights.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-           <div class="w3-half">
-             <img src="/w3images/nature.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-           <div class="w3-half">
-             <img src="/w3images/mountains.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-           <div class="w3-half">
-             <img src="/w3images/forest.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-           <div class="w3-half">
-             <img src="/w3images/nature.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-           <div class="w3-half">
-             <img src="/w3images/snow.jpg" style="width:100%" class="w3-margin-bottom">
-           </div>
-         </div>
-          </div>
-        </div>      
-      </div>
-      <br> -->
-      
-      <!-- Interests --> 
-      <!-- <div class="w3-card w3-round w3-white w3-hide-small">
-        <div class="w3-container">
-          <p>Interests</p>
-          <p>
-            <span class="w3-tag w3-small w3-theme-d5">News</span>
-            <span class="w3-tag w3-small w3-theme-d4">W3Schools</span>
-            <span class="w3-tag w3-small w3-theme-d3">Labels</span>
-            <span class="w3-tag w3-small w3-theme-d2">Games</span>
-            <span class="w3-tag w3-small w3-theme-d1">Friends</span>
-            <span class="w3-tag w3-small w3-theme">Games</span>
-            <span class="w3-tag w3-small w3-theme-l1">Friends</span>
-            <span class="w3-tag w3-small w3-theme-l2">Food</span>
-            <span class="w3-tag w3-small w3-theme-l3">Design</span>
-            <span class="w3-tag w3-small w3-theme-l4">Art</span>
-            <span class="w3-tag w3-small w3-theme-l5">Photos</span>
-          </p>
-        </div>
-      </div>
-      <br> -->
-      
-      <!-- Alert Box -->
-      <!-- <div class="w3-container w3-display-container w3-round w3-theme-l4 w3-border w3-theme-border w3-margin-bottom w3-hide-small">
-        <span onclick="this.parentElement.style.display='none'" class="w3-button w3-theme-l3 w3-display-topright">
-          <i class="fa fa-remove"></i>
-        </span>
-        <p><strong>Hey!</strong></p>
-        <p>People are looking at your profile. Find out who.</p>
-      </div> -->
+
+    </div>
+    <br>
     
     <!-- End Left Column -->
     </div>
@@ -214,8 +183,16 @@ article, aside, figure, footer, header, hgroup,
             
             <!-- Image Selection-->
             <div class="w3-container w3-padding">
-              <input type='file' onchange="readURL(this);" />
-              
+              <div class="image-upload">
+                <label for="file-input">
+                    <img src="/static/css/icon_image.webp"/>
+                </label>
+                <input type='file' id="file-input" hidden onchange="readURL(this);" />
+              </div>
+
+              <!-- <label for="actual-btn">Image</label>
+              <input type='file' id="actual-btn" hidden onchange="readURL(this);" /> -->
+
             </div>
             
             <!-- Image Preview -->
@@ -223,8 +200,20 @@ article, aside, figure, footer, header, hgroup,
               <img id="blah"/>
             </div>
             
+             
             <!-- Post Button-->
             <div class="w3-container w3-padding">
+
+              <form action="/action_page.php">
+                <label for="groups">Who can see this:</label>
+                <select name="groups" id="groups">
+                  <option value="Public">Select..</option>
+                  <option value="Public">Public</option>
+                  <option value="Followers">Followers</option>
+                </select>
+                <br><br>
+              </form>
+
               <button type="button" class="w3-button w3-theme w3-left-align"><i class="fa fa-pencil"></i>  Post</button>
             </div>
             
@@ -238,24 +227,20 @@ article, aside, figure, footer, header, hgroup,
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
         <h1>{{ post.title }}</h1><br>
         <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
-        <span class="w3-right w3-opacity">1 min</span>
+        <!-- <span class="w3-right w3-opacity">1 min</span> -->
         <h4>{{ post.author.displayName }}</h4><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
-            <img src="/static/images/nothernlight.jpg" style="width:100%" alt="Northern Lights" class="w3-margin-bottom">
+            <img src="/static/css/nothernlight.jpg" style="width:100%" class="w3-margin-bottom">
           </div>
         
-        <!-- Below are the like and comment buttons -->
         </div>
-        <!-- <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-heart-o" style="font-size:20px;" ></i></button> 
-        <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button> 
-        <button type="button" class="w3-button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
-         -->
         <hr class="w3-clear">
         
+        <!-- Below are the like, comment and repost buttons -->
         <button class="button w3-margin-bottom"><i class="fa fa-heart-o" style="font-size:20px;" ></i></button> 
 
         <button class="button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
@@ -269,65 +254,29 @@ article, aside, figure, footer, header, hgroup,
             <p contenteditable="true" class="w3-border w3-padding"> </p>
             <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
           </div>
-
-        
-        
-        
-        
-        
-
       </div>
       {% endfor %}
       <!-- This is the end of a post -->
       
+      <!-- Pagination-->
+      <div class="center">
+        <div class="pagination">
+        <a href="#">&laquo;</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#">5</a>
+        <a href="#">6</a>
+        <a href="#">&raquo;</a>
+        </div>
+      </div>
+      <!-- End of Pagination-->
+
     <!-- End Middle Column -->
     </div>
-    
-    <!-- Right Column -->
-    <!-- By: Zhiqi Zhou-->
-    <div class="w3-col m2">
-      <!-- <div class="w3-card w3-round w3-white w3-center">
-        <div class="w3-container">
-          <p>Upcoming Events:</p>
-          <img src="/w3images/forest.jpg" alt="Forest" style="width:100%;">
-          <p><strong>Holiday</strong></p>
-          <p>Friday 15:00</p>
-          <p><button class="w3-button w3-block w3-theme-l4">Info</button></p>
-        </div>
-      </div>
-      <br> -->
-      
-      <div class="w3-card w3-round w3-white w3-center">
-        <div class="w3-container">
-          <p>Friend Request</p>
-          <span>Jane Doe</span>
-          <div class="w3-row w3-opacity">
-            <div class="w3-half">
-              <button class="w3-button w3-block w3-green w3-section" title="Accept"><i class="fa fa-check"></i></button>
-            </div>
-            <div class="w3-half">
-              <button class="w3-button w3-block w3-red w3-section" title="Decline"><i class="fa fa-remove"></i></button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <br>
-<!--       
-      <div class="w3-card w3-round w3-white w3-padding-16 w3-center">
-        <p>ADS</p>
-      </div>
-      <br>
-      
-      <div class="w3-card w3-round w3-white w3-padding-32 w3-center">
-        <p><i class="fa fa-bug w3-xxlarge"></i></p>
-      </div>
-       -->
-    <!-- End Right Column -->
-    </div>
-    
   <!-- End Grid -->
   </div>
-  
 <!-- End Page Container -->
 </div>
 <br>
