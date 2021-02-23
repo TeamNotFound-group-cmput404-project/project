@@ -12,8 +12,9 @@ from django.contrib.auth.models import User
 
 
 class SignUpForm(UserCreationForm):
-
+    email  = forms.EmailField()
     class Meta:
-        model = UserProfile
-        fields = ('email', 'password', 'comfirm password', 'username', 'github-url', )
+        model = User
+        # not implement url yet
+        fields = ['username','email','password1', 'password2',]
        
