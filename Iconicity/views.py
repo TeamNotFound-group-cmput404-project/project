@@ -224,10 +224,28 @@ def signup(request):
 @login_required
 def main_page(request):
     userProfile = getUserProfile(request.user)
+
+    # get all the posts posted by the current user
+    post_object_list = [obj.as_dict() for obj in getPosts(userProfile)]
+    
+    if len(post_object_list) == 0:
+        post_json = None
+    else:
+        post_json=json.dumps(post_object_list)
+    #print("post_json",post_json)
+    #print(type(post_json))
     context = {
-        'posts': posts,
+        'posts': post_json,
         'UserProfile': userProfile
     }
+
+    """Note:
+    Consider that there are case when there's no posts of this author
+    change main_page.html so that it looks better when there's no post for
+    from author.
+
+    finish this and delete this comment block.
+    """
     return render(request, 'Iconicity/main_page.html', context)
 
 def createUserProfile(Display_name, User, Github, host):
@@ -241,3 +259,6 @@ def createUserProfile(Display_name, User, Github, host):
 def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
+
+def getPosts(userProfile):
+    return Post.objects.filter(author=userProfile)
