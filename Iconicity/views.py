@@ -1,10 +1,20 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse
 from django.http import HttpResponse
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core import serializers
 import json
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.shortcuts import render, redirect
+from .forms import ProfileUpdateForm
+
+from .forms import SignUpForm
+from django.contrib.auth.decorators import login_required
+from django.views import View
+
+#https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
@@ -109,43 +119,87 @@ author = {
 
 
 
-def get(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+def getAuthor(id):
+    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+    jsonload = json.loads(author_profile)[0]
+    raw_id = jsonload['pk']
+    jsonload = jsonload['fields']
+    temp = str(jsonload['host']) + '/author/' + str(raw_id)
+    jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
+    jsonload['url'] = jsonload['user_id']
+    return Response(jsonload)
 
-    return Response(json.loads(author_profile)[0]['fields'])
+def postAuthor(id):
+    # update author profile
+    pass
 
+# not in use at this moment
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
-        return Response(json.loads(author_profile)[0]['fields'])
+        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+        jsonload = json.loads(author_profile)[0]
+        raw_id = jsonload['pk']
+        jsonload = jsonload['fields']
+        temp = str(jsonload['host']) + '/author/' + str(raw_id)
+        jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
+        jsonload['url'] = jsonload['user_id']
+        return Response(jsonload)
+        
+# get all followers this author has
+# id is the author's id
+def getFollowers(id):
+    authorfollow = getAuthor(id).data['follow'] # return followe list of this author
+    # now it should be a list of urls.
 
+    
+    print(type(authorfollow))
+    print(authorfollow)
+    #print(json.loads(authorfollow))
+    
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    def post(self,request):
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            try:
+                form.clean()
+            except ValidationError:
+                return render(
+                    request,
+                    'Iconicity/login.html',
+                    { 'form': form, 'invalid_creds': True }
+                )
 
+            login(request, form.get_user())
 
-def login(request):
-    return render(request, 'Iconicity/login.html')
+            return redirect(reverse('main_page'))
+
+        return render(request, 'Iconicity/login.html', { 'form': form })
+
+# citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
+
 def signup(request):
-    return render(request, 'Iconicity/signup.html')
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('main_page')
+            
+    else:
+        form = SignUpForm()
+    return render(request, 'Iconicity/signup.html', {'form': form})
+
+@login_required
 def main_page(request):
+    print(request.user.id)
+    print(request.user.username)
     context = {
         'posts': posts
     }
     return render(request, 'Iconicity/main_page.html', context)
-
-#john = UserProfile.objects.create(user_id="c5c6d006-337d-4e3f-b86e-19f991331d24",display_name="john",host="www.1233213")
-#ryan = UserProfile.objects.create(user_id="c5c6d006-337d-4e3f-b86e-19f991331d25",display_name="ryan",host="www.1233213")
-#john.save()
-#ryan.save()
-'''
-print("herererre")
-new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-data = serializers.serialize("json", UserProfile.objects.filter(user_id="c5c6d006-337d-4e3f-b86e-19f991331d24"))
-print(data)
-print(type(data))
-print(type(get("c5c6d006-337d-4e3f-b86e-19f991331d24")))
-print(new.display_name)
-
-print(json.loads(data)[0]['fields'])'''
-#new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-#print(new)
-#print(new.data)
