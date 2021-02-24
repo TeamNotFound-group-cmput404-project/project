@@ -223,10 +223,10 @@ def signup(request):
 
 @login_required
 def main_page(request):
-    print(request.user.id)
-    print(request.user.username)
+    userProfile = getUserProfile(request.user)
     context = {
-        'posts': posts
+        'posts': posts,
+        'UserProfile': userProfile
     }
     return render(request, 'Iconicity/main_page.html', context)
 
@@ -238,5 +238,6 @@ def createUserProfile(Display_name, User, Github, host):
     profile.url = str(host) + '/author/' + str(profile.uid)
     profile.save()
 
-
-    
+def getUserProfile(currentUser):
+    # return a UserProfile object for the current login user
+    return UserProfile.objects.filter(user=currentUser).first()
