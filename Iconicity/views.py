@@ -162,7 +162,6 @@ def signup(request):
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            # email = form.cleaned_data.get(email)
             user = authenticate(username=username, password=raw_password)
             login(request, user)
             return redirect('main_page')

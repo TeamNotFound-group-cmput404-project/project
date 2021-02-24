@@ -46,6 +46,12 @@ color: rgba(0, 0, 0, 0.5);
   height: 150px;
   
 }
+small{
+  color:gray;
+}
+#error{
+  color:red;
+}
 input{
   width: 100%;
   padding: 15px 16px;
@@ -59,7 +65,7 @@ input{
 }
 
 
-#sign-in {
+#signup{
   width:100%;
   margin:10px 0;
   display:inline-block;
