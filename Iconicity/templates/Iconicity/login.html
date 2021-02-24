@@ -1,17 +1,54 @@
+{% extends 'Iconicity/base.html' %}
 {% load static %}
+{% block content %}
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" type  = "text/css" href = "{% static 'css/login-page.css' %}">
+<link rel="stylesheet" type="text/css" href = "{% static 'css/login-page.css' %}">
 </head>
-<body>
 <div class = "header">
 <h2 id="logo-img" alt="Logo image"></h1>
 <h1>Iconicity</h1>
 </div>
-<input type="text" name="email" id="email-field" placeholder="Email">
+
+<body>
+<form method='POST'>
+  {% csrf_token %}
+  <div class="field">
+    <label for="{{ form.username.id_for_label }}" class="label">
+      Username
+    </label>
+    <div class="control">
+      {{ form.username }}
+    </div>
+    <p class="help is-danger">{{ form.username.errors }}</p>
+  </div>
+
+  <div class="field">
+    <label for="{{ form.password.id_for_label }}" class="label">
+      Password
+    </label>
+    <div class="control">
+      {{ form.password}}
+    </div>
+    <p class="help is-danger">{{ form.password.errors }}</p>
+  </div>
+  <div class = "sign">
+    <a href="main">
+    <button class = button1>sign in </button>
+    </a>
+    <a href="signup">
+    <button class = button>sign up </button>
+    </a>
+  </div>
+
+</form>
+{% endblock %}
+
+<!--
+<input type="text" name="username" id="username-field" placeholder="username">
 <input type="password" name="password" id="password-field" placeholder="Password">
 <div class = "sign">
   <a href="main">
@@ -23,3 +60,4 @@
 </div>
 </body>
 </html>
+-->

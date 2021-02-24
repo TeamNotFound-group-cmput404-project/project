@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse
 from django.http import HttpResponse
 from .models import *
 from rest_framework.views import APIView
@@ -6,8 +6,17 @@ from rest_framework.response import Response
 from django.core import serializers
 import json
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
+from .forms import ProfileUpdateForm
+
+from .forms import SignUpForm
+from django.contrib.auth.decorators import login_required
+from django.views import View
+from django.contrib.auth import logout
+from django.http.request import HttpRequest
+
+#https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 posts = [
@@ -112,21 +121,24 @@ author = {
 
 
 def getAuthor(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
     raw_id = jsonload['pk']
     jsonload = jsonload['fields']
     temp = str(jsonload['host']) + '/author/' + str(raw_id)
     jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
     jsonload['url'] = jsonload['user_id']
-    print(jsonload)
     return Response(jsonload)
+
+def postAuthor(id):
+    # update author profile
+    pass
 
 # not in use at this moment
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(user_id=id))
+        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
         jsonload = json.loads(author_profile)[0]
         raw_id = jsonload['pk']
         jsonload = jsonload['fields']
@@ -146,49 +158,81 @@ def getFollowers(id):
     print(authorfollow)
     #print(json.loads(authorfollow))
     
+def logout_view(request):
+    # in use, support log out
+    # http://www.learningaboutelectronics.com/Articles/How-to-create-a-logout-button-in-Django.php
+    if request.method == 'POST':
+        logout(request)
+        return redirect(reverse('login'))
+    
+    
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    def post(self,request):
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            try:
+                form.clean()
+            except ValidationError:
+                return render(
+                    request,
+                    'Iconicity/login.html',
+                    { 'form': form, 'invalid_creds': True }
+                )
 
+            login(request, form.get_user())
 
+            return redirect(reverse('main_page'))
+
+        return render(request, 'Iconicity/login.html', { 'form': form })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
-def login(request,user):
-    print("your are at login page")
-    return render(request, 'Iconicity/login.html')
+
+
+"""TODO:
+Question asked by Qianxi:
+for the following two lines:
+
+user = authenticate(username=username, password=raw_password)
+login(request, user)
+
+we need exception handling.
+
+Finish it and delete this comment block
+"""
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
+            User = authenticate(username=username, password=raw_password)
+            Github = form.cleaned_data.get('github')
+            host = request.get_host()
+            createUserProfile(username, User, Github, host)
+
+            login(request, User)
             return redirect('main_page')
             
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
+@login_required
 def main_page(request):
+    print(request.user.id)
+    print(request.user.username)
     context = {
         'posts': posts
     }
     return render(request, 'Iconicity/main_page.html', context)
-'''
-john3 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b88e-19f991331d24",display_name="john3",host="www.1233213",follow=["http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25"])
-ryan2 = UserProfile.objects.create(user_id="http://127.0.0.1:5454/author/c5c6d006-338d-4e3f-b86e-19f991331d25",display_name="ryan2",host="www.1233213")
-john3.save()
-ryan2.save()'''
-'''
-print("herererre")
-new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-data = serializers.serialize("json", UserProfile.objects.filter(user_id="c5c6d006-337d-4e3f-b86e-19f991331d24"))
-print(data)
-print(type(data))
-print(type(get("c5c6d006-337d-4e3f-b86e-19f991331d24")))
-print(new.display_name)
 
-print(json.loads(data)[0]['fields'])'''
-#new = get("c5c6d006-337d-4e3f-b86e-19f991331d24")
-#print(new)
-#print(new.data)
-#print(getFollowers("c5c6d006-338d-4e3f-b88e-19f991331d24"))
+def createUserProfile(Display_name, User, Github, host):
+    profile = UserProfile(user=User, 
+                          display_name=Display_name,
+                          github=Github,
+                          host=host)
+    profile.url = str(host) + '/author/' + str(profile.uid)
+    profile.save()
