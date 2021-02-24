@@ -14,6 +14,7 @@ from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.contrib.auth import logout
+from django.http.request import HttpRequest
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
@@ -189,6 +190,18 @@ class LoginView(View):
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
+
+"""TODO:
+Question asked by Qianxi:
+for the following two lines:
+
+user = authenticate(username=username, password=raw_password)
+login(request, user)
+
+we need exception handling.
+
+Finish it and delete this comment block
+"""
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -196,8 +209,12 @@ def signup(request):
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
+            User = authenticate(username=username, password=raw_password)
+            Github = form.cleaned_data.get('github')
+            host = request.get_host()
+            createUserProfile(username, User, Github, host)
+
+            login(request, User)
             return redirect('main_page')
             
     else:
@@ -206,9 +223,42 @@ def signup(request):
 
 @login_required
 def main_page(request):
-    print(request.user.id)
-    print(request.user.username)
+    userProfile = getUserProfile(request.user)
+
+    # get all the posts posted by the current user
+    post_object_list = [obj.as_dict() for obj in getPosts(userProfile)]
+    
+    if len(post_object_list) == 0:
+        post_json = None
+    else:
+        post_json=json.dumps(post_object_list)
+    #print("post_json",post_json)
+    #print(type(post_json))
     context = {
-        'posts': posts
+        'posts': post_json,
+        'UserProfile': userProfile
     }
+
+    """Note:
+    Consider that there are case when there's no posts of this author
+    change main_page.html so that it looks better when there's no post for
+    from author.
+
+    finish this and delete this comment block.
+    """
     return render(request, 'Iconicity/main_page.html', context)
+
+def createUserProfile(Display_name, User, Github, host):
+    profile = UserProfile(user=User, 
+                          display_name=Display_name,
+                          github=Github,
+                          host=host)
+    profile.url = str(host) + '/author/' + str(profile.uid)
+    profile.save()
+
+def getUserProfile(currentUser):
+    # return a UserProfile object for the current login user
+    return UserProfile.objects.filter(user=currentUser).first()
+
+def getPosts(userProfile):
+    return Post.objects.filter(author=userProfile)
