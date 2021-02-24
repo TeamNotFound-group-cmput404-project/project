@@ -14,6 +14,7 @@ from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.contrib.auth import logout
+from django.http.request import HttpRequest
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
@@ -189,6 +190,18 @@ class LoginView(View):
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
+
+"""TODO:
+Question asked by Qianxi:
+for the following two lines:
+
+user = authenticate(username=username, password=raw_password)
+login(request, user)
+
+we need exception handling.
+
+Finish it and delete this comment block
+"""
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -196,8 +209,12 @@ def signup(request):
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
+            User = authenticate(username=username, password=raw_password)
+            Github = form.cleaned_data.get('github')
+            host = request.get_host()
+            createUserProfile(username, User, Github, host)
+
+            login(request, User)
             return redirect('main_page')
             
     else:
@@ -212,3 +229,14 @@ def main_page(request):
         'posts': posts
     }
     return render(request, 'Iconicity/main_page.html', context)
+
+def createUserProfile(Display_name, User, Github, host):
+    profile = UserProfile(user=User, 
+                          display_name=Display_name,
+                          github=Github,
+                          host=host)
+    profile.url = str(host) + '/author/' + str(profile.uid)
+    profile.save()
+
+
+    
