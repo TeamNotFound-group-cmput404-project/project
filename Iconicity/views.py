@@ -13,6 +13,7 @@ from .forms import ProfileUpdateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
+from django.contrib.auth import logout
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
@@ -156,6 +157,13 @@ def getFollowers(id):
     print(type(authorfollow))
     print(authorfollow)
     #print(json.loads(authorfollow))
+    
+def logout_view(request):
+    # in use, support log out
+    if request.method == 'POST':
+        logout(request)
+        return redirect(reverse('login'))
+    
     
 class LoginView(View):
     def get(self, request):
