@@ -160,6 +160,7 @@ def getFollowers(id):
     
 def logout_view(request):
     # in use, support log out
+    # http://www.learningaboutelectronics.com/Articles/How-to-create-a-logout-button-in-Django.php
     if request.method == 'POST':
         logout(request)
         return redirect(reverse('login'))
