@@ -27,7 +27,7 @@ color: rgba(0, 0, 0, 0.5);
 }
 
 input[type=text], input[type=password] {
-  width: 50%;
+  width: 100%;
   padding: 12px 20px;
   margin: 10px 0;
   align-items: center;
@@ -37,13 +37,13 @@ input[type=text], input[type=password] {
   color: #555151;
   background-color: #e0dcdc
 }
-.sign{
+/* #sign,#signin{
   position:relative;
   float:left;
   width:50%;
   text-align:center;
   
-}
+} */
 .button1{
   width:50%;
   margin:10px 0;
@@ -60,7 +60,7 @@ input[type=text], input[type=password] {
 }
   
 .button{
-  width:50%;
+  width:30%;
   margin:10px 0;
   display:inline-block;
   height:33px;
