@@ -129,7 +129,7 @@ article, aside, figure, footer, header, hgroup,
    <div class="w3-dropdown-hover w3-hide-small w3-right">
      <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>     
      <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
-      <form id="logoutform" action="{% url 'logout' %}", method='POST'>
+      <form id="logoutform" action="{% url 'logout' %}" method='POST'>
         {% csrf_token %}
         <a href="#" class="w3-bar-item w3-button" onClick="document.getElementById('logoutform').submit()">Sign Out</a>
       </form>
@@ -178,36 +178,42 @@ article, aside, figure, footer, header, hgroup,
         <div class="w3-col m12">
           <div class="w3-card w3-round w3-white">
 
-            <!-- Text Box-->
-            <div class="w3-container w3-padding">
-              <h6 class="w3-opacity">What's good?</h6>
-              <p contenteditable="true" class="w3-border w3-padding"> </p>
-            </div>
-            
-            <!-- Image Selection-->
-            <div class="w3-container w3-padding">
-              <div class="image-upload">
-                <label for="file-input">
-                    <img src="/static/css/icon_image.webp"/>
-                </label>
-                <input type='file' id="file-input" hidden onchange="readURL(this);" />
+            <!-- By: Shuwei Wang-->
+            <!-- The post form for the post functionality-->
+            <form id="makePostForm" action="{% url 'make_post' %}" method="POST">
+              {% csrf_token %}
+              <!-- Text Box-->
+              <div class="w3-container w3-padding">
+                <h6 class="w3-opacity">What's good?</h6>
+                <!--Post content-->
+                <p id="nicePostTextbox" contenteditable="true" class="w3-border w3-padding"> </p>
+                <input type="hidden" id="postTextInput" name="postTextInput"
+                value="document.getElementById('nicePostTextbox').value">
               </div>
+              
+              <!-- Image Selection-->
+              <div class="w3-container w3-padding">
+                <div class="image-upload">
+                  <label for="file-input">
+                      <img src="/static/css/icon_image.webp"/>
+                  </label>
+                  <input type='file' id="file-input" name="image" hidden onchange="readURL(this);" />
+                </div>
 
-              <!-- <label for="actual-btn">Image</label>
-              <input type='file' id="actual-btn" hidden onchange="readURL(this);" /> -->
+                <!-- <label for="actual-btn">Image</label>
+                <input type='file' id="actual-btn" hidden onchange="readURL(this);" /> -->
 
-            </div>
-            
-            <!-- Image Preview -->
-            <div class="w3-container w3-padding w3-center">
-              <img id="blah"/>
-            </div>
-            
-             
-            <!-- Post Button-->
-            <div class="w3-container w3-padding">
-
-              <form action="/action_page.php">
+              </div>
+              
+              <!-- Image Preview -->
+              <div class="w3-container w3-padding w3-center">
+                <img id="blah"/>
+              </div>
+              
+              <!--Post author, object can be search by uid-->
+              <input type="hidden" id="postAuthorKey" name="postAuthorKey" value="{{ UserProfile.uid }}">
+              <!-- Post Button-->
+              <div class="w3-container w3-padding">
                 <label for="groups">Who can see this:</label>
                 <select name="groups" id="groups">
                   <option value="Public">Select..</option>
@@ -215,11 +221,13 @@ article, aside, figure, footer, header, hgroup,
                   <option value="Followers">Followers</option>
                 </select>
                 <br><br>
-              </form>
+                <!--onclick attribute modified by Shway Wang-->
+                <button type="button" class="w3-button w3-theme w3-left-align"
+                onclick="document.getElementById('makePostForm').submit()">
+                  <i class="fa fa-pencil"></i>  Post</button>
+              </div>
+            </form>
 
-              <button type="button" class="w3-button w3-theme w3-left-align"><i class="fa fa-pencil"></i>  Post</button>
-            </div>
-            
           </div>
         </div>
       </div>

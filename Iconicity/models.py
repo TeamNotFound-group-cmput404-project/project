@@ -39,11 +39,6 @@ class UserProfile(models.Model):
     follow = models.JSONField(default=dict)
 
 
-
-
-    
- 
-
 class Post(models.Model):
     # reference:
     # https://docs.djangoproject.com/en/3.1/ref/models/fields/

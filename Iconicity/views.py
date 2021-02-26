@@ -231,7 +231,7 @@ def main_page(request):
     if len(post_object_list) == 0:
         post_json = None
     else:
-        post_json=json.dumps(post_object_list)
+        post_json = json.dumps(post_object_list)
     #print("post_json",post_json)
     #print(type(post_json))
     context = {
@@ -248,6 +248,19 @@ def main_page(request):
     """
     return render(request, 'Iconicity/main_page.html', context)
 
+# make_post(request) is written by Shway Wang
+def make_post(request):
+	if request.method == 'POST':
+		post = request.POST
+		post_text = post['postTextInput']
+		author_key = post['postAuthorKey']
+		# since there is no image in the post spec, below is commented
+		#image_src = form.cleaned_data.get('file-input')
+		createNewPost(post_text, getUserProfile(author_key))
+		return redirect('main_page')
+
+
+
 def createUserProfile(Display_name, User, Github, host):
     profile = UserProfile(user=User, 
                           display_name=Display_name,
@@ -255,6 +268,12 @@ def createUserProfile(Display_name, User, Github, host):
                           host=host)
     profile.url = str(host) + '/author/' + str(profile.uid)
     profile.save()
+
+# by: Shway Wang, more parameters will be added later
+def createNewPost(content, author):
+	post = Post(content = content,
+				author = author)
+	post.save()
 
 def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
