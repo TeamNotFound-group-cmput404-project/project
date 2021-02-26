@@ -38,12 +38,6 @@ class UserProfile(models.Model):
     # I'm following / friend
     follow = models.JSONField(default=dict)
 
-
-
-
-    
- 
-
 class Post(models.Model):
     # reference:
     # https://docs.djangoproject.com/en/3.1/ref/models/fields/

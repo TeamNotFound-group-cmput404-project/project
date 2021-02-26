@@ -116,7 +116,6 @@ author = {
     "github": "http://github.com/laracroft"
 }
 
-
 # Create your views here.
 
 
