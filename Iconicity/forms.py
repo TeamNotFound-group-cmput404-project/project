@@ -9,7 +9,8 @@ https://www.youtube.com/watch?v=CQ90L5jfldw&list=RDCMUCCezIgC97PvUuR4_gbFUs5g&in
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile
+from django.db.models import fields
+from .models import UserProfile, Post
 
 class SignUpForm(UserCreationForm):
     github = forms.URLField(max_length=254, help_text='Optional.')
@@ -21,3 +22,8 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['display_name', 'github', 'host', 'follow']
+
+class PostsCreateForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'description', 'categories', 'content', 'visibility']
