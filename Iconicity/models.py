@@ -78,9 +78,9 @@ class Post(models.Model):
 
     # content itself
     content = models.TextField(default="")
-
+    
     # author field, make a foreign key to the userProfile class
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=UserProfile.uid)
 
     # categories field
     categories = models.JSONField(default=dict)
@@ -119,6 +119,10 @@ class Post(models.Model):
             value["post_id"] = str(value["post_id"])
             value["author_id"] = str(value["author_id"])
             values.append(value)
+        
+        for profile in UserProfile.objects.values():
+            print(type(profile['uid']))
+
         return values
     
     def get_absolute_url(self):
