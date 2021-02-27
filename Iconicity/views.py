@@ -169,6 +169,7 @@ def logout_view(request):
 class LoginView(View):
     def get(self, request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+        
     def post(self,request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
