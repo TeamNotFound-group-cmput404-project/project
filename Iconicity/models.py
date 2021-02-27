@@ -118,12 +118,10 @@ class Post(models.Model):
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
 
-    # https://stackoverflow.com/questions/15874233/output-django-queryset-as-json
     def as_dict(self):
         values = []
         temp = Post.objects.values()
         for value in temp:
-            print(type(value))
             value["post_id"] = str(value["post_id"])
             value["author_id"] = str(value["author_id"])
             values.append(value)
