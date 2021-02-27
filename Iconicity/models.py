@@ -2,6 +2,8 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.urls import reverse
+from django.forms.models import model_to_dict
 # Create your models here.
 
 """Reference (move to other locations later)
@@ -37,7 +39,6 @@ class UserProfile(models.Model):
 
     # I'm following / friend
     follow = models.JSONField(default=dict)
-
 
 class Post(models.Model):
     # reference:
@@ -111,24 +112,17 @@ class Post(models.Model):
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
 
-    # https://stackoverflow.com/questions/15874233/output-django-queryset-as-json
     def as_dict(self):
-        return {
-            "post_id":post_id,
-            "title":title,
-            "type":type,
-            "source":source,
-            "origin":origin,
-            "description":description,
-            "contentType":contentType,
-            "content":content,
-            "author":author,
-            "categories":categories,
-            #"count":count,
-            "comments":comments,
-            "published":published,
-            "visibility":visibility,
-            "unlisted":unlisted }
+        values = []
+        temp = Post.objects.values()
+        for value in temp:
+            value["post_id"] = str(value["post_id"])
+            value["author_id"] = str(value["author_id"])
+            values.append(value)
+        return values
+    
+    def get_absolute_url(self):
+        return reverse("main_page")
 
 
 class FriendRequest(models.Model):

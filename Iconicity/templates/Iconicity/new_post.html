@@ -11,7 +11,7 @@
 
 <!-- END FROM-->
 
-<title>Iconicity Home Page</title>
+<title>Create a Post</title>
 <meta charset="UTF-8">
 
 <!--Setting the viewport to make website look good on all devices-->
@@ -146,7 +146,7 @@ textarea {
    <div class="w3-dropdown-hover w3-hide-small w3-right">
      <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>     
      <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
-      <form id="logoutform" action="{% url 'logout' %}" method='POST'>
+      <form id="logoutform" action="{% url 'logout' %}", method='POST'>
         {% csrf_token %}
         <a href="#" class="w3-bar-item w3-button" onClick="document.getElementById('logoutform').submit()">Sign Out</a>
       </form>
@@ -167,102 +167,86 @@ textarea {
 
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
-<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">    
-  <!-- The Grid -->
-  <div class="w3-row">
-    <!-- Left Column -->
-    <div class="w3-col m3">
-      <!-- Profile -->
-      <div class="w3-card w3-round w3-white" >
-        <div class="w3-container">
-         <h4 class="w3-center w3-margin-top">My Profile</h4>
-         <hr>
-         <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i> {{ UserProfile.display_name }}</p>
-         <p><i class="fa fa-github fa-fw w3-margin-right w3-text-theme"></i> <a href="{{ UserProfile.github }}">{{ UserProfile.github }}</a>
-        </div>
-
-    </div>
-    <br>
-    
-    <!-- End Left Column -->
-    </div>
-    
+<div class="w3-container w3-content">    
     <!-- Middle Column -->
     <!-- By: Zhiqi Zhou-->
-    <div class="w3-col m7">
-    
-      <div class="w3-row-padding">
-        <div class="w3-col m12">
+        <br><br><br><br><br><br><br><br>
+        <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
 
+          <!-- Start of the Form-->
+          <form action="/main" method="POST">
+            {% csrf_token %}
+            <!-- Make Post Section-->
             <div class="w3-card w3-round w3-white">
 
               <!-- What's Good-->
               <div class="w3-container w3-padding">
-                <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
+                <h4 class="w3-opacity">What's good?</h4>
+              </div>
+
+              <!-- Title Box-->
+              <div class="w3-container">
+                <h6>Title</h6>
+                <input id="title" name="title" class="w3-border w3-padding"/>
+              </div>
+              
+              <!-- Description Box-->
+              <div class="w3-container">
+                <h6>Description</h6>
+                <input id="description" name="description" class="w3-border w3-padding"/>
+              </div>
+
+              <!-- Category Box-->
+              <div class="w3-container">
+                <h6>Category</h6>
+                <input id="category" name="categories" class="w3-border w3-padding"/>
+              </div>
+
+              <!-- Content Box-->
+              <div class="w3-container">
+                <h6>Content</h6>
+                <textarea id="texta" name="content" type="text"></textarea> 
+              </div>
+
+              <!-- Visibility Select-->
+              <div class="w3-container w3-padding">
+                <label for="visibility">Visibility:</label>
+                <select name="visibility" id="visibility">
+                  <option value="Public">Public</option>
+                  <option value="Followers">Friends</option>
+                </select>
+              </div>
+
+              <!-- Image Selection-->
+              <div class="w3-container w3-padding">
+                <div class="image-upload">
+                  <label for="image">
+                      <h6>Image:</6>
+                      <img src="/static/css/icon_image.webp"/>
+                  </label>
+                  <input type='file' id="image" hidden onchange="readURL(this);" />
+                </div>
+              </div>
+
+              <!-- Image Preview -->
+              <div class="w3-container w3-padding w3-center">
+                <img id="blah"/>
+              </div>
+
+              <!-- Post Button -->
+              <div class="w3-container w3-padding">
+                <input type="submit" value="Post" class="w3-button w3-theme" style="width: 80px;">
+                <!-- <button type="button" class="w3-button w3-theme w3-left-align"><i class="fa fa-check"></i>  Post</button> -->
               </div>
 
             </div>
+            <!-- End of Make Post Section-->
+          </form>
+          <!-- End of the Form-->
 
+          <br><br><br><br><br><br>
         </div>
-      </div>
 
-      <!-- This is the beginning of a post -->
-      <!-- Shway Wang added the for loop here -->
-      {% for post in posts %}
-      <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>{{ post.title }}</h1><br>
-        <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
-        <!-- <span class="w3-right w3-opacity">1 min</span> -->
-        <h4>{{ post.author.displayName }}</h4><br>
-        <hr class="w3-clear">
-        <p>{{ post.content }}</p>
-        <!-- Below are images -->
-        <div class="w3-row-padding" style="margin:0 -16px">
-          <div class="w3-half">
-            <img src="/static/css/nothernlight.jpg" style="width:100%" class="w3-margin-bottom">
-          </div>
-        
-        </div>
-        <hr class="w3-clear">
-        
-        <!-- Below are the like, comment and repost buttons -->
-        <button class="button w3-margin-bottom"><i class="fa fa-heart-o" style="font-size:20px;" ></i></button> 
-
-        <button class="button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
-
-        <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
-
-        <button onclick="myFunction('comment_id')" class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-          <div id="comment_id" class="w3-hide">
-            <!-- Comment Box-->
-            <h6 class="w3-opacity">Your Comment:</h6>
-            <p contenteditable="true" class="w3-border w3-padding"> </p>
-            <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
-          </div>
-      </div>
-      {% endfor %}
-      <!-- This is the end of a post -->
-      
-      <!-- Pagination-->
-      <br><br>
-      <div class="center">
-        <div class="pagination">
-        <a href="#">&laquo;</a>
-        <a href="#" class="active">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">4</a>
-        <a href="#">5</a>
-        <a href="#">6</a>
-        <a href="#">&raquo;</a>
-        </div>
-      </div>
-      <!-- End of Pagination-->
-
-    <!-- End Middle Column -->
-    </div>
-  <!-- End Grid -->
-  </div>
 <!-- End Page Container -->
 </div>
 <br>
