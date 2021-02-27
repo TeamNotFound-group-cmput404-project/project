@@ -188,5 +188,6 @@ def new_post(request):
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
-    fields = '__all__'
-
+    fields = ('title', 'content', 'author', 'contentType', 'visibility', )
+    # fields = "__all__"
+    # Post.author = UserProfile.objects.values()['uid']
