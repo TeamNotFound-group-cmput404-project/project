@@ -22,7 +22,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
 
-
 def getAuthor(id):
     author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
@@ -190,3 +189,4 @@ class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
     fields = '__all__'
+
