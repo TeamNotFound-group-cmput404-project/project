@@ -48,26 +48,26 @@ class AuthorProfile(APIView):
         jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
         jsonload['url'] = jsonload['user_id']
         return Response(jsonload)
-        
+
 # get all followers this author has
 # id is the author's id
 def getFollowers(id):
     authorfollow = getAuthor(id).data['follow'] # return followe list of this author
     # now it should be a list of urls.
 
-    
+
     print(type(authorfollow))
     print(authorfollow)
     #print(json.loads(authorfollow))
-    
+
 def logout_view(request):
     # in use, support log out
     # http://www.learningaboutelectronics.com/Articles/How-to-create-a-logout-button-in-Django.php
     if request.method == 'POST':
         logout(request)
         return redirect(reverse('login'))
-    
-    
+
+
 class LoginView(View):
     def get(self, request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
@@ -117,7 +117,7 @@ def signup(request):
 
             login(request, User)
             return redirect('main_page')
-            
+
     else:
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
@@ -128,11 +128,11 @@ def main_page(request):
     # print(userProfile.uid)
     # get all the posts posted by the current user
     obj = getPosts(userProfile)
-    post_object_list = obj[0].as_dict()
 
-    if len(post_object_list) == 0:
+    if (obj.count() < 1):
         post_json = None
     else:
+        post_object_list = obj[0].as_dict()
         post_json=json.dumps(post_object_list, cls=DjangoJSONEncoder)
         post_json = json.loads(post_json)
 
@@ -151,7 +151,7 @@ def main_page(request):
     return render(request, 'Iconicity/main_page.html', context)
 
 def createUserProfile(Display_name, User, Github, host):
-    profile = UserProfile(user=User, 
+    profile = UserProfile(user=User,
                           display_name=Display_name,
                           github=Github,
                           host=host)
@@ -174,7 +174,7 @@ def new_post(request):
         if form.is_valid():
             print("True")
             form.save()
-        
+
         else:
             print(form.errors)
             form = PostsCreateForm()
@@ -183,7 +183,7 @@ def new_post(request):
             'form': form,
         }
         return render(request, template, context)
-    
+
 
 class AddPostView(CreateView):
     model = Post
