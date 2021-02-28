@@ -17,6 +17,7 @@ from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core import serializers
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
@@ -71,6 +72,7 @@ def logout_view(request):
 class LoginView(View):
     def get(self, request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+        
     def post(self,request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -125,19 +127,12 @@ def signup(request):
 @login_required
 def main_page(request):
     userProfile = getUserProfile(request.user)
-    # print(userProfile.uid)
     # get all the posts posted by the current user
-    obj = getPosts(userProfile)
-
-    if (obj.count() < 1):
-        post_json = None
-    else:
-        post_object_list = obj[0].as_dict()
-        post_json=json.dumps(post_object_list, cls=DjangoJSONEncoder)
-        post_json = json.loads(post_json)
-
+    obj = getPosts(request.user)
+    post_json = json.loads(obj)
+    new_list = [i['fields'] for i in post_json]
     context = {
-        'posts': post_json,
+        'posts': new_list,
         'UserProfile': userProfile
     }
 
@@ -162,8 +157,8 @@ def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
 
-def getPosts(userProfile):
-    return Post.objects.filter(author=userProfile)
+def getPosts(user): 
+    return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
 
 # @login_required
 def new_post(request):
@@ -188,6 +183,30 @@ def new_post(request):
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
-    fields = ('title', 'content', 'author', 'contentType', 'visibility', )
+    fields = ('title', 'content', 'contentType', 'visibility', )
     # fields = "__all__"
     # Post.author = UserProfile.objects.values()['uid']
+    def post(self, request):
+        print("posting")
+        template = "Iconicity/new_post.html"
+        form = PostsCreateForm(request.POST)
+
+        if form.is_valid():
+            print("posting...")
+            form = form.save(commit=False)
+            form.author = request.user
+            form.save()
+            return redirect('main_page')
+
+        else:
+            print(form.errors)
+            form = PostsCreateForm(request.POST)
+
+        context = {
+            'form': form,
+        }
+        return render(request, template, context)
+
+    def get(self, request):
+        print("getting")
+        return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })

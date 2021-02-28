@@ -80,7 +80,7 @@ class Post(models.Model):
     content = models.TextField(default="")
     
     # author field, make a foreign key to the userProfile class
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
 
     # categories field
     categories = models.JSONField(default=dict)
@@ -111,19 +111,6 @@ class Post(models.Model):
     # unlisted means it is public if you know the post name -- use this for 
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
-
-    def as_dict(self):
-        values = []
-        temp = Post.objects.values()
-        for value in temp:
-            value["post_id"] = str(value["post_id"])
-            value["author_id"] = str(value["author_id"])
-            values.append(value)
-        
-        for profile in UserProfile.objects.values():
-            print(type(profile['uid']))
-
-        return values
     
     def get_absolute_url(self):
         return reverse("main_page")
@@ -189,5 +176,3 @@ class Inbox(models.Model):
     # if you wish to get the item list, just parse it then you will get
     # a list of Post. 
     items = models.JSONField(default=dict)
-
-
