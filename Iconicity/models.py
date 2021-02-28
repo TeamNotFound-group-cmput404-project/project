@@ -111,6 +111,9 @@ class Post(models.Model):
     # unlisted means it is public if you know the post name -- use this for 
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
+
+
+    image64 = models.ImageField(upload_to='usr_img/', default="")
     
     def get_absolute_url(self):
         return reverse("main_page")

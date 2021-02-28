@@ -188,8 +188,9 @@ class AddPostView(CreateView):
     def post(self, request):
         print("posting")
         template = "Iconicity/post_form.html"
-        form = PostsCreateForm(request.POST)
-
+        form = PostsCreateForm(request.POST, request.FILES,)
+        print(request.FILES)
+        
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
