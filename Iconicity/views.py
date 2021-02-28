@@ -72,7 +72,7 @@ def logout_view(request):
 class LoginView(View):
     def get(self, request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-        
+
     def post(self,request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -157,7 +157,7 @@ def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
 
-def getPosts(user): 
+def getPosts(user):
     return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
 
 # @login_required
@@ -183,12 +183,11 @@ def new_post(request):
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
-    fields = ('title', 'content', 'contentType', 'visibility', )
     # fields = "__all__"
     # Post.author = UserProfile.objects.values()['uid']
     def post(self, request):
         print("posting")
-        template = "Iconicity/new_post.html"
+        template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST)
 
         if form.is_valid():
