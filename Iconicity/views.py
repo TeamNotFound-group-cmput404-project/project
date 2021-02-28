@@ -154,12 +154,6 @@ def createUserProfile(Display_name, User, Github, host):
     profile.url = str(host) + '/author/' + str(profile.uid)
     profile.save()
 
-# by: Shway Wang, more parameters will be added later
-def createNewPost(content, author):
-	post = Post(content = content,
-				author = author)
-	post.save()
-
 def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()

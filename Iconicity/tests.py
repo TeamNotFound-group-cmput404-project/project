@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 from Iconicity.views import LoginView, logout_view, signup
-from Iconicity.views import main_page, make_post, new_post, AddPostView
+from Iconicity.views import main_page, new_post, AddPostView
 # Create your tests here.
 class TestUrls(SimpleTestCase):
 	def test_if_login_resolved(self):
@@ -20,10 +20,6 @@ class TestUrls(SimpleTestCase):
 	def test_if_main_page_resolved(self):
 		url = reverse('main_page')
 		self.assertEquals(resolve(url).func, main_page)
-
-	def test_if_make_post_resolved(self):
-		url = reverse('make_post')
-		self.assertEquals(resolve(url).func, make_post)
 
 	def test_if_new_post_resolved(self):
 		url = reverse('new_post')
