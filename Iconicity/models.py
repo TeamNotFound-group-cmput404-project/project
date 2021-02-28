@@ -80,7 +80,7 @@ class Post(models.Model):
     content = models.TextField(default="")
     
     # author field, make a foreign key to the userProfile class
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=UserProfile.uid)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     # categories field
     categories = models.JSONField(default=dict)
