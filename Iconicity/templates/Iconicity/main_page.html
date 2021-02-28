@@ -146,7 +146,7 @@ textarea {
    <div class="w3-dropdown-hover w3-hide-small w3-right">
      <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>     
      <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
-      <form id="logoutform" action="{% url 'logout' %}", method='POST'>
+      <form id="logoutform" action="{% url 'logout' %}" method='POST'>
         {% csrf_token %}
         <a href="#" class="w3-bar-item w3-button" onClick="document.getElementById('logoutform').submit()">Sign Out</a>
       </form>
@@ -194,7 +194,6 @@ textarea {
       <div class="w3-row-padding">
         <div class="w3-col m12">
 
-          
             <div class="w3-card w3-round w3-white">
 
               <!-- What's Good-->

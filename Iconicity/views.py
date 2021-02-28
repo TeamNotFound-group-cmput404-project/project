@@ -145,6 +145,7 @@ def main_page(request):
     """
     return render(request, 'Iconicity/main_page.html', context)
 
+
 def createUserProfile(Display_name, User, Github, host):
     profile = UserProfile(user=User,
                           display_name=Display_name,
