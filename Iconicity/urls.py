@@ -9,7 +9,7 @@ urlpatterns = [
 	path('signup',views.signup,name = 'signup'),
 	path('main', views.main_page, name = 'main_page'),
 	#path('author', views.getUserProfile, name = 'userprofile')
-	path('new_post', views.new_post, name = 'new_post'),
+	# path('new_post', views.new_post, name = 'new_post'),
 	# path('main', views.finish_post, name = 'main_page'),
 	path('post_form', views.AddPostView.as_view(), name="post_form")
 ]

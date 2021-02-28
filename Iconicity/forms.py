@@ -26,4 +26,4 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostsCreateForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'description', 'categories', 'content', 'visibility']
+        fields = ['title', 'content', 'visibility']
