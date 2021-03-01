@@ -20,8 +20,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 
 #https://thecodinginterface.com/blog/django-auth-part1/
-# Shway Wang put this here:
-# below is put here temperarily, just to display the format
 
 def getAuthor(id):
     author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
@@ -72,7 +70,7 @@ def logout_view(request):
 class LoginView(View):
     def get(self, request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-        
+
     def post(self,request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -136,7 +134,6 @@ def main_page(request):
         'posts': new_list,
         'UserProfile': userProfile
     }
-
     """Note:
     Consider that there are case when there's no posts of this author
     change main_page.html so that it looks better when there's no post for
@@ -145,6 +142,7 @@ def main_page(request):
     finish this and delete this comment block.
     """
     return render(request, 'Iconicity/main_page.html', context)
+
 
 def createUserProfile(Display_name, User, Github, host):
     profile = UserProfile(user=User,
@@ -158,40 +156,40 @@ def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
 
-def getPosts(user): 
+def getPosts(user):
     return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
 
 # @login_required
-def new_post(request):
-    if request.method == "GET":
-        template = "Iconicity/new_post.html"
-        form = PostsCreateForm(request.POST)
+# def new_post(request):
+#     if request.method == "GET":
+#         template = "Iconicity/new_post.html"
+#         form = PostsCreateForm(request.POST)
 
-        if form.is_valid():
-            print("True")
-            form.save()
+#         if form.is_valid():
+#             print("True")
+#             form.save()
 
-        else:
-            print(form.errors)
-            form = PostsCreateForm()
+#         else:
+#             print(form.errors)
+#             form = PostsCreateForm()
 
-        context = {
-            'form': form,
-        }
-        return render(request, template, context)
+#         context = {
+#             'form': form,
+#         }
+#         return render(request, template, context)
 
 
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
-    fields = ('title', 'content', 'contentType', 'visibility', )
     # fields = "__all__"
     # Post.author = UserProfile.objects.values()['uid']
     def post(self, request):
         print("posting")
-        template = "Iconicity/new_post.html"
-        form = PostsCreateForm(request.POST)
-
+        template = "Iconicity/post_form.html"
+        form = PostsCreateForm(request.POST, request.FILES,)
+        print(request.FILES)
+        
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)

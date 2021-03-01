@@ -17,7 +17,7 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('email', 'password1', 'password2', 'username', 'github', )
-       
+
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
@@ -26,4 +26,4 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostsCreateForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'description', 'categories', 'content', 'visibility']
+        fields = ['title', 'content', "image", 'visibility']
