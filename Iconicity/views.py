@@ -136,7 +136,7 @@ def main_page(request):
         'UserProfile': userProfile
     }
 
-    print(new_list[-1]['image'])
+    print(new_list)
 
     """Note:
     Consider that there are case when there's no posts of this author
