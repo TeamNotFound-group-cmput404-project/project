@@ -209,3 +209,20 @@ class AddPostView(CreateView):
     def get(self, request):
         print("getting")
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
+
+# By Shway, the friend requests stuff:
+def friendRequests_received_view(request):
+    profile = getUserProfile(request.user)
+    requests = FriendRequest.objects.friendRequests_received(profile)
+
+    context = {'requests': requests}
+
+    return render(request, 'Iconicity/frdRequests.html', context)
+
+def userProfile_list_view(request):
+    user = request.user
+    profiles = FriendRequest.objects.get_all_available_profiles(profile)
+
+    context = {'profiles': profiles}
+
+    return render(request, 'Iconicity/profile_list.html', context)
