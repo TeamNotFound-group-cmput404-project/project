@@ -1,5 +1,5 @@
-from django.shortcuts import render, resolve_url, reverse
-from django.http import HttpResponse
+from django.shortcuts import render, resolve_url, reverse, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,7 +18,7 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
-
+from django.urls import reverse
 #https://thecodinginterface.com/blog/django-auth-part1/
 # Shway Wang put this here:
 # below is put here temperarily, just to display the format
@@ -209,3 +209,8 @@ class AddPostView(CreateView):
     def get(self, request):
         print("getting")
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
+
+def like_view(request, pk):
+    post = get_object_or_404(Post, id=request.POST.get('post_id'))
+    post.like.add(request.user)
+    return HttpResponseRedirect(reverse('main_page'))

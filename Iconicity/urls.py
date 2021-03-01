@@ -11,5 +11,7 @@ urlpatterns = [
 	#path('author', views.getUserProfile, name = 'userprofile')
 	path('new_post', views.new_post, name = 'new_post'),
 	# path('main', views.finish_post, name = 'main_page'),
-	path('post_form', views.AddPostView.as_view(), name="post_form")
+	path('post_form', views.AddPostView.as_view(), name="post_form"),
+
+	path('like', views.like_view, name="like_post")
 ]

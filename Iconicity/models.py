@@ -13,14 +13,14 @@ user: https://docs.djangoproject.com/en/3.1/ref/contrib/auth/
 """
 class UserProfile(models.Model):
     # max length for the user display name
-    max_name_length = 30 
+    max_name_length = 30
 
     # user type
     user_type = models.CharField(max_length=10, default="author")
 
     # user id field
-    uid = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    uid = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -45,10 +45,10 @@ class Post(models.Model):
     # https://docs.djangoproject.com/en/3.1/ref/models/fields/
 
     # post id, it should be a primary key
-    post_id = models.UUIDField(primary_key=True, 
-                               default=uuid.uuid4, 
+    post_id = models.UUIDField(primary_key=True,
+                               default=uuid.uuid4,
                                editable=False)
-    
+
     # title field
     title = models.CharField(max_length=100, default="")
 
@@ -66,7 +66,7 @@ class Post(models.Model):
     # description
     # a brief description of the post
     description = models.CharField(max_length=250, default="")
-    
+
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
                                    choices=[('text/markdown', 'text/markdown'),
@@ -78,7 +78,7 @@ class Post(models.Model):
 
     # content itself
     content = models.TextField(default="")
-    
+
     # author field, make a foreign key to the userProfile class
     author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
 
@@ -90,6 +90,7 @@ class Post(models.Model):
 
     size = models.IntegerField(default=0)
 
+    like = models.ManyToManyField(User, related_name="blog_posts")
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)
@@ -104,14 +105,18 @@ class Post(models.Model):
     published = models.DateTimeField(default=timezone.now)
 
     # visibility ["PUBLIC","FRIENDS"]
-    visibility = models.CharField(max_length=10, 
+    visibility = models.CharField(max_length=10,
                                   choices=[("PUBLIC", "PUBLIC"),("FRIENDS","FRIENDS")],
                                   default="PUBLIC")
 
-    # unlisted means it is public if you know the post name -- use this for 
+    # unlisted means it is public if you know the post name -- use this for
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
-    
+
+    def count_like(self):
+        return  self.like.count()
+
+
     def get_absolute_url(self):
         return reverse("main_page")
 
@@ -128,8 +133,8 @@ class Comment(models.Model):
     # ISO 8601 TIMESTAMP
     # publish time
     published = models.DateTimeField(default=timezone.now)
-    id = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
     comment = models.TextField(default="")
     # contentType field, support different kinds of type choices
@@ -157,8 +162,8 @@ class LikeSingle(models.Model):
     just query some liked objects, encode into json format
     then the model can use this liked list. Same thing for comments.
     """
-    id = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
     type = models.CharField(max_length=10, default="Like")
     context = models.URLField(default="")
@@ -174,5 +179,5 @@ class Inbox(models.Model):
     # stores a list of Post items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
-    # a list of Post. 
+    # a list of Post.
     items = models.JSONField(default=dict)
