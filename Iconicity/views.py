@@ -1,5 +1,5 @@
-from django.shortcuts import render, resolve_url, reverse
-from django.http import HttpResponse
+from django.shortcuts import render, resolve_url, reverse, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,7 +8,7 @@ import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import ProfileUpdateForm
+from .forms import ProfileUpdateForm,UserUpdateForm
 from .forms import PostsCreateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
@@ -18,7 +18,7 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
-
+from django.urls import reverse
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
@@ -31,9 +31,6 @@ def getAuthor(id):
     jsonload['url'] = jsonload['user_id']
     return Response(jsonload)
 
-def postAuthor(id):
-    # update author profile
-    pass
 
 # not in use at this moment
 class AuthorProfile(APIView):
@@ -69,6 +66,11 @@ def logout_view(request):
 
 class LoginView(View):
     def get(self, request):
+        if not request.user.is_anonymous:
+            print("go to main")
+            print(request.user)
+            return redirect(reverse('main_page'))
+        
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
     def post(self,request):
@@ -124,14 +126,44 @@ def signup(request):
 
 @login_required
 def main_page(request):
+    # https://docs.djangoproject.com/en/3.1/topics/serialization/
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-    obj = getPosts(request.user)
-    post_json = json.loads(obj)
-    new_list = [i['fields'] for i in post_json]
+
+    temp = getPosts(request.user, visibility="FRIENDS")
+    new_list = []
+    comments = []
+    print("testing..")
+    getAllFollowAuthorPosts(request.user)
+    print("testing..")
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        # print("post_json",post_json)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            fields['comments'] = {}
+            
+            comments = getComments()
+            print("comments:\n", comments)
+
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+
+    # print(new_list)
+
     context = {
         'posts': new_list,
-        'UserProfile': userProfile
+        'comments': comments,
+        'UserProfile': userProfile,
     }
     """Note:
     Consider that there are case when there's no posts of this author
@@ -148,34 +180,52 @@ def createUserProfile(Display_name, User, Github, host):
                           display_name=Display_name,
                           github=Github,
                           host=host)
-    profile.url = str(host) + '/author/' + str(profile.uid)
+    profile.url = "https://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
+
+
+
+def getAllFollowAuthorPosts(currentUser):
+    userProfile = UserProfile.objects.filter(user=currentUser).first()
+    post_list = []
+    allFollowedAuthors = list(userProfile.get_followers())
+
+    for user in allFollowedAuthors:
+        # check whether they are friends.
+        # means a two-direct-follow
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        if otherUserProfile:
+            if currentUser in list(otherUserProfile.get_followers()):
+                print("they are friends")
+                temp = getPosts(user, visibility="FRIENDS") # join the post_list
+                print("temp",temp)
+                post_list += temp
+            else:
+                # one direct
+                # only public
+                post_list += getPosts(user, visibility="PUBLIC")# join the post_list
+        
+    print("current post_List")
+    print(post_list)
+    return post_list
+
 
 def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
 
-def getPosts(user):
-    return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
+def getPosts(user, visibility="PUBLIC"):
+    assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
+    if visibility == "PUBLIC":
+        # public can only see your public posts
+        return list(Post.objects.filter(author=user.id, visibility="PUBLIC"))
+    elif visibility == "FRIENDS":
+        # friends can see all your posts (public + friends posts)
+        return list(Post.objects.filter(author=user.id))
 
-# @login_required
-# def new_post(request):
-#     if request.method == "GET":
-#         template = "Iconicity/new_post.html"
-#         form = PostsCreateForm(request.POST)
+def getComments():
+    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
-#         if form.is_valid():
-#             print("True")
-#             form.save()
-
-#         else:
-#             print(form.errors)
-#             form = PostsCreateForm()
-
-#         context = {
-#             'form': form,
-#         }
-#         return render(request, template, context)
 
 
 class AddPostView(CreateView):
@@ -188,7 +238,7 @@ class AddPostView(CreateView):
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
         print(request.FILES)
-        
+
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
@@ -212,16 +262,67 @@ class AddPostView(CreateView):
 # By Shway, the friend requests stuff:
 def friendRequests_received_view(request):
     profile = getUserProfile(request.user)
+    print("here")
     requests = FriendRequest.objects.friendRequests_received(profile)
-
+    print("requests",requests)
     context = {'requests': requests}
-
+    
     return render(request, 'Iconicity/frdRequests.html', context)
 
 def userProfile_list_view(request):
     user = request.user
-    profiles = UserProfile.objects.get_all_available_profiles(user)
+    print("here")
+    profiles = FriendRequest.objects.get_all_available_profiles(profile)
 
     context = {'profiles': profiles}
-
+    
     return render(request, 'Iconicity/profile_list.html', context)
+
+def like_view(request):
+    post = get_object_or_404(Post, pk=request.POST.get('pk'))
+    post.like.add(request.user)
+    post.count = post.count_like()
+    print("count",post.count)
+    #post.count +=1
+    post.save()
+    print(1111)
+    print("post count",post.count)
+    print(post.like)
+    return redirect('main_page')
+def profile(request):
+    userProfile = getUserProfile(request.user)
+    
+    if request.method =="POST":
+        
+        user_form = UserUpdateForm(request.POST,instance = request.user)
+        
+        profile_form = ProfileUpdateForm(request.POST,instance = request.user.userprofile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+          
+            user_form.save()
+            profile_form.save()
+            return redirect('main_page')
+        
+    else: 
+        user_form = UserUpdateForm(instance = request.user)
+        profile_form = ProfileUpdateForm(instance = request.user.userprofile)
+        
+    context = {
+    'UserProfile': userProfile,
+    'user_form':user_form,
+    'profile_form':profile_form,
+    }
+    return render(request,'Iconicity/profile.html', context)
+
+def public(request):
+    return render(request,'Iconicity/public.html')
+
+def mypost(request):
+    return render(request,'Iconicity/my_post.html')
+
+def following(request):
+    return render(request,'Iconicity/follow.html')
+
+def friends(request):
+    return render(request,'Iconicity/friends.html')
