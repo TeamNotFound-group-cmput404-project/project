@@ -126,6 +126,7 @@ def signup(request):
 
 @login_required
 def main_page(request):
+    # https://docs.djangoproject.com/en/3.1/topics/serialization/
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
     obj = getPosts(request.user)
