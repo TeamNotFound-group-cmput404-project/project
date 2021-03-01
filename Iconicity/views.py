@@ -20,8 +20,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 
 #https://thecodinginterface.com/blog/django-auth-part1/
-# Shway Wang put this here:
-# below is put here temperarily, just to display the format
 
 def getAuthor(id):
     author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
