@@ -57,6 +57,7 @@ class Migration(migrations.Migration):
                 ('published', models.DateTimeField(default=django.utils.timezone.now)),
                 ('visibility', models.CharField(choices=[('PUBLIC', 'PUBLIC'), ('FRIENDS', 'FRIENDS')], default='PUBLIC', max_length=10)),
                 ('unlisted', models.BooleanField(default=False)),
+                ('image', models.ImageField(blank=True, null=True, upload_to='images/')),
                 ('author', models.ForeignKey(default=django.contrib.auth.models.User, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
