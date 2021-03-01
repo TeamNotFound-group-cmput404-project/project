@@ -189,25 +189,6 @@ def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
 
-# @login_required
-# def new_post(request):
-#     if request.method == "GET":
-#         template = "Iconicity/new_post.html"
-#         form = PostsCreateForm(request.POST)
-
-#         if form.is_valid():
-#             print("True")
-#             form.save()
-
-#         else:
-#             print(form.errors)
-#             form = PostsCreateForm()
-
-#         context = {
-#             'form': form,
-#         }
-#         return render(request, template, context)
-
 
 class AddPostView(CreateView):
     model = Post
