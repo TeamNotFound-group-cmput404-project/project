@@ -13,5 +13,7 @@ urlpatterns = [
 	#path('author', views.getUserProfile, name = 'userprofile')
 	# path('new_post', views.new_post, name = 'new_post'),
 	# path('main', views.finish_post, name = 'main_page'),
+	path('like', views.like_view, name="like_post"),
+
 	path('post_form', views.AddPostView.as_view(), name="post_form")
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
