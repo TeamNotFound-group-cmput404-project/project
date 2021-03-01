@@ -135,9 +135,6 @@ def main_page(request):
         'posts': new_list,
         'UserProfile': userProfile
     }
-
-    print(new_list)
-
     """Note:
     Consider that there are case when there's no posts of this author
     change main_page.html so that it looks better when there's no post for
