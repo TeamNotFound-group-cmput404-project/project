@@ -1,0 +1,23 @@
+{% extends 'Iconicity/base.html'%}
+{% load crispy_forms_tags %}
+{% block content %}
+<div classs = "content-section">
+    <div class = "media-body">
+    <!-- <h2 class = "account-heading">{{UserProfile.display_name}}</h2>
+    <p class = "text-secondary">{{UserProfile.github}}</p> -->
+    </div>
+        
+
+</div>
+<form method = "POST">
+    {% csrf_token %}
+    <fieldset class = "form-group">
+        <legend class = "border-bottom mb-4">Profile</legend>
+        {{user_form|crispy}}
+    
+    </fieldset>
+    <div class = "form-group">
+        <button class = "btn btn-outline-info" type  = "submit">Update</button>
+    </div>
+</form>
+{% endblock %}

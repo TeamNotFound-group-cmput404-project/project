@@ -8,7 +8,7 @@ import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import ProfileUpdateForm
+from .forms import ProfileUpdateForm,UserUpdateForm
 from .forms import PostsCreateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
@@ -289,3 +289,40 @@ def like_view(request):
     print("post count",post.count)
     print(post.like)
     return redirect('main_page')
+def profile(request):
+    userProfile = getUserProfile(request.user)
+    
+    if request.method =="POST":
+        
+        user_form = UserUpdateForm(request.POST,instance = request.user)
+        
+        profile_form = ProfileUpdateForm(request.POST,instance = request.user.userprofile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+          
+            user_form.save()
+            profile_form.save()
+            return redirect('main_page')
+        
+    else: 
+        user_form = UserUpdateForm(instance = request.user)
+        profile_form = ProfileUpdateForm(instance = request.user.userprofile)
+        
+    context = {
+    'UserProfile': userProfile,
+    'user_form':user_form,
+    'profile_form':profile_form,
+    }
+    return render(request,'Iconicity/profile.html', context)
+
+def public(request):
+    return render(request,'Iconicity/public.html')
+
+def mypost(request):
+    return render(request,'Iconicity/my_post.html')
+
+def following(request):
+    return render(request,'Iconicity/follow.html')
+
+def friends(request):
+    return render(request,'Iconicity/friends.html')
