@@ -135,7 +135,6 @@ def main_page(request):
         'posts': new_list,
         'UserProfile': userProfile
     }
-
     """Note:
     Consider that there are case when there's no posts of this author
     change main_page.html so that it looks better when there's no post for
@@ -144,6 +143,7 @@ def main_page(request):
     finish this and delete this comment block.
     """
     return render(request, 'Iconicity/main_page.html', context)
+
 
 def createUserProfile(Display_name, User, Github, host):
     profile = UserProfile(user=User,
@@ -161,23 +161,23 @@ def getPosts(user):
     return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
 
 # @login_required
-def new_post(request):
-    if request.method == "GET":
-        template = "Iconicity/new_post.html"
-        form = PostsCreateForm(request.POST)
+# def new_post(request):
+#     if request.method == "GET":
+#         template = "Iconicity/new_post.html"
+#         form = PostsCreateForm(request.POST)
 
-        if form.is_valid():
-            print("True")
-            form.save()
+#         if form.is_valid():
+#             print("True")
+#             form.save()
 
-        else:
-            print(form.errors)
-            form = PostsCreateForm()
+#         else:
+#             print(form.errors)
+#             form = PostsCreateForm()
 
-        context = {
-            'form': form,
-        }
-        return render(request, template, context)
+#         context = {
+#             'form': form,
+#         }
+#         return render(request, template, context)
 
 
 class AddPostView(CreateView):
@@ -188,8 +188,9 @@ class AddPostView(CreateView):
     def post(self, request):
         print("posting")
         template = "Iconicity/post_form.html"
-        form = PostsCreateForm(request.POST)
-
+        form = PostsCreateForm(request.POST, request.FILES,)
+        print(request.FILES)
+        
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
