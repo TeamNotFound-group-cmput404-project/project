@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.urls import reverse
 from django.forms.models import model_to_dict
 # Create your models here.
-
+# Author, Followers, FriendRequest, Post, Comments, Likes, Liked, Inbox, 
 """Reference (move to other locations later)
 model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
 generate uuid: https://www.geeksforgeeks.org/generating-random-ids-using-uuid-python/
@@ -38,7 +38,20 @@ class UserProfile(models.Model):
     url = models.URLField(default="")
 
     # I'm following / friend
-    follow = models.JSONField(default=dict)
+    # follow = models.JSONField(default=dict)
+    # Potential change:
+    follow = models.ManyToManyField(User, related_name='friends', blank=True)
+
+    # By: Shway
+    def get_followers(self):
+        return self.follow.all()
+
+    def get_number_of_followers(self):
+        return self.follow.all().count()
+
+    def __str__(self):
+        return str(self.user)
+
 
 class Post(models.Model):
     # reference:
@@ -115,12 +128,32 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse("main_page")
 
+# By Shway:
+STATUS_CHOICES = (
+    ('actor', 'sender'),
+    ('accepted', 'accepted'),
+)
 
 class FriendRequest(models.Model):
+    # Type is set to follow
     type = models.CharField(max_length=10, default="Follow")
+
+    # Summary of following info
     summary = models.TextField(default="")
+
+    # Sender of this friend request:
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
+
+    # Reciever of this friend request:
     object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
+
+    # By: Shway
+    # For the receiver to choose to accept or reject:
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+    def __str__(self):
+        return f"{self.actor}-->{self.object_author}: {self.summary}, status: {self.status}"
+
 
 class Comment(models.Model):
     type = models.CharField(max_length=10, default="comment")
