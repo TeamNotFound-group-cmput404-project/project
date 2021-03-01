@@ -223,24 +223,23 @@ class AddPostView(CreateView):
 # By Shway, the friend requests stuff:
 def friendRequests_received_view(request):
     profile = getUserProfile(request.user)
+    print("here")
     requests = FriendRequest.objects.friendRequests_received(profile)
-
+    print("requests",requests)
     context = {'requests': requests}
-
+    
     return render(request, 'Iconicity/frdRequests.html', context)
 
 def userProfile_list_view(request):
     user = request.user
+    print("here")
     profiles = FriendRequest.objects.get_all_available_profiles(profile)
 
     context = {'profiles': profiles}
-
+    
     return render(request, 'Iconicity/profile_list.html', context)
+
 def like_view(request):
-    print("like_view ing")
-    # post = Post.objects.filter(post_id=request.POST.get('post_id'))
-    print(request.POST)
-    print("current post",request)
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
     post.like.add(request.user)
     post.count = post.count_like()
@@ -248,6 +247,6 @@ def like_view(request):
     #post.count +=1
     post.save()
     print(1111)
-    print("post count",post.count )
+    print("post count",post.count)
     print(post.like)
     return redirect('main_page')
