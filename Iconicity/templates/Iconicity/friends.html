@@ -1,0 +1,128 @@
+{% extends 'Iconicity/main_base.html'%}
+{% load static %}
+{% block content %}
+<!-- Page Container -->
+<!-- By: Zhiqi Zhou-->
+<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">
+  <!-- The Grid -->
+  <div class="w3-row">
+    <!-- Left Column -->
+    <div class="w3-col m3">
+      <!-- Profile -->
+     
+    <br>
+
+    <!-- End Left Column -->
+    </div>
+
+    <!-- Middle Column -->
+    <!-- By: Zhiqi Zhou-->
+    <div class="w3-col m7">
+
+      <div class="w3-row-padding">
+        <div class="w3-col m12">
+
+            <div class="w3-card w3-round w3-white">
+
+              <!-- What's Good-->
+              <div class="w3-container w3-padding">
+                <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
+              </div>
+
+            </div>
+
+        </div>
+      </div>
+
+      <!-- This is the beginning of a post -->
+      <!-- Shway Wang added the for loop here -->
+      {% for post in posts %}
+      <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+        <h1>{{ post.title }}</h1><br>
+        <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
+        <!-- <span class="w3-right w3-opacity">1 min</span> -->
+        <h4>{{ post.author.displayName }}</h4><br>
+        <hr class="w3-clear">
+        <p>{{ post.content }}</p>
+        <p>{{post.like}}</p>
+        <!-- Below are images -->
+        <div class="w3-row-padding" style="margin:0 -16px">
+          <div class="w3-half">
+            {% if post.image != '' %}
+              <img src="/media/{{ post.image }}">
+            {% endif %}
+          </div>
+
+        </div>
+        <hr class="w3-clear">
+
+        <!-- Below are the like, comment and repost buttons -->
+        <form action="{% url 'like_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i></button>
+        </form>
+        <button class="button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
+
+        <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
+
+        <!-- <button onclick="myFunction('comment_id')" class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+          <div id="comment_id" class="w3-hide"> -->
+            <!-- Comment Box-->
+            <!-- <h6 class="w3-opacity">Your Comment:</h6>
+            <p contenteditable="true" class="w3-border w3-padding"> </p>
+            <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
+          </div> -->
+
+        <!-- Show Comments at Bottom-->
+        
+        <h3>Comments:</h3>
+        <div class="w3-row-padding" style="margin:0 -16px">
+          {% for comment_id in post.comments %}
+            {% for comment in comments %}
+              {% if comment_id == comment.pk %}
+  
+                {{ comment.fields.author }}
+                {{ comment.fields.body }}
+
+                <br>
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+      <!-- This is the end of a post -->
+
+      <!-- Pagination-->
+      <br><br>
+      <div class="center">
+        <div class="pagination">
+        <a href="#">&laquo;</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#">5</a>
+        <a href="#">6</a>
+        <a href="#">&raquo;</a>
+        </div>
+      </div>
+      <!-- End of Pagination-->
+
+    <!-- End Middle Column -->
+    </div>
+
+    <!-- Added here by Shway-->
+    
+
+  <!-- End Grid -->
+  </div>
+<!-- End Page Container -->
+</div>
+<br>
+
+
+{% endblock %}
+
+   
+ 

@@ -1,160 +1,70 @@
-
-
 <!--https://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_social&stacked=h-->
-
+{% load static %}
 <!DOCTYPE html>
 <html>
-
 <!-- FROM https://stackoverflow.com/questions/12368910/html-display-image-after-selecting-filename -->
-
 <link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
 <script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script>
-
 <!-- END FROM-->
 
-<title>Create a Post</title>
+<title>Iconicity Home Page</title>
 <meta charset="UTF-8">
 
 <!--Setting the viewport to make website look good on all devices-->
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-grey.css">
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-
-
-<style>
-html, body, h1, h2, h3, h4, h5 {font-family: "Open Sans", sans-serif}
-
-img {
-    max-width:300px;
-    max-height:300px;
-    width:auto;
-    height:auto;
-}
-
-article, aside, figure, footer, header, hgroup, 
-    menu, nav, section { display: block; }
-
-.button {
-  background-color: transparent; /* Green */
-  border: none;
-  color: black;
-  padding: 0px 5px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-}
-
-.image-upload > input
-{
-    display: none;
-}
-
-.image-upload img
-{
-    width: 30px;
-    cursor: pointer;
-}
-
-.center {
-  text-align: center;
-}
-
-.pagination {
-  display: inline-block;
-}
-
-.pagination a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-  transition: background-color .3s;
-  background-color: #ffffff;
-  border: 1px solid rgb(255, 255, 255);
-  margin: 0 4px;
-}
-
-.pagination a.active {
-  background-color: #4CAF50;
-  color: white;
-  border: 1px solid #4CAF50;
-}
-
-.pagination a:hover:not(.active) {background-color: rgb(255, 255, 255);}
-
-input{
-  width: 100%;
-  border-radius: 4px;
-  border: 2;
-}
-
-textarea {
-  width: 100%;
-  height: 150px;
-  padding: 10px 14px;
-  box-sizing: border-box;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  resize: none;
-}
-
-</style>
-
+<link rel="stylesheet" type="text/css" href = "{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/javascript" href = "{% static 'javacript/main.js' %}">
 <body class="w3-theme-l3">
-
 <!-- Navbar -->
 <!-- By: Zhiqi Zhou-->
 <div class="w3-top">
   <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
- 
    <!-- Public Post Bottom -->
-   <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Public"><i class="fa fa-globe"></i></a>
- 
+   <a href="public" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Public"><i class="fa fa-globe"></i></a>
+
    <!-- Friends Post Bottom -->
-   <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Friends"><i class="fa fa-users"></i></a>
- 
+   <a href="friends" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Friends"><i class="fa fa-users"></i></a>
+
    <!-- Following Post Bottom -->
-   <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Following"><i class="fa fa-star"></i></a>
-   
+   <a href="following" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Following"><i class="fa fa-star"></i></a>
+
    <!-- My Post Bottom -->
-   <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="My Post"><i class="fa fa-user"></i></a>
- 
+   <a href="mypost" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="My Post"><i class="fa fa-user"></i></a>
+
    <!-- Notification Bottom -->
    <div class="w3-dropdown-hover w3-hide-small">
-     <button class="w3-button w3-padding-large" title="Notifications"><i class="fa fa-bell"></i><span class="w3-badge w3-right w3-small w3-pink">3</span></button>     
+     <button class="w3-button w3-padding-large" title="Notifications"><i class="fa fa-bell"></i><span class="w3-badge w3-right w3-small w3-pink">3</span></button>
      <div class="w3-dropdown-content w3-card-4 w3-bar-block" style="width:300px">
        <a href="#" class="w3-bar-item w3-button">One new friend request</a>
        <a href="#" class="w3-bar-item w3-button">John Doe posted on your wall</a>
        <a href="#" class="w3-bar-item w3-button">Jane likes your post</a>
      </div>
    </div>
- 
+
    <!-- Search Input -->
    <input type="text" class="w3-bar-item w3-input w3-padding-large w3-hover-white" placeholder="Search..">
    <a href="#" class="w3-bar-item w3-button w3-pink w3-padding-large w3-hover-white"><i class="fa fa-search"></i></a>
-   
+
    <!-- Logo -->
    <!-- <a href="#" class="w3-bar-item w3-button w3-hide-small w3-center w3-padding-large w3-hover-white" title="Home Page"><img src="logo.png" style="width:15px; height:15px;"></a> -->
-   
+
    <!-- Sign out Bottom -->
    <div class="w3-dropdown-hover w3-hide-small w3-right">
-     <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>     
+     <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>
      <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
-      <form id="logoutform" action="{% url 'logout' %}", method='POST'>
+      <form id="logoutform" action="{% url 'logout' %}" method='POST'>
         {% csrf_token %}
         <a href="#" class="w3-bar-item w3-button" onClick="document.getElementById('logoutform').submit()">Sign Out</a>
       </form>
      </div>
    </div>
- 
+
   </div>
  </div>
 
@@ -166,34 +76,7 @@ textarea {
   <a href="#" class="w3-bar-item w3-button w3-padding-large">Link 3</a>
   <a href="#" class="w3-bar-item w3-button w3-padding-large">My Profile</a>
 </div>
-
-<!-- Page Container -->
-<!-- By: Zhiqi Zhou-->
-<div class="w3-container w3-content">    
-    <!-- Middle Column -->
-    <!-- By: Zhiqi Zhou-->
-        <br><br><br><br><br><br><br><br>
-        <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
-
-          
-
-        {% block content %}
-        <h1>Add Blog Post</h1>
-
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p}}
-                <button>Post</button>
-                
-            </form>
-        {% endblock %}
-
-          <br><br><br><br><br><br>
-        </div>
-
-<!-- End Page Container -->
-</div>
-<br>
+{% block content %}{% endblock %}
 
 <!-- Footer -->
 <footer class="w3-container w3-theme-d3 w3-padding-16">
@@ -203,7 +86,7 @@ textarea {
 <footer class="w3-container w3-theme-d5">
   <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
 </footer>
- 
+
 <script>
 // Accordion
 function myFunction(id) {
@@ -211,9 +94,9 @@ function myFunction(id) {
   if (x.className.indexOf("w3-show") == -1) {
     x.className += " w3-show";
     x.previousElementSibling.className += "";
-  } else { 
+  } else {
     x.className = x.className.replace("w3-show", "");
-    x.previousElementSibling.className = 
+    x.previousElementSibling.className =
     x.previousElementSibling.className.replace("", "");
   }
 }
@@ -223,7 +106,7 @@ function openNav() {
   var x = document.getElementById("navDemo");
   if (x.className.indexOf("w3-show") == -1) {
     x.className += " w3-show";
-  } else { 
+  } else {
     x.className = x.className.replace(" w3-show", "");
   }
 }
@@ -252,8 +135,7 @@ function updateContent() {
             image = document.getElementById("image");
 }
 
-        
 </script>
 
 </body>
-</html> 
+</html>
