@@ -300,3 +300,14 @@ def profile(request):
     }
     return render(request,'Iconicity/profile.html', context)
 
+def public(request):
+    return render(request,'Iconicity/public.html')
+
+def mypost(request):
+    return render(request,'Iconicity/my_post.html')
+
+def following(request):
+    return render(request,'Iconicity/follow.html')
+
+def friends(request):
+    return render(request,'Iconicity/friends.html')
