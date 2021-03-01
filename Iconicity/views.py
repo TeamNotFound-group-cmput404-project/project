@@ -31,9 +31,6 @@ def getAuthor(id):
     jsonload['url'] = jsonload['user_id']
     return Response(jsonload)
 
-def postAuthor(id):
-    # update author profile
-    pass
 
 # not in use at this moment
 class AuthorProfile(APIView):
@@ -69,6 +66,11 @@ def logout_view(request):
 
 class LoginView(View):
     def get(self, request):
+        if not request.user.is_anonymous:
+            print("go to main")
+            print(request.user)
+            return redirect(reverse('main_page'))
+        
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
     def post(self,request):
@@ -125,12 +127,17 @@ def signup(request):
 @login_required
 def main_page(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
 
-    temp = getPosts(request.user)
+    temp = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     comments = []
+    print("testing..")
+    getAllFollowAuthorPosts(request.user)
+    print("testing..")
     if temp !=[]:
         obj = serializers.serialize("json", temp)
         post_json = json.loads(obj)
@@ -145,11 +152,6 @@ def main_page(request):
             print("comments:\n", comments)
 
             for comment in comments:
-                # print("comment post_id:\n", comment['fields']["post"])
-                # print("post post_id:\n", fields["pk"])
-                # print(comment['fields']["post"] == fields["pk"])
-                # print(type(comment['fields']["post"]))
-                # print(type(fields["pk"]))
                 if comment['fields']["post"] == fields["pk"]:
                     # Comment id: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['body'])
@@ -178,38 +180,52 @@ def createUserProfile(Display_name, User, Github, host):
                           display_name=Display_name,
                           github=Github,
                           host=host)
-    profile.url = str(host) + '/author/' + str(profile.uid)
+    profile.url = "https://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
+
+
+
+def getAllFollowAuthorPosts(currentUser):
+    userProfile = UserProfile.objects.filter(user=currentUser).first()
+    post_list = []
+    allFollowedAuthors = list(userProfile.get_followers())
+
+    for user in allFollowedAuthors:
+        # check whether they are friends.
+        # means a two-direct-follow
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        if otherUserProfile:
+            if currentUser in list(otherUserProfile.get_followers()):
+                print("they are friends")
+                temp = getPosts(user, visibility="FRIENDS") # join the post_list
+                print("temp",temp)
+                post_list += temp
+            else:
+                # one direct
+                # only public
+                post_list += getPosts(user, visibility="PUBLIC")# join the post_list
+        
+    print("current post_List")
+    print(post_list)
+    return post_list
+
 
 def getUserProfile(currentUser):
     # return a UserProfile object for the current login user
     return UserProfile.objects.filter(user=currentUser).first()
 
-def getPosts(user):
-    return list(Post.objects.filter(author=user.id))
+def getPosts(user, visibility="PUBLIC"):
+    assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
+    if visibility == "PUBLIC":
+        # public can only see your public posts
+        return list(Post.objects.filter(author=user.id, visibility="PUBLIC"))
+    elif visibility == "FRIENDS":
+        # friends can see all your posts (public + friends posts)
+        return list(Post.objects.filter(author=user.id))
 
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
-
-# @login_required
-# def new_post(request):
-#     if request.method == "GET":
-#         template = "Iconicity/new_post.html"
-#         form = PostsCreateForm(request.POST)
-
-#         if form.is_valid():
-#             print("True")
-#             form.save()
-
-#         else:
-#             print(form.errors)
-#             form = PostsCreateForm()
-
-#         context = {
-#             'form': form,
-#         }
-#         return render(request, template, context)
 
 
 class AddPostView(CreateView):
@@ -246,24 +262,23 @@ class AddPostView(CreateView):
 # By Shway, the friend requests stuff:
 def friendRequests_received_view(request):
     profile = getUserProfile(request.user)
+    print("here")
     requests = FriendRequest.objects.friendRequests_received(profile)
-
+    print("requests",requests)
     context = {'requests': requests}
-
+    
     return render(request, 'Iconicity/frdRequests.html', context)
 
 def userProfile_list_view(request):
     user = request.user
+    print("here")
     profiles = FriendRequest.objects.get_all_available_profiles(profile)
 
     context = {'profiles': profiles}
-
+    
     return render(request, 'Iconicity/profile_list.html', context)
+
 def like_view(request):
-    print("like_view ing")
-    # post = Post.objects.filter(post_id=request.POST.get('post_id'))
-    print(request.POST)
-    print("current post",request)
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
     post.like.add(request.user)
     post.count = post.count_like()
@@ -271,7 +286,7 @@ def like_view(request):
     #post.count +=1
     post.save()
     print(1111)
-    print("post count",post.count )
+    print("post count",post.count)
     print(post.like)
     return redirect('main_page')
 def profile(request):
