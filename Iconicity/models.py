@@ -4,23 +4,49 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
 from django.forms.models import model_to_dict
+from django.db.models import Q
 # Create your models here.
-
+# Author, Followers, FriendRequest, Post, Comments, Likes, Liked, Inbox, 
 """Reference (move to other locations later)
 model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
 generate uuid: https://www.geeksforgeeks.org/generating-random-ids-using-uuid-python/
 user: https://docs.djangoproject.com/en/3.1/ref/contrib/auth/
+friend requests: https://www.youtube.com/watch?v=7-VNMGmEN54&list=PLgjw1dR712joFJvX_WKIuglbR1SNCeno1&index=10
 """
+
+# By: Shway
+class UserProfileManager(models.Manager):
+    def get_all_available_profiles(self, sender):
+        profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
+        my_profile = UserProfile.objects.get(user=sender) # my profile
+        # want 
+        queryset = FriendRequest.objects.filter(Q(sender=my_profile) | Q(receiver=my_profile))
+        #print(queryset)
+        accepted = []
+        for frdReq in queryset:
+            if frdReq.status == 'accepted':
+                accepted.append(frdReq.receiver)
+                accepted.append(frdReq.sender)
+        #print(accepted)
+        available = [p for p in profiles if profile not in accepted]
+        #print(available)
+        return available
+
+
+    def get_all_profiles(self, curUser):
+        return UserProfile.objects.all().exclude(user = curUser)
+
+
 class UserProfile(models.Model):
     # max length for the user display name
-    max_name_length = 30 
+    max_name_length = 30
 
     # user type
     user_type = models.CharField(max_length=10, default="author")
 
     # user id field
-    uid = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    uid = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -38,17 +64,32 @@ class UserProfile(models.Model):
     url = models.URLField(default="")
 
     # I'm following / friend
-    follow = models.JSONField(default=dict)
+    # follow = models.JSONField(default=dict)
+    # Potential change:
+    follow = models.ManyToManyField(User, related_name='friends', blank=True)
+
+    objects = UserProfileManager()
+
+    # By: Shway
+    def get_followers(self):
+        return self.follow.all()
+
+    def get_number_of_followers(self):
+        return self.follow.all().count()
+
+    def __str__(self):
+        return str(self.user)
+
 
 class Post(models.Model):
     # reference:
     # https://docs.djangoproject.com/en/3.1/ref/models/fields/
 
     # post id, it should be a primary key
-    post_id = models.UUIDField(primary_key=True, 
-                               default=uuid.uuid4, 
+    post_id = models.UUIDField(primary_key=True,
+                               default=uuid.uuid4,
                                editable=False)
-    
+
     # title field
     title = models.CharField(max_length=100, default="")
 
@@ -66,7 +107,7 @@ class Post(models.Model):
     # description
     # a brief description of the post
     description = models.CharField(max_length=250, default="")
-    
+
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
                                    choices=[('text/markdown', 'text/markdown'),
@@ -78,7 +119,7 @@ class Post(models.Model):
 
     # content itself
     content = models.TextField(default="")
-    
+
     # author field, make a foreign key to the userProfile class
     author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
 
@@ -90,6 +131,7 @@ class Post(models.Model):
 
     size = models.IntegerField(default=0)
 
+    like = models.ManyToManyField(User, related_name="blog_posts")
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)
@@ -104,26 +146,57 @@ class Post(models.Model):
     published = models.DateTimeField(default=timezone.now)
 
     # visibility ["PUBLIC","FRIENDS"]
-    visibility = models.CharField(max_length=10, 
+    visibility = models.CharField(max_length=10,
                                   choices=[("PUBLIC", "PUBLIC"),("FRIENDS","FRIENDS")],
                                   default="PUBLIC")
 
-    # unlisted means it is public if you know the post name -- use this for 
+    # unlisted means it is public if you know the post name -- use this for
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
 
 
     image = models.ImageField(null=True, blank=True, upload_to="images/")
-    
+
+    def count_like(self):
+        return self.like.count()
+
     def get_absolute_url(self):
         return reverse("main_page")
 
+# By Shway:
+STATUS_CHOICES = (
+    ('sent', 'sent'),
+    ('accepted', 'accepted'),
+)
+
+class FriendRequestManager(models.Manager):
+    def friendRequests_received(self, object_author):
+        return FriendRequest.objects.filter(receiver=object_author, status='sent')
+
+    #FriendRequest.objects.friendRequests_received(curUserProfile)
 
 class FriendRequest(models.Model):
+    # Type is set to follow
     type = models.CharField(max_length=10, default="Follow")
+
+    # Summary of following info
     summary = models.TextField(default="")
+
+    # Sender of this friend request:
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
+
+    # Reciever of this friend request:
     object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
+
+    # By: Shway
+    # For the receiver to choose to accept or reject:
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+    objects = FriendRequestManager()
+
+    def __str__(self):
+        return f"{self.actor}-->{self.object_author}: {self.summary}, status: {self.status}"
+
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
@@ -132,8 +205,8 @@ class Comment(models.Model):
     # ISO 8601 TIMESTAMP
     # publish time
     published = models.DateTimeField(default=timezone.now)
-    id = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
     body = models.TextField(default="")
     # contentType field, support different kinds of type choices
@@ -164,8 +237,8 @@ class LikeSingle(models.Model):
     just query some liked objects, encode into json format
     then the model can use this liked list. Same thing for comments.
     """
-    id = models.UUIDField(primary_key=True, 
-                          default=uuid.uuid4, 
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
                           editable=False)
     type = models.CharField(max_length=10, default="Like")
     context = models.URLField(default="")
@@ -181,5 +254,4 @@ class Inbox(models.Model):
     # stores a list of Post items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
-    # a list of Post. 
     items = models.JSONField(default=dict)

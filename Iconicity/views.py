@@ -1,5 +1,5 @@
-from django.shortcuts import render, resolve_url, reverse
-from django.http import HttpResponse
+from django.shortcuts import render, resolve_url, reverse, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,10 +18,8 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
-
+from django.urls import reverse
 #https://thecodinginterface.com/blog/django-auth-part1/
-# Shway Wang put this here:
-# below is put here temperarily, just to display the format
 
 def getAuthor(id):
     author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
@@ -126,14 +124,23 @@ def signup(request):
 
 @login_required
 def main_page(request):
+    # https://docs.djangoproject.com/en/3.1/topics/serialization/
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-    obj = getPosts(request.user)
-    post_json = json.loads(obj)
-    new_list = [i['fields'] for i in post_json]
+
+    temp = getPosts(request.user)
+    new_list = []
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        print("post_json",post_json)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            new_list.append(fields)
 
     print(new_list)
-
     context = {
         'posts': new_list,
         'UserProfile': userProfile
@@ -146,6 +153,7 @@ def main_page(request):
     finish this and delete this comment block.
     """
     return render(request, 'Iconicity/main_page.html', context)
+
 
 def createUserProfile(Display_name, User, Github, host):
     profile = UserProfile(user=User,
@@ -160,7 +168,7 @@ def getUserProfile(currentUser):
     return UserProfile.objects.filter(user=currentUser).first()
 
 def getPosts(user):
-    return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
+    return list(Post.objects.filter(author=user.id))
 
     
 
@@ -195,7 +203,7 @@ class AddPostView(CreateView):
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
         print(request.FILES)
-        
+
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
@@ -215,3 +223,35 @@ class AddPostView(CreateView):
     def get(self, request):
         print("getting")
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
+
+# By Shway, the friend requests stuff:
+def friendRequests_received_view(request):
+    profile = getUserProfile(request.user)
+    requests = FriendRequest.objects.friendRequests_received(profile)
+
+    context = {'requests': requests}
+
+    return render(request, 'Iconicity/frdRequests.html', context)
+
+def userProfile_list_view(request):
+    user = request.user
+    profiles = FriendRequest.objects.get_all_available_profiles(profile)
+
+    context = {'profiles': profiles}
+
+    return render(request, 'Iconicity/profile_list.html', context)
+def like_view(request):
+    print("like_view ing")
+    # post = Post.objects.filter(post_id=request.POST.get('post_id'))
+    print(request.POST)
+    print("current post",request)
+    post = get_object_or_404(Post, pk=request.POST.get('pk'))
+    post.like.add(request.user)
+    post.count = post.count_like()
+    print("count",post.count)
+    #post.count +=1
+    post.save()
+    print(1111)
+    print("post count",post.count )
+    print(post.like)
+    return redirect('main_page')
