@@ -255,13 +255,9 @@ textarea {
                 {{ comment.body }}
               {% endif %}
             {% endfor %} -->
-            {% for comment in comments %}
-              <!-- {{ comment.post }} -->
-              <br>
-              {% if post.pk == comment.post %}
-              {{ comment.body }}
-              {% endif %}
-            {% endfor %}
+            <br><br><br>
+            {{ post.comments }}
+
           </div>
         
         </div>

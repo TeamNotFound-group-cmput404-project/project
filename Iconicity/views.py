@@ -133,14 +133,29 @@ def main_page(request):
     if temp !=[]:
         obj = serializers.serialize("json", temp)
         post_json = json.loads(obj)
-        print("post_json",post_json)
+        # print("post_json",post_json)
         
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
+            fields['comments'] = {}
+            
+            comments = getComments()
+            # print("comments:\n", comments)
+
+            for comment in comments:
+                # print("comment post_id:\n", comment['fields']["post"])
+                # print("post post_id:\n", fields["pk"])
+                # print(comment['fields']["post"] == fields["pk"])
+                # print(type(comment['fields']["post"]))
+                # print(type(fields["pk"]))
+                if comment['fields']["post"] == fields["pk"]:
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
             new_list.append(fields)
 
-    print(new_list)
+    # print(new_list)
+
     context = {
         'posts': new_list,
         'UserProfile': userProfile
@@ -170,7 +185,8 @@ def getUserProfile(currentUser):
 def getPosts(user):
     return list(Post.objects.filter(author=user.id))
 
-    
+def getComments():
+    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
 
 # @login_required
