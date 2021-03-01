@@ -113,7 +113,7 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False)
 
 
-    image64 = models.ImageField(upload_to='usr_img/', default="")
+    image = models.ImageField(null=True, blank=True, upload_to="images/")
     
     def get_absolute_url(self):
         return reverse("main_page")

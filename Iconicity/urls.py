@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.conf.urls import url
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
 	path('', views.LoginView.as_view(), name = 'login'),
@@ -12,4 +14,4 @@ urlpatterns = [
 	# path('new_post', views.new_post, name = 'new_post'),
 	# path('main', views.finish_post, name = 'main_page'),
 	path('post_form', views.AddPostView.as_view(), name="post_form")
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
