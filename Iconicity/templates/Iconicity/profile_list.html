@@ -176,10 +176,10 @@ textarea {
 
       <!-- This is the beginning of a post -->
       <!-- Shway Wang added the for loop here -->
-      <h4 class="w3-center w3-margin-top">Who would you like to follow?</h4>
+      <h1 class="w3-center w3-margin-top">Who would you like to follow?</h1>
       {% for profile in profiles %}
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>{{ profile.display_name }}</h1><br>
+        <li><h4>{{ profile.display_name }}</h4><br></li>
       {% endfor %}
       <!-- This is the end of a post -->
       

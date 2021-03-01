@@ -220,7 +220,7 @@ def friendRequests_received_view(request):
 
 def userProfile_list_view(request):
     user = request.user
-    profiles = FriendRequest.objects.get_all_available_profiles(profile)
+    profiles = UserProfile.objects.get_all_available_profiles(user)
 
     context = {'profiles': profiles}
 

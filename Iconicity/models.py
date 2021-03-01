@@ -20,15 +20,15 @@ class UserProfileManager(models.Manager):
         profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
         my_profile = UserProfile.objects.get(user=sender) # my profile
         # want 
-        queryset = FriendRequest.objects.filter(Q(sender=my_profile) | Q(receiver=my_profile))
+        queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object_author=my_profile))
         #print(queryset)
-        accepted = []
+        accepted = set()
         for frdReq in queryset:
             if frdReq.status == 'accepted':
-                accepted.append(frdReq.receiver)
-                accepted.append(frdReq.sender)
+                accepted.add(frdReq.receiver)
+                accepted.add(frdReq.sender)
         #print(accepted)
-        available = [p for p in profiles if profile not in accepted]
+        available = [p for p in profiles if profiles not in accepted]
         #print(available)
         return available
 
@@ -166,8 +166,8 @@ STATUS_CHOICES = (
 )
 
 class FriendRequestManager(models.Manager):
-    def friendRequests_received(self, object_author):
-        return FriendRequest.objects.filter(receiver=object_author, status='sent')
+    def friendRequests_received(self, receiver):
+        return FriendRequest.objects.filter(object_author=receiver, status='sent')
 
     #FriendRequest.objects.friendRequests_received(curUserProfile)
 
