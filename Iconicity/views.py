@@ -131,6 +131,9 @@ def main_page(request):
     obj = getPosts(request.user)
     post_json = json.loads(obj)
     new_list = [i['fields'] for i in post_json]
+
+    print(new_list)
+
     context = {
         'posts': new_list,
         'UserProfile': userProfile
@@ -158,6 +161,9 @@ def getUserProfile(currentUser):
 
 def getPosts(user):
     return serializers.serialize("json", list(Post.objects.filter(author=user.id)))
+
+    
+
 
 # @login_required
 # def new_post(request):

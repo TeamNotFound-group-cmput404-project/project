@@ -97,7 +97,7 @@ class Post(models.Model):
     # comments should be a list stores several comments objects,
     # but there's no arrayfield support sqlite3, so use json encode the comment
     # object before store the value.
-    comments = models.JSONField(default=dict)
+    # comments = models.JSONField(default=dict)
 
     # ISO 8601 TIMESTAMP
     # publish time
@@ -126,6 +126,7 @@ class FriendRequest(models.Model):
     object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
 
 class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     # ISO 8601 TIMESTAMP
@@ -134,7 +135,7 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, 
                           default=uuid.uuid4, 
                           editable=False)
-    comment = models.TextField(default="")
+    body = models.TextField(default="")
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
                                    choices=(('text/markdown', 'text/markdown'),
@@ -143,6 +144,9 @@ class Comment(models.Model):
                                             ('image/png;base64', 'image/png;base64'),
                                             ('image/jpeg;base64', 'image/jpeg;base64')),
                                    default="")
+
+    def __str__(self):
+        return '%s - %s - %s' % (self.post.title, self.author, self.id)
 
 class LikeSingle(models.Model):
     """
