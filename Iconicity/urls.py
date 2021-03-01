@@ -10,11 +10,10 @@ urlpatterns = [
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
 	path('main', views.main_page, name = 'main_page'),
-
 	path('like', views.like_view, name="like_post"),
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'my_post'),
-	path('public',views.public,name = "public"),
+	path('public',views.main_page,name = "main_page"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
