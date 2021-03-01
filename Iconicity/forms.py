@@ -13,7 +13,7 @@ from django.db.models import fields
 from .models import UserProfile, Post
 
 class SignUpForm(UserCreationForm):
-    github = forms.URLField(max_length=254, help_text='Optional.')
+    github = forms.URLField(max_length=254)
     class Meta:
         model = User
         fields = ('email', 'password1', 'password2', 'username', 'github', )
