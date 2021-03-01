@@ -127,6 +127,7 @@ def main_page(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
+
     temp = getPosts(request.user)
     new_list = []
     if temp !=[]:
@@ -168,6 +169,9 @@ def getUserProfile(currentUser):
 
 def getPosts(user):
     return list(Post.objects.filter(author=user.id))
+
+    
+
 
 # @login_required
 # def new_post(request):
