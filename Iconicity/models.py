@@ -4,13 +4,39 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
 from django.forms.models import model_to_dict
+from django.db.models import Q
 # Create your models here.
 # Author, Followers, FriendRequest, Post, Comments, Likes, Liked, Inbox, 
 """Reference (move to other locations later)
 model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
 generate uuid: https://www.geeksforgeeks.org/generating-random-ids-using-uuid-python/
 user: https://docs.djangoproject.com/en/3.1/ref/contrib/auth/
+friend requests: https://www.youtube.com/watch?v=7-VNMGmEN54&list=PLgjw1dR712joFJvX_WKIuglbR1SNCeno1&index=10
 """
+
+# By: Shway
+class UserProfileManager(models.Manager):
+    def get_all_available_profiles(self, sender):
+        profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
+        my_profile = UserProfile.objects.get(user=sender) # my profile
+        # want 
+        queryset = FriendRequest.objects.filter(Q(sender=my_profile) | Q(receiver=my_profile))
+        #print(queryset)
+        accepted = []
+        for frdReq in queryset:
+            if frdReq.status == 'accepted':
+                accepted.append(frdReq.receiver)
+                accepted.append(frdReq.sender)
+        #print(accepted)
+        available = [p for p in profiles if profile not in accepted]
+        #print(available)
+        return available
+
+
+    def get_all_profiles(self, curUser):
+        return UserProfile.objects.all().exclude(user = curUser)
+
+
 class UserProfile(models.Model):
     # max length for the user display name
     max_name_length = 30 
@@ -41,6 +67,8 @@ class UserProfile(models.Model):
     # follow = models.JSONField(default=dict)
     # Potential change:
     follow = models.ManyToManyField(User, related_name='friends', blank=True)
+
+    objects = UserProfileManager()
 
     # By: Shway
     def get_followers(self):
@@ -124,15 +152,24 @@ class Post(models.Model):
     # unlisted means it is public if you know the post name -- use this for 
     # images, it's so images don't show up in timelines
     unlisted = models.BooleanField(default=False)
+
+
+    image = models.ImageField(null=True, blank=True, upload_to="images/")
     
     def get_absolute_url(self):
         return reverse("main_page")
 
 # By Shway:
 STATUS_CHOICES = (
-    ('actor', 'sender'),
+    ('sent', 'sent'),
     ('accepted', 'accepted'),
 )
+
+class FriendRequestManager(models.Manager):
+    def friendRequests_received(self, object_author):
+        return FriendRequest.objects.filter(receiver=object_author, status='sent')
+
+    #FriendRequest.objects.friendRequests_received(curUserProfile)
 
 class FriendRequest(models.Model):
     # Type is set to follow
@@ -150,6 +187,8 @@ class FriendRequest(models.Model):
     # By: Shway
     # For the receiver to choose to accept or reject:
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+    objects = FriendRequestManager()
 
     def __str__(self):
         return f"{self.actor}-->{self.object_author}: {self.summary}, status: {self.status}"
