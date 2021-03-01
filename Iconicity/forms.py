@@ -21,9 +21,15 @@ class SignUpForm(UserCreationForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['display_name', 'github', 'host', 'follow']
+        # fields = ['display_name', 'github', 'host', 'follow']
+        fields = ['github',]
 
 class PostsCreateForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'content', "image", 'visibility']
+class UserUpdateForm(forms.ModelForm):
+    github = forms.URLField(max_length=254)
+    class Meta:
+        model = User
+        fields = ['username','github',]
