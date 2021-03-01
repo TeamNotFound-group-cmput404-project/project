@@ -115,7 +115,7 @@ class Post(models.Model):
 
 
     image = models.ImageField(null=True, blank=True, upload_to="images/")
-    
+
     def count_like(self):
         return  self.like.count()
 

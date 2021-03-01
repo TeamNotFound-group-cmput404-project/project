@@ -131,6 +131,7 @@ def main_page(request):
     obj = getPosts(request.user)
     post_json = json.loads(obj)
     new_list = [i['fields'] for i in post_json]
+    print(new_list)
     context = {
         'posts': new_list,
         'UserProfile': userProfile
@@ -190,7 +191,7 @@ class AddPostView(CreateView):
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
         print(request.FILES)
-        
+
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
@@ -211,7 +212,12 @@ class AddPostView(CreateView):
         print("getting")
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
-def like_view(request, pk):
-    post = get_object_or_404(Post, id=request.POST.get('post_id'))
+def like_view(request):
+    print(1111)
+    # post = Post.objects.filter(post_id=request.POST.get('post_id'))
+    print(request.POST)
+    post = get_object_or_404(Post, post_id=request.POST.get('post_id'))
     post.like.add(request.user)
-    return HttpResponseRedirect(reverse('main_page'))
+    print(1111)
+    print(post.like)
+    return redirect('main_page')
