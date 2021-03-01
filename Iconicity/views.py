@@ -130,6 +130,7 @@ def main_page(request):
 
     temp = getPosts(request.user)
     new_list = []
+    comments = []
     if temp !=[]:
         obj = serializers.serialize("json", temp)
         post_json = json.loads(obj)
@@ -141,7 +142,7 @@ def main_page(request):
             fields['comments'] = {}
             
             comments = getComments()
-            # print("comments:\n", comments)
+            print("comments:\n", comments)
 
             for comment in comments:
                 # print("comment post_id:\n", comment['fields']["post"])
@@ -150,6 +151,7 @@ def main_page(request):
                 # print(type(comment['fields']["post"]))
                 # print(type(fields["pk"]))
                 if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['body'])
 
             new_list.append(fields)
@@ -158,7 +160,8 @@ def main_page(request):
 
     context = {
         'posts': new_list,
-        'UserProfile': userProfile
+        'comments': comments,
+        'UserProfile': userProfile,
     }
     """Note:
     Consider that there are case when there's no posts of this author
