@@ -20,6 +20,9 @@ from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.urls import reverse
+from django.db.models import Q
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
@@ -248,22 +251,24 @@ class AddPostView(CreateView):
 # by Shway, this view below shows the list of received friend requests:
 def friendRequests_received_view(request):
     profile = getUserProfile(request.user)
-    print("here")
     requests = FriendRequest.objects.friendRequests_received(profile)
-    print("requests",requests)
     context = {'requests': requests}
-    
     return render(request, 'Iconicity/frdRequests.html', context)
+
+# by Shway, accept friend request function view:
+def accept_friendRequest(request):
+    pass
+
+# by Shway, reject friend request function view:
+def reject_friendRequest(request):
+    pass
 
 # by Shway, this view below shows the list of profiles of all those availble to follow
 # or to be friend with:
 def avail_userProfile_list_view(request):
     user = request.user
-    print("here")
     profiles = UserProfile.objects.get_all_available_profiles(user)
-
     context = {'profiles': profiles}
-    
     return render(request, 'Iconicity/avail_profile_list.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
@@ -304,13 +309,37 @@ def send_friendRequest(request):
     if request.method == 'POST':
         uid = request.POST.get('profile_uid')
         sender = UserProfile.objects.get(user=request.user)
-        print(uid)
         receiver = UserProfile.objects.get(uid=uid)
         friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     # go to main page if the user did not use the "POST" method
     return redirect('main')
+
+# by Shway, view function for removing a friend
+def remove_friend(request):
+    if request.method == 'POST':
+        uid = request.POST.get('profile_uid')
+        sender = UserProfile.objects.get(user=request.user)
+        receiver = UserProfile.objects.get(uid=uid)
+        # delete the friend request involving current user and the past in user with uid specified
+        friendRequest = FriendRequest.objects.get(
+            (Q(actor=sender) & Q(object_author=receiver)) | (Q(actor=receiver) & Q(object_author=sender)))
+        friendRequest.delete()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
+
+# by Shway, whenever a friend request is deleted, want to also delete
+# from follow lists of actor and object_author
+@receiver(pre_delete, sender=FriendRequest)
+def pre_delete_remove_from_follow(sender, instance, **kwargs):
+    sender = instance.actor
+    receiver = instance.object_author
+    sender.follow.remove(receiver.user)
+    receiver.follow.remove(sender.user)
+    sender.save()
+    receiver.save()
 
 def like_view(request):
     redirect_path = 'main_page'

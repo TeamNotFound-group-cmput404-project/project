@@ -35,7 +35,6 @@
               {% if profile.user not in pending_requests and profile.user not in inbox_requests %}
                 <form action="{% url 'send_friendRequest' %}" method='POST'>
                   {% csrf_token %}
-                  <!--<intput type='hidden' name='profile_uid' value="{{ profile.uid }}">-->
                   <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
                   name='profile_uid' value="{{ profile.uid }}">Add to friends</button>
                 </form>
@@ -46,9 +45,8 @@
               {% endif %}
               <!-- Case 3: You can delete this friend if you already have this friend -->
               {% if request.user in profile.follow.all %}
-                <form action="{% url 'send_friendRequest' %}" method='POST'>
+                <form action="{% url 'remove_friend' %}" method='POST'>
                   {% csrf_token %}
-                  <intput type='hidden' name='profile_uid' value='{{ profile.uid }}'>
                   <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
                   name='profile_uid' value='{{ profile.uid }}'>Remove from friends</button>
                 </form>
