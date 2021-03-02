@@ -331,13 +331,20 @@ def userProfile_list_view(request):
     return render(request, 'Iconicity/profile_list.html', context)
 
 def like_view(request):
-    print("like_view",request)
-    print(request.path)
+    redirect_path = 'main_page'
+    if request.path == "/friends/like":
+        redirect_path = "/friends"
+    elif request.path == "/mypost/like":
+        redirect_path = "/mypost"
+    elif request.path == "/public/like":
+        redirect_path = "/public"
+    elif request.path == "/following/like":
+        redirect_path = "/following"
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
     post.like.add(request.user)
     post.count = post.count_like()
     post.save()
-    return redirect('main_page')
+    return redirect(redirect_path)
 
 def profile(request):
     userProfile = getUserProfile(request.user)
