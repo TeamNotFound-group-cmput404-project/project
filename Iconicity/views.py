@@ -457,17 +457,37 @@ def following(request):
 
     return render(request,'Iconicity/follow.html', context)
 
+def getUserFriend(currentUser):
+    #print("current user",currentUser)
+    userProfile = getUserProfile(currentUser)
+    friendList = []
+    allFollowedAuthors = list(userProfile.get_followers()) # get all followers of our user
+    #print("all followed authors",allFollowedAuthors)
+    for user in allFollowedAuthors:
+        # check whether they are friends.
+        # means a two-direct-follow
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        if otherUserProfile:
+            #print("other one follower list",list(otherUserProfile.get_followers()))
+            if currentUser in list(otherUserProfile.get_followers()):
+                #print("they are friends")
+                friendList.append(user)
 
-# pay attention: not finish yet
-# don't use this page for now.
+    return friendList
+
 def friends(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-
-    temp = getAllFollowAuthorPosts(request.user)
+    userFriends = getUserFriend(request.user)
     new_list = []
+    temp = []
+    print("friends",userFriends)
+    for friend_id in userFriends:
+        temp += getPosts(friend_id, visibility="FRIENDS")
+    
+    
     comments = []
     if temp !=[]:
         obj = serializers.serialize("json", temp)
@@ -493,7 +513,6 @@ def friends(request):
 
             new_list.append(fields)
 
-    print(new_list)
 
     context = {
         'posts': new_list,
