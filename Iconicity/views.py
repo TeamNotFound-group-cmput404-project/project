@@ -13,6 +13,7 @@ from .forms import PostsCreateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
+from django.views.generic import ListView
 from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
@@ -260,6 +261,7 @@ class AddPostView(CreateView):
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
 # By Shway, the friend requests stuff:
+# by Shway, this view below shows the list of received friend requests:
 def friendRequests_received_view(request):
     profile = getUserProfile(request.user)
     print("here")
@@ -269,14 +271,62 @@ def friendRequests_received_view(request):
     
     return render(request, 'Iconicity/frdRequests.html', context)
 
-def userProfile_list_view(request):
+# by Shway, this view below shows the list of profiles of all those availble to follow
+# or to be friend with:
+def avail_userProfile_list_view(request):
     user = request.user
     print("here")
-    profiles = FriendRequest.objects.get_all_available_profiles(profile)
+    profiles = UserProfile.objects.get_all_available_profiles(user)
 
     context = {'profiles': profiles}
     
-    return render(request, 'Iconicity/profile_list.html', context)
+    return render(request, 'Iconicity/avail_profile_list.html', context)
+
+# by Shway, this view below shows the list of all profiles except for the current user
+class UserProfileListView(ListView):
+    model = UserProfile
+    template_name = 'Iconicity/all_profile_list.html'
+    context_object_name = 'profiles'
+    # override:
+    def get_queryset(self):
+        # get all profiles except for current user
+        return UserProfile.objects.get_all_profiles(self.request.user)
+    # override:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = User.objects.get(username__iexact = self.request.user)
+        my_profile = UserProfile.objects.get(user = user)
+        # whom I want to follow
+        pending_requests = FriendRequest.objects.filter(actor = my_profile)
+        # whom wants to follow me
+        inbox_requests = FriendRequest.objects.filter(object_author = my_profile)
+        # listify the above two results:
+        pending_requests_list = []
+        inbox_requests_list = []
+        for i in pending_requests:
+            pending_requests_list.append(i.object_author.user)
+        for i in inbox_requests:
+            inbox_requests_list.append(i.actor.user)
+        context['pending_requests'] = pending_requests_list
+        context['inbox_requests'] = inbox_requests_list
+        # if there are no profiles other than the current user:
+        context['is_empty'] = False # initially not empty
+        if len(self.get_queryset()) == 0:
+            context['is_empty'] = True
+        return context
+
+# by Shway, view function for sending friend requests
+def send_friendRequest(request):
+    if request.method == 'POST':
+        uid = request.POST.get('profile_uid')
+        sender = UserProfile.objects.get(user=request.user)
+        print(uid)
+        receiver = UserProfile.objects.get(uid=uid)
+        friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    # go to main page if the user did not use the "POST" method
+    return redirect('main')
 
 def like_view(request):
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
@@ -289,6 +339,7 @@ def like_view(request):
     print("post count",post.count)
     print(post.like)
     return redirect('main_page')
+
 def profile(request):
     userProfile = getUserProfile(request.user)
     

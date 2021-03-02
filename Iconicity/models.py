@@ -17,9 +17,10 @@ friend requests: https://www.youtube.com/watch?v=7-VNMGmEN54&list=PLgjw1dR712joF
 # By: Shway
 class UserProfileManager(models.Manager):
     def get_all_available_profiles(self, sender):
+        # sender is of type User
         profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
-        my_profile = UserProfile.objects.get(user=sender) # my profile
-        # want 
+        my_profile = UserProfile.objects.get(user = sender) # my profile
+        # below are requests that are related to the current user:
         queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object_author=my_profile))
         #print(queryset)
         accepted = set()
@@ -33,8 +34,8 @@ class UserProfileManager(models.Manager):
         return available
 
     def get_all_profiles(self, curUser):
+        # curUser is of type User
         return UserProfile.objects.all().exclude(user = curUser)
-
 
 class UserProfile(models.Model):
     # max length for the user display name
