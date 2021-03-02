@@ -135,17 +135,17 @@ def main_page(request):
     temp = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     comments = []
-    print("testing..")
-    getAllFollowAuthorPosts(request.user)
-    print("testing..")
     if temp !=[]:
         obj = serializers.serialize("json", temp)
         post_json = json.loads(obj)
-        # print("post_json",post_json)
         
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
             fields['comments'] = {}
             
             comments = getComments()
@@ -159,6 +159,58 @@ def main_page(request):
             new_list.append(fields)
 
     # print(new_list)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': userProfile,
+    }
+    """Note:
+    Consider that there are case when there's no posts of this author
+    change main_page.html so that it looks better when there's no post for
+    from author.
+
+    finish this and delete this comment block.
+    """
+    return render(request, 'Iconicity/main_page.html', context)
+
+@login_required
+def mainPagePublic(request):
+ # https://docs.djangoproject.com/en/3.1/topics/serialization/
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    userProfile = getUserProfile(request.user)
+    # get all the posts posted by the current user
+
+    temp = list(Post.objects.filter(visibility='PUBLIC'))
+    print("temp",temp)
+    new_list = []
+    comments = []
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        print("post_json",post_json)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
+            fields['comments'] = {}
+            
+            comments = getComments()
+            print("comments:\n", comments)
+
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+
+    print(new_list)
 
     context = {
         'posts': new_list,
@@ -279,16 +331,14 @@ def userProfile_list_view(request):
     return render(request, 'Iconicity/profile_list.html', context)
 
 def like_view(request):
+    print("like_view",request)
+    print(request.path)
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
     post.like.add(request.user)
     post.count = post.count_like()
-    print("count",post.count)
-    #post.count +=1
     post.save()
-    print(1111)
-    print("post count",post.count)
-    print(post.like)
     return redirect('main_page')
+
 def profile(request):
     userProfile = getUserProfile(request.user)
     
@@ -319,10 +369,136 @@ def public(request):
     return render(request,'Iconicity/public.html')
 
 def mypost(request):
-    return render(request,'Iconicity/my_post.html')
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    userProfile = getUserProfile(request.user)
+    # get all the posts posted by the current user
+
+    temp = getPosts(request.user, visibility="FRIENDS")
+    new_list = []
+    comments = []
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
+            fields['comments'] = {}
+            
+            comments = getComments()
+            print("comments:\n", comments)
+
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': userProfile,
+    }
+    """Note:
+    Consider that there are case when there's no posts of this author
+    change main_page.html so that it looks better when there's no post for
+    from author.
+
+    finish this and delete this comment block.
+    """
+    return render(request, 'Iconicity/my_post.html', context)
 
 def following(request):
-    return render(request,'Iconicity/follow.html')
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    userProfile = getUserProfile(request.user)
+    # get all the posts posted by the current user
 
+    temp = getAllFollowAuthorPosts(request.user)
+    new_list = []
+    comments = []
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        print("post_json",post_json)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
+            fields['comments'] = {}
+            
+            comments = getComments()
+            print("comments:\n", comments)
+
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+
+    print(new_list)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': userProfile,
+    }
+
+    return render(request,'Iconicity/follow.html', context)
+
+
+# pay attention: not finish yet
+# don't use this page for now.
 def friends(request):
-    return render(request,'Iconicity/friends.html')
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    userProfile = getUserProfile(request.user)
+    # get all the posts posted by the current user
+
+    temp = getAllFollowAuthorPosts(request.user)
+    new_list = []
+    comments = []
+    if temp !=[]:
+        obj = serializers.serialize("json", temp)
+        post_json = json.loads(obj)
+        print("post_json",post_json)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
+            fields['comments'] = {}
+            
+            comments = getComments()
+            print("comments:\n", comments)
+
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+
+    print(new_list)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': userProfile,
+    }
+
+    return render(request,'Iconicity/friends.html', context)
