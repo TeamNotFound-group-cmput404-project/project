@@ -17,25 +17,25 @@ friend requests: https://www.youtube.com/watch?v=7-VNMGmEN54&list=PLgjw1dR712joF
 # By: Shway
 class UserProfileManager(models.Manager):
     def get_all_available_profiles(self, sender):
+        # sender is of type User
         profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
-        my_profile = UserProfile.objects.get(user=sender) # my profile
-        # want 
-        queryset = FriendRequest.objects.filter(Q(sender=my_profile) | Q(receiver=my_profile))
+        my_profile = UserProfile.objects.get(user = sender) # my profile
+        # below are requests that are related to the current user:
+        queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object_author=my_profile))
         #print(queryset)
-        accepted = []
+        accepted = set()
         for frdReq in queryset:
             if frdReq.status == 'accepted':
-                accepted.append(frdReq.receiver)
-                accepted.append(frdReq.sender)
+                accepted.add(frdReq.receiver)
+                accepted.add(frdReq.sender)
         #print(accepted)
-        available = [p for p in profiles if profile not in accepted]
+        available = [p for p in profiles if profiles not in accepted]
         #print(available)
         return available
 
-
     def get_all_profiles(self, curUser):
+        # curUser is of type User
         return UserProfile.objects.all().exclude(user = curUser)
-
 
 class UserProfile(models.Model):
     # max length for the user display name
@@ -170,8 +170,8 @@ STATUS_CHOICES = (
 )
 
 class FriendRequestManager(models.Manager):
-    def friendRequests_received(self, object_author):
-        return FriendRequest.objects.filter(receiver=object_author, status='sent')
+    def friendRequests_received(self, receiver):
+        return FriendRequest.objects.filter(object_author=receiver, status='sent')
 
     #FriendRequest.objects.friendRequests_received(curUserProfile)
 
