@@ -1,7 +1,5 @@
 {% extends 'Iconicity/main_base.html'%}
-
 {% load static %}
-
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
@@ -11,17 +9,7 @@
     <!-- Left Column -->
     <div class="w3-col m3">
       <!-- Profile -->
-      <div class="w3-card w3-round w3-white" >
-        <div class="w3-container">
-          <a href="profile">
-         <h4 class="w3-center w3-margin-top">My Profile</h4>
-        </a>
-         <hr>
-         <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i> {{ user.username }}</p>
-         <p><i class="fa fa-github fa-fw w3-margin-right w3-text-theme"></i> <a href="{{ UserProfile.github }}">{{ UserProfile.github }}</a>
-        </div>
-
-    </div>
+     
     <br>
 
     <!-- End Left Column -->
@@ -69,7 +57,7 @@
         <hr class="w3-clear">
 
         <!-- Below are the like, comment and repost buttons -->
-        <form action="{% url 'like_post_public' %}" method="POST">
+        <form action="{% url 'like_post_mypost' %}" method="POST">
           {% csrf_token %}
           
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i><p>{{post.count}}</p></button>
@@ -77,6 +65,17 @@
         </form>
         <button class="button w3-margin-bottom"><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
 
+        <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
+
+        <!-- <button onclick="myFunction('comment_id')" class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+          <div id="comment_id" class="w3-hide"> -->
+            <!-- Comment Box-->
+            <!-- <h6 class="w3-opacity">Your Comment:</h6>
+            <p contenteditable="true" class="w3-border w3-padding"> </p>
+            <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
+          </div> -->
+
+        <!-- Show Comments at Bottom-->
         
         <h3>Comments:</h3>
         <div class="w3-row-padding" style="margin:0 -16px">
@@ -92,12 +91,8 @@
             {% endfor %}
           {% endfor %}
         </div>
-
-
-
-
-      </div>
-      {% endfor %}
+    </div>
+{% endfor %}
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
@@ -120,22 +115,7 @@
     </div>
 
     <!-- Added here by Shway-->
-    <!-- Right Column -->
-    <div class="w3-col m2">
-      <!-- Profile -->
-      <div class="w3-card w3-round w3-white" >
-        <div class="w3-container">
-         <h4 class="w3-center w3-margin-top">Friend List of {{ request.user }}:</h4>
-         <hr>
-         {% for friend in UserProfile.get_followers %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
-         {% endfor %}
-         <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} friends.</h5>
-        </div>
-      </div>
-    </div>
-    <br>
-    <!-- End Right Column -->
+    
 
   <!-- End Grid -->
   </div>

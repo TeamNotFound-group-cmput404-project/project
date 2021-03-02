@@ -10,12 +10,22 @@ urlpatterns = [
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
 	path('main', views.main_page, name = 'main_page'),
-	#path('author', views.getUserProfile, name = 'userprofile')
-	# path('new_post', views.new_post, name = 'new_post'),
-	# path('main', views.finish_post, name = 'main_page'),
-	path('like', views.like_view, name="like_post"),
 
+	# need to fix this part later
+	path('friends/like', views.like_view, name="like_post_friend"),
+	path('mypost/like', views.like_view, name="like_post_mypost"),
+	path('public/like', views.like_view, name="like_post_public"),
+	path('following/like', views.like_view, name="like_post_following"),
+
+	path('profile',views.profile,name = "profile"),
+	path('mypost', views.mypost, name = 'my_post'),
+	path('public',views.mainPagePublic,name = "main_page"),
+	path('friends', views.friends, name = 'friends'),
+	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
+	# Below are for friend requests functionalities:
 	path('friend_requests', views.friendRequests_received_view, name='friend_requests'),
-	path('avail_profiles', views.userProfile_list_view, name='avail_profiles'),
+	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
+	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
+	path('send_friendRequest', views.send_friendRequest, name='send_friendRequest'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
