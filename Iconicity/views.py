@@ -136,16 +136,20 @@ def main_page(request):
     new_list = []
     comments = []
     print("testing..")
-    getAllFollowAuthorPosts(request.user)
+    #getAllFollowAuthorPosts(request.user)
     print("testing..")
     if temp !=[]:
         obj = serializers.serialize("json", temp)
         post_json = json.loads(obj)
-        # print("post_json",post_json)
+        print("post_json",post_json)
         
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
+            print(fields['author'])
+            author_name = User.objects.filter(id=fields['author']).first().username
+            print("author_name",author_name)
+            fields['author_name'] = author_name
             fields['comments'] = {}
             
             comments = getComments()
