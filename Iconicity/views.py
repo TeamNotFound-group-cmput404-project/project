@@ -130,49 +130,34 @@ def main_page(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
 
-    temp = getPosts(request.user, visibility="FRIENDS")
-    new_list = []
-    comments = []
-    print("testing..")
-    getAllFollowAuthorPosts(request.user)
-    print("testing..")
-    if temp !=[]:
-        obj = serializers.serialize("json", temp)
-        post_json = json.loads(obj)
-        # print("post_json",post_json)
-        
-        for i in post_json:
-            fields = i['fields']
-            fields['pk'] = i['pk']
-            fields['comments'] = {}
-            
-            comments = getComments()
-            print("comments:\n", comments)
-
-            for comment in comments:
-                if comment['fields']["post"] == fields["pk"]:
-                    # Comment id: Comment body
-                    fields['comments'][comment['pk']] = (comment['fields']['body'])
-
-            new_list.append(fields)
-
-    # print(new_list)
+    postList = getPosts(request.user, visibility="FRIENDS")
+    new_list, comments = createJsonFromProfile(postList)
 
     context = {
         'posts': new_list,
         'comments': comments,
-        'UserProfile': userProfile,
+        'UserProfile': getUserProfile(request.user),
     }
-    """Note:
-    Consider that there are case when there's no posts of this author
-    change main_page.html so that it looks better when there's no post for
-    from author.
+    return render(request, 'Iconicity/main_page.html', context)
 
-    finish this and delete this comment block.
-    """
+@login_required
+def mainPagePublic(request):
+    # https://docs.djangoproject.com/en/3.1/topics/serialization/
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    # get all the posts posted by the current user
+
+    postList = list(Post.objects.filter(visibility='PUBLIC'))
+    new_list, comments = createJsonFromProfile(postList)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': getUserProfile(request.user),
+    }
+    
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -199,7 +184,6 @@ def getAllFollowAuthorPosts(currentUser):
             if currentUser in list(otherUserProfile.get_followers()):
                 print("they are friends")
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
-                print("temp",temp)
                 post_list += temp
             else:
                 # one direct
@@ -329,16 +313,21 @@ def send_friendRequest(request):
     return redirect('main')
 
 def like_view(request):
+    redirect_path = 'main_page'
+    if request.path == "/friends/like":
+        redirect_path = "/friends"
+    elif request.path == "/mypost/like":
+        redirect_path = "/mypost"
+    elif request.path == "/public/like":
+        redirect_path = "/public"
+    elif request.path == "/following/like":
+        redirect_path = "/following"
+
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
     post.like.add(request.user)
     post.count = post.count_like()
-    print("count",post.count)
-    #post.count +=1
     post.save()
-    print(1111)
-    print("post count",post.count)
-    print(post.like)
-    return redirect('main_page')
+    return redirect(redirect_path)
 
 def profile(request):
     userProfile = getUserProfile(request.user)
@@ -369,11 +358,95 @@ def profile(request):
 def public(request):
     return render(request,'Iconicity/public.html')
 
+def createJsonFromProfile(postList):
+    # return (posts and comments) in json format
+    new_list = []
+    comments = []
+    if postList !=[]:
+        obj = serializers.serialize("json", postList)
+        post_json = json.loads(obj)
+        
+        for i in post_json:
+            fields = i['fields']
+            fields['pk'] = i['pk']
+            author_name = User.objects.filter(id=fields['author']).first().username
+            fields['author_name'] = author_name
+            fields['comments'] = {}
+            
+            comments = getComments()
+            for comment in comments:
+                if comment['fields']["post"] == fields["pk"]:
+                    # Comment id: Comment body
+                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+
+            new_list.append(fields)
+    return new_list, comments
+
 def mypost(request):
-    return render(request,'Iconicity/my_post.html')
+    if request.user.is_anonymous:
+        return render(request, 
+                      'Iconicity/login.html', 
+                      { 'form':  AuthenticationForm })
+    # get all the posts posted by the current user
+
+    postList = getPosts(request.user, visibility="FRIENDS")
+    new_list, comments = createJsonFromProfile(postList)
+    
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': getUserProfile(request.user),
+    }
+    return render(request, 'Iconicity/my_post.html', context)
 
 def following(request):
-    return render(request,'Iconicity/follow.html')
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    userProfile = getUserProfile(request.user)
+    # get all the posts posted by the current user
+
+    postList = getAllFollowAuthorPosts(request.user)
+    new_list, comments = createJsonFromProfile(postList)
+
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': userProfile,
+    }
+
+    return render(request,'Iconicity/follow.html', context)
+
+def getUserFriend(currentUser):
+    userProfile = getUserProfile(currentUser)
+    friendList = []
+    # get all followers of our user
+    allFollowedAuthors = list(userProfile.get_followers()) 
+    for user in allFollowedAuthors:
+        # check whether they are friends.
+        # means a two-direct-follow
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
+            print("they are friends")
+            friendList.append(user)
+
+    return friendList
 
 def friends(request):
-    return render(request,'Iconicity/friends.html')
+    if request.user.is_anonymous:
+        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+    # get all the posts posted by the current user
+    postList = []
+
+    for friend_id in getUserFriend(request.user):
+        postList += getPosts(friend_id, visibility="FRIENDS")
+    
+    new_list, comments = createJsonFromProfile(postList)
+
+    context = {
+        'posts': new_list,
+        'comments': comments,
+        'UserProfile': getUserProfile(request.user),
+    }
+
+    return render(request,'Iconicity/friends.html', context)

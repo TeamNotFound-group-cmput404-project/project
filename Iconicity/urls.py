@@ -10,10 +10,16 @@ urlpatterns = [
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
 	path('main', views.main_page, name = 'main_page'),
-	path('like', views.like_view, name="like_post"),
+
+	# need to fix this part later
+	path('friends/like', views.like_view, name="like_post_friend"),
+	path('mypost/like', views.like_view, name="like_post_mypost"),
+	path('public/like', views.like_view, name="like_post_public"),
+	path('following/like', views.like_view, name="like_post_following"),
+
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'my_post'),
-	path('public',views.main_page,name = "public"),
+	path('public',views.mainPagePublic,name = "main_page"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
