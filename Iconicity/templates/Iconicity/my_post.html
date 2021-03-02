@@ -57,7 +57,7 @@
         <hr class="w3-clear">
 
         <!-- Below are the like, comment and repost buttons -->
-        <form action="{% url 'like_post' %}" method="POST">
+        <form action="{% url 'like_post_mypost' %}" method="POST">
           {% csrf_token %}
           
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i><p>{{post.count}}</p></button>
