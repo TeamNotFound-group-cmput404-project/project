@@ -18,11 +18,15 @@ from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core import serializers
 from django.urls import reverse
+
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+
+from .serializers import PostSerializer
+
+
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
@@ -229,6 +233,7 @@ class AddPostView(CreateView):
             print("posting...")
             form = form.save(commit=False)
             form.author = request.user
+            form.origin = "https://" + str(host) + '/post/' + str(profile.uid)
             form.save()
             return redirect('main_page')
 
@@ -448,7 +453,7 @@ def createJsonFromProfile(postList):
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     # Comment id: Comment body
-                    fields['comments'][comment['pk']] = (comment['fields']['body'])
+                    fields['comments'][comment['pk']] = (comment['fields']['comment'])
 
             new_list.append(fields)
     return new_list, comments
@@ -521,3 +526,29 @@ def friends(request):
     }
 
     return render(request,'Iconicity/friends.html', context)
+
+def repost(request):
+    # should pass back the post from the frontend
+    post = get_object_or_404(Post, pk=request.POST.get('pk'))
+
+class Posts(APIView):
+
+    def get(self, request):
+        # get all posts with visibility == "PUBLIC"
+        if request.user.is_authenticated:
+            posts = Post.objects.filter(visibility = "PUBLIC").all()
+            serializer = PostSerializer(posts, many=True)
+            return Response(serializer.data)
+        else:
+            # the user is unauthorized
+            return HttpResponse('Unauthorized', status=401)
+
+class PostById(APIView):
+    def get(self, request, post_id):
+        if request.user.is_authenticated:
+            posts = Post.objects.filter(pk=post_id).all()
+            serializer = PostSerializer(posts, many=True)
+            return Response(serializer.data)
+        else:
+            # the user is unauthorized
+            return HttpResponse('Unauthorized', status=401)
