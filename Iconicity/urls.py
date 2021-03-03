@@ -17,6 +17,7 @@ urlpatterns = [
 	path('public/like', views.like_view, name="like_post_public"),
 	path('following/like', views.like_view, name="like_post_following"),
 
+	path('repost', views.repost, name='repost'),
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'my_post'),
 	path('public',views.mainPagePublic,name = "main_page"),
@@ -25,6 +26,18 @@ urlpatterns = [
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	# Below are for friend requests functionalities:
 	path('friend_requests', views.friendRequests_received_view, name='friend_requests'),
+
+
+	# APIs
+    path(r'posts/', views.Posts().as_view()),
+    path(r'posts', views.Posts().as_view()),
+	path(r'posts/<str:post_id>/', views.PostById().as_view()),
+    path(r'posts/<str:post_id>', views.PostById().as_view()),
+
+
+
+
+
 	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
 	path('send_friendRequest', views.send_friendRequest, name='send_friendRequest'),
