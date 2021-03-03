@@ -167,7 +167,8 @@ def createUserProfile(Display_name, User, Github, host):
                           display_name=Display_name,
                           github=Github,
                           host=host)
-    profile.url = "https://" + str(host) + '/author/' + str(profile.uid)
+
+    profile.url = str(self.request.scheme)+"://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
 
 
@@ -306,7 +307,6 @@ def send_friendRequest(request):
     if request.method == 'POST':
         uid = request.POST.get('profile_uid')
         sender = UserProfile.objects.get(user=request.user)
-        print(uid)
         receiver = UserProfile.objects.get(uid=uid)
         friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
         # stay on the same page
