@@ -64,9 +64,7 @@ class UserProfile(models.Model):
     url = models.URLField(default="")
 
     # I'm following / friend
-    # follow = models.JSONField(default=dict)
-    # Potential change:
-    follow = models.ManyToManyField(User, related_name='friends', blank=True)
+    follow = models.ManyToManyField(User, related_name='following', blank=True)
 
     objects = UserProfileManager()
 
