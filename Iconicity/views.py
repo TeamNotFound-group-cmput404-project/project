@@ -19,7 +19,13 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
+
+from django.db.models import Q
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
 from .serializers import PostSerializer
+
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -212,8 +218,6 @@ def getPosts(user, visibility="PUBLIC"):
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
-
-
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
@@ -246,26 +250,61 @@ class AddPostView(CreateView):
         print("getting")
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
-# By Shway, the friend requests stuff:
+
+
+
+# By Shway, the friend requests related stuff:
 # by Shway, this view below shows the list of received friend requests:
-def friendRequests_received_view(request):
+def friend_requests_received_view(request):
     profile = getUserProfile(request.user)
-    print("here")
     requests = FriendRequest.objects.friendRequests_received(profile)
-    print("requests",requests)
-    context = {'requests': requests}
-    
+    is_empty = False
+    if len(requests) == 0: is_empty = True
+    # take actor(sender) of each request
+    senders = list(map(lambda x: x.actor, requests))
+    context = {
+        'senders': senders,
+        'is_empty': is_empty}
     return render(request, 'Iconicity/frdRequests.html', context)
+
+# by Shway, accept friend request function view:
+def accept_friend_request(request):
+    if request.method == 'POST':
+        uid = request.POST.get('accept_uid')
+        sender = UserProfile.objects.get(uid = uid)
+        receiver = UserProfile.objects.get(user = request.user)
+        # save the new friend's uid into current user's follow and vice versa:
+        sender.follow.add(receiver.user)
+        receiver.follow.add(sender.user)
+        sender.save()
+        receiver.save()
+        # change the status of the friend request to accepted:
+        friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
+        if friend_request.status == 'sent':
+            friend_request.status = 'accepted'
+            friend_request.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
+
+# by Shway, reject friend request function view:
+def reject_friend_request(request):
+    if request.method == 'POST':
+        uid = request.POST.get('reject_uid')
+        sender = UserProfile.objects.get(uid = uid)
+        receiver = UserProfile.objects.get(user = request.user)
+        friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
+        friend_request.delete()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
 # by Shway, this view below shows the list of profiles of all those availble to follow
 # or to be friend with:
 def avail_userProfile_list_view(request):
     user = request.user
-    print("here")
     profiles = UserProfile.objects.get_all_available_profiles(user)
-
     context = {'profiles': profiles}
-    
     return render(request, 'Iconicity/avail_profile_list.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
@@ -283,18 +322,26 @@ class UserProfileListView(ListView):
         user = User.objects.get(username__iexact = self.request.user)
         my_profile = UserProfile.objects.get(user = user)
         # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(actor = my_profile)
+        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
         # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(object_author = my_profile)
+        inbox_requests = FriendRequest.objects.filter(Q(object_author = my_profile) & Q(status = 'sent'))
+        # friend relations requests
+        accepted_requests = FriendRequest.objects.filter(
+            (Q(object_author = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
         # listify the above two results:
-        pending_requests_list = []
-        inbox_requests_list = []
+        pending_requests_list = set()
+        inbox_requests_list = set()
+        accepted_list = set()
         for i in pending_requests:
-            pending_requests_list.append(i.object_author.user)
+            pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
-            inbox_requests_list.append(i.actor.user)
+            inbox_requests_list.add(i.actor.user)
+        for i in accepted_requests:
+            accepted_list.add(i.actor.user)
+            accepted_list.add(i.object_author.user)
         context['pending_requests'] = pending_requests_list
         context['inbox_requests'] = inbox_requests_list
+        context['accepted_requests'] = accepted_list
         # if there are no profiles other than the current user:
         context['is_empty'] = False # initially not empty
         if len(self.get_queryset()) == 0:
@@ -302,17 +349,44 @@ class UserProfileListView(ListView):
         return context
 
 # by Shway, view function for sending friend requests
-def send_friendRequest(request):
+def send_friend_request(request):
     if request.method == 'POST':
         uid = request.POST.get('profile_uid')
         sender = UserProfile.objects.get(user=request.user)
-        print(uid)
         receiver = UserProfile.objects.get(uid=uid)
         friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     # go to main page if the user did not use the "POST" method
     return redirect('main')
+
+# by Shway, view function for removing a friend
+def remove_friend(request):
+    if request.method == 'POST':
+        uid = request.POST.get('profile_uid')
+        sender = UserProfile.objects.get(user=request.user)
+        receiver = UserProfile.objects.get(uid=uid)
+        # delete the friend request involving current user and the past in user with uid specified
+        friendRequest = FriendRequest.objects.get(
+            (Q(actor=sender) & Q(object_author=receiver)) | (Q(actor=receiver) & Q(object_author=sender)))
+        friendRequest.delete()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
+
+# by Shway, whenever a friend request is deleted, want to also delete
+# from follow lists of actor and object_author
+@receiver(pre_delete, sender=FriendRequest)
+def pre_delete_remove_from_follow(sender, instance, **kwargs):
+    sender = instance.actor
+    receiver = instance.object_author
+    sender.follow.remove(receiver.user)
+    receiver.follow.remove(sender.user)
+    sender.save()
+    receiver.save()
+
+
+
 
 def like_view(request):
     redirect_path = 'main_page'
