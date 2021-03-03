@@ -1,8 +1,7 @@
 <!--This file is by Shway-->
+<!--This file shows all requests received by the current user-->
 {% extends 'Iconicity/main_base.html'%}
-
 {% load static %}
-
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
@@ -11,15 +10,37 @@
   <div class="w3-row">
     <!-- Middle Column -->
     <!-- By: Zhiqi Zhou-->
-    <div class="w3-col m7">
-
+    <div class="w3-col m10">
       <!-- This is the beginning of a post -->
-      <!-- Shway Wang added the for loop here -->
-      <h1 class="w3-center w3-margin-top">Some people want to follow you:</h1>
-      {% for request in requests %}
-      <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>{{ request.actor.display_name }}</h1><br>
-      {% endfor %}
+      <!-- Shway Wang added the for loop and the if condition here -->
+      {% if is_empty %}
+        <h1 class="w3-center w3-margin-top">You have no friend requests yet!</h1>
+      {% else %}
+        <h1 class="w3-center w3-margin-top">Some people want to follow you:</h1>
+        {% for sender in senders %}
+          <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+            <div>
+              <img class="w3-left w3-circle w3-margin-right" src="{% static 'images/shwaypic.jpg' %}"
+              style="width:120px" alt="Icon">
+            </div>
+            <h4>{{ sender.display_name }}</h4>
+            <p>Github link: {{ sender.github }}</p>
+            <p>Host link: {{ sender.host }}</p>
+            <p>URL link: {{ sender.url }}</p>
+            <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
+            <form action="{% url 'accept_friend_request' %}" method='POST'>
+              {% csrf_token %}
+              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+              name='accept_uid' value='{{ sender.uid }}'>Accept</button>
+            </form>
+            <form action="{% url 'reject_friend_request' %}" method='POST'>
+              {% csrf_token %}
+              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+              name='reject_uid' value='{{ sender.uid }}'>Delete</button>
+            </form>
+          </div>
+        {% endfor %}
+      {% endif %}
       <!-- This is the end of a post -->
       
       <!-- Pagination-->

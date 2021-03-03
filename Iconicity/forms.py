@@ -28,6 +28,7 @@ class PostsCreateForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'content', "image", 'visibility']
+        
 class UserUpdateForm(forms.ModelForm):
     github = forms.URLField(max_length=254)
     class Meta:
