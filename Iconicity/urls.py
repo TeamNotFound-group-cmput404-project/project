@@ -25,9 +25,11 @@ urlpatterns = [
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	
 	# Below are for friend requests functionalities by Shway Wang:
-	path('friend_requests', views.friendRequests_received_view, name='friend_requests'),
+	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),
 	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
-	path('send_friendRequest', views.send_friendRequest, name='send_friendRequest'),
+	path('send_friendRequest', views.send_friend_request, name='send_friendRequest'),
 	path('remove_friend', views.remove_friend, name='remove_friend'),
+	path('accept_friend_request', views.accept_friend_request, name='accept_friend_request'),
+	path('reject_friend_request', views.reject_friend_request, name='reject_friend_request'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
