@@ -157,6 +157,7 @@ class Post(models.Model):
 
     image = models.ImageField(null=True, blank=True, upload_to="images/")
 
+    host = models.URLField(default="")
     def count_like(self):
         return self.like.count()
 
@@ -208,7 +209,7 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
-    body = models.TextField(default="")
+    comment = models.TextField(default="")
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
                                    choices=(('text/markdown', 'text/markdown'),
