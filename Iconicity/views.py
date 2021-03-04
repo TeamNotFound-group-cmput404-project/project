@@ -123,7 +123,8 @@ def signup(request):
             User = authenticate(username=username, password=raw_password)
             Github = form.cleaned_data.get('github')
             host = request.get_host()
-            createUserProfile(username, User, Github, host)
+            scheme = request.scheme
+            createUserProfile(scheme, username, User, Github, host)
 
             login(request, User)
             return redirect('main_page')
@@ -171,13 +172,13 @@ def mainPagePublic(request):
     return render(request, 'Iconicity/main_page.html', context)
 
 
-def createUserProfile(Display_name, User, Github, host):
+def createUserProfile(scheme, Display_name, User, Github, host):
     profile = UserProfile(user=User,
                           display_name=Display_name,
                           github=Github,
                           host=host)
 
-    profile.url = str(self.request.scheme)+"://" + str(host) + '/author/' + str(profile.uid)
+    profile.url = str(scheme)+"://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
 
 
