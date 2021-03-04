@@ -24,8 +24,9 @@ from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from .serializers import PostSerializer
-
+from .serializers import PostSerializer,GETProfileSerializer
+from urllib.request import urlopen
+import requests
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -123,7 +124,8 @@ def signup(request):
             User = authenticate(username=username, password=raw_password)
             Github = form.cleaned_data.get('github')
             host = request.get_host()
-            createUserProfile(username, User, Github, host)
+            scheme = request.scheme
+            createUserProfile(scheme, username, User, Github, host)
 
             login(request, User)
             return redirect('main_page')
@@ -159,7 +161,25 @@ def mainPagePublic(request):
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
 
+    externalPostList = getAllFollowExternalAuthorPosts(request.user)
+
+    new_list += externalPostList
+    print(new_list)
+
+    """ Note:
+    each json object in externalPostList is different from 
+    each one in new_list!!!!!!!!!!!!!!!!
+    
+    I'll change this by March 5 morning. All posts in our server and 
+    outside our server will all use the same json format
+
+    Qianxi
+    
+    
+    
+    """
     context = {
+
         'posts': new_list,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
@@ -168,12 +188,14 @@ def mainPagePublic(request):
     return render(request, 'Iconicity/main_page.html', context)
 
 
-def createUserProfile(Display_name, User, Github, host):
+def createUserProfile(scheme, Display_name, User, Github, host):
     profile = UserProfile(user=User,
                           display_name=Display_name,
                           github=Github,
                           host=host)
-    profile.url = "https://" + str(host) + '/author/' + str(profile.uid)
+
+
+    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
 
 
@@ -228,12 +250,19 @@ class AddPostView(CreateView):
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
         print(request.FILES)
-
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
             form.author = request.user
-            form.origin = "https://" + str(host) + '/post/' + str(profile.uid)
+            userProfile = UserProfile.objects.get(user=request.user)
+
+
+            form.origin = (str(request.scheme) + "://" 
+                                               + str(request.get_host()) 
+                                               + 'author' 
+                                               + str(userProfile.pk) 
+                                               + '/post/' 
+                                               + str(self.model.post_id))
             form.save()
             return redirect('main_page')
 
@@ -475,6 +504,40 @@ def mypost(request):
     }
     return render(request, 'Iconicity/my_post.html', context)
 
+def getAllFollowExternalAuthorPosts(currentUser):
+    # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
+    # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
+    post_list = []
+    userProfile = UserProfile.objects.get(user=currentUser)
+    if userProfile:
+        externalAuthorUrls = userProfile.get_external_follows()
+        externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
+        if externalAuthorUrls != []:
+            # now it should be a list of urls of the external followers
+            # should like [url1, url2]
+            
+            for each_url in externalAuthorUrls:
+                full_url = each_url
+                if each_url[-1]=="/":
+                    full_url += "posts/"
+                else:
+                    full_url += "/posts/"
+                
+                responseJsonlist = requests.get(full_url).json()
+                print(responseJsonlist)
+                post_list += responseJsonlist
+    return post_list
+
+
+
+
+
+class AuthorById(APIView):
+    def get(self, request, author_id):
+        userProfile = UserProfile.objects.get(pk=author_id)
+        serializer = GETProfileSerializer(userProfile)
+        return Response(serializer.data)
+
 def following(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
@@ -552,3 +615,14 @@ class PostById(APIView):
         else:
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)
+
+
+class AllPostsByAuthor(APIView):
+    def get(self, request, author_id):
+        authorProfile = UserProfile.objects.get(pk=author_id)
+        posts = Post.objects.filter(author=authorProfile.user).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+# app:
+#https://vast-shore-25201.herokuapp.com/

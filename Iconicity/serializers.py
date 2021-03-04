@@ -103,3 +103,4 @@ class CommentSerializer(serializers.ModelSerializer):
             data = f.read().decode('utf-8')
             data = json.loads(data)
             return data
+
