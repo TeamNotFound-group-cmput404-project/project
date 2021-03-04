@@ -43,7 +43,7 @@ urlpatterns = [
 
 
 
-
+ 	#https://iconicity-test-a.herokuapp.com/author/b058b053-4766-4c6a-acaf-561c08badf64/posts/00db788e-45af-49eb-8350-f1c507eb42d0
 
 	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
