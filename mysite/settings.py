@@ -130,4 +130,4 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
     )
 
-    django_on_heroku.settings(locals()) # bottom of the file
+django_on_heroku.settings(locals()) # bottom of the file
