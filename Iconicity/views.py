@@ -516,7 +516,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        externalAuthorUrls = ["https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/"]
+        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
