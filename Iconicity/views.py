@@ -162,7 +162,7 @@ def mainPagePublic(request):
     new_list, comments = createJsonFromProfile(postList)
 
     externalPostList = getAllFollowExternalAuthorPosts(request.user)
-
+    print("extrenal",externalPostList)
     new_list += externalPostList
     print(new_list)
 
@@ -522,8 +522,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "posts/"
                 else:
                     full_url += "/posts/"
-                
-                responseJsonlist = requests.get(full_url).json()
+                temp = requests.get(full_url)
+                print("temp",temp)
+                responseJsonlist = temp.json()
                 print(responseJsonlist)
                 post_list += responseJsonlist
     return post_list
