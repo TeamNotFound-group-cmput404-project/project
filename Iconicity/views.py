@@ -162,7 +162,7 @@ def mainPagePublic(request):
     new_list, comments = createJsonFromProfile(postList)
 
     externalPostList = getAllFollowExternalAuthorPosts(request.user)
-
+    print("extrenal",externalPostList)
     new_list += externalPostList
     print(new_list)
 
@@ -508,7 +508,13 @@ def getAllFollowExternalAuthorPosts(currentUser):
     # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
     # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
     post_list = []
-    userProfile = UserProfile.objects.get(user=currentUser)
+    try:
+        userProfile = UserProfile.objects.get(user=currentUser)
+    except Exception as e:
+        print(e)
+        return []
+    
+
     if userProfile:
         externalAuthorUrls = userProfile.get_external_follows()
         externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
@@ -522,8 +528,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "posts/"
                 else:
                     full_url += "/posts/"
-                
-                responseJsonlist = requests.get(full_url).json()
+                temp = requests.get(full_url)
+                print("temp",temp)
+                responseJsonlist = temp.json()
                 print(responseJsonlist)
                 post_list += responseJsonlist
     return post_list
