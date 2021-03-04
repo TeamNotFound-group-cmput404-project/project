@@ -24,8 +24,8 @@ from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from .serializers import PostSerializer
-
+from .serializers import PostSerializer,GETProfileSerializer
+from urllib.request import urlopen
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -158,8 +158,11 @@ def mainPagePublic(request):
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
-
+    print("testing")
+    getAllFollowExternalAuthorPosts(request.user)
+    print("testing")
     context = {
+
         'posts': new_list,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
@@ -476,6 +479,34 @@ def mypost(request):
     }
     return render(request, 'Iconicity/my_post.html', context)
 
+def getAllFollowExternalAuthorPosts(currentUser):
+    userProfile = UserProfile.objects.get(user=currentUser)
+    if userProfile:
+        externalAuthorUrls = userProfile.get_external_follows()
+        if externalAuthorUrls != []:
+            # now it should be a list of urls of the external followers
+            # should like [url1, url2]
+            print("hrere")
+            print(externalAuthorUrls)
+            
+            for each_url in externalAuthorUrls:
+                full_url = each_url
+                if each_url[-1]=="/":
+                    full_url += "posts/"
+                else:
+                    full_url += "/posts/"
+
+                response = urlopen(full_url).read()
+                print(response)
+
+
+
+class AuthorById(APIView):
+    def get(self, request, author_id):
+        userProfile = UserProfile.objects.get(pk=author_id)
+        serializer = GETProfileSerializer(userProfile)
+        return Response(serializer.data)
+
 def following(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
@@ -553,3 +584,11 @@ class PostById(APIView):
         else:
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)
+
+
+class AllPostsByAuthor(APIView):
+    def get(self, request, author_id):
+        authorProfile = UserProfile.objects.get(pk=author_id)
+        posts = Post.objects.filter(author=authorProfile.user).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)

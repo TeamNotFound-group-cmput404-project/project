@@ -66,7 +66,18 @@ class UserProfile(models.Model):
     # I'm following / friend
     follow = models.ManyToManyField(User, related_name='following', blank=True)
 
+    # Who i'm following on other servers.
+    # Should be a dict of urls
+    externalFollows = models.JSONField(default=list)
+
     objects = UserProfileManager()
+
+    def get_external_follows(self):
+        # return a list of urls of the external followed authors.
+        if self.externalFollows == {} or self.externalFollows == []:
+            return []
+        else:
+            return self.externalFollows['urls']
 
     # By: Shway
     def get_followers(self):
@@ -161,6 +172,8 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse("main_page")
+
+
 
 # By Shway:
 STATUS_CHOICES = (
