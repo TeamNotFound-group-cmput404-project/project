@@ -161,10 +161,10 @@ def mainPagePublic(request):
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
 
-    externalPostList = getAllFollowExternalAuthorPosts(request.user)
-    print("extrenal",externalPostList)
-    new_list += externalPostList
-    print(new_list)
+    #externalPostList = getAllFollowExternalAuthorPosts(request.user)
+    #print("extrenal",externalPostList)
+    #new_list += externalPostList
+    #print(new_list)
 
     """ Note:
     each json object in externalPostList is different from 
@@ -255,13 +255,13 @@ class AddPostView(CreateView):
             form = form.save(commit=False)
             form.author = request.user
             userProfile = UserProfile.objects.get(user=request.user)
-
+            # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
 
             form.origin = (str(request.scheme) + "://" 
                                                + str(request.get_host()) 
-                                               + 'author' 
+                                               + '/author/' 
                                                + str(userProfile.pk) 
-                                               + '/post/' 
+                                               + '/posts/' 
                                                + str(self.model.post_id))
             form.save()
             return redirect('main_page')
@@ -513,9 +513,8 @@ def getAllFollowExternalAuthorPosts(currentUser):
     except Exception as e:
         print(e)
         return []
-    
-
     if userProfile:
+        #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
         #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
@@ -529,9 +528,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                 else:
                     full_url += "/posts/"
                 temp = requests.get(full_url)
-                print("temp",temp)
                 responseJsonlist = temp.json()
-                print(responseJsonlist)
                 post_list += responseJsonlist
     return post_list
 

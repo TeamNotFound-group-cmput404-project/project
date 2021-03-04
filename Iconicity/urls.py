@@ -43,5 +43,4 @@ urlpatterns = [
 	path(r'author/<str:author_id>', views.AuthorById().as_view()),
 	path(r'author/<str:author_id>/', views.AuthorById().as_view()),
 	path(r'author/<str:author_id>/posts/', views.AllPostsByAuthor().as_view()),
-	path(r'author/<str:author_id>/posts', views.AllPostsByAuthor().as_view()),	
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
