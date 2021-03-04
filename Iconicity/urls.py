@@ -39,6 +39,8 @@ urlpatterns = [
 	path(r'author/<str:author_id>/', views.AuthorById().as_view()),
 	path(r'author/<str:author_id>/posts/', views.AllPostsByAuthor().as_view()),
 	path(r'author/<str:author_id>/posts', views.AllPostsByAuthor().as_view()),
+	path(r'author/', views.AllAuthors().as_view()),
+	path(r'author', views.AllAuthors().as_view()),
 
 
 

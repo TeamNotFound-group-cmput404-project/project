@@ -487,6 +487,8 @@ def createJsonFromProfile(postList):
             new_list.append(fields)
     return new_list, comments
 
+
+
 def mypost(request):
     if request.user.is_anonymous:
         return render(request, 
@@ -532,8 +534,35 @@ def getAllFollowExternalAuthorPosts(currentUser):
                 post_list += responseJsonlist
     return post_list
 
+def getAllConnectedServerHosts():
+    # return a list [hosturl1, hosturl2...]
+    return [i.get_host() for i in list(ExternalServer.objects.all())]
 
 
+
+class AllAuthors(APIView):
+    def get(self, request):
+        # first, get all local authors
+        userProfile = UserProfile.objects.all()
+        temp = GETProfileSerializer(userProfile,many=True).data
+        print("temp",temp)
+        allAuthors = json.dumps(temp)
+        
+        print("local:",allAuthors)
+
+        # then, get all authors from external hosts
+        externalHosts = getAllConnectedServerHosts()
+        
+        for host_url in externalHosts:
+            if host_url[-1] == "/":
+                full_url = host_url + "author"
+            else:
+                full_url = host_url + "/author"
+            print(full_url)
+            authors = requests.get(full_url).json()
+            allAuthors += authors
+        print(allAuthors)
+        return Response(allAuthors)
 
 
 class AuthorById(APIView):
