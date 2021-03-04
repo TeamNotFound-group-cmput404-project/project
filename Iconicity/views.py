@@ -26,6 +26,7 @@ from django.dispatch import receiver
 
 from .serializers import PostSerializer,GETProfileSerializer
 from urllib.request import urlopen
+import requests
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -159,9 +160,24 @@ def mainPagePublic(request):
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
-    print("testing")
-    #getAllFollowExternalAuthorPosts(request.user)
-    print("testing")
+
+    externalPostList = getAllFollowExternalAuthorPosts(request.user)
+
+    new_list += externalPostList
+    print(new_list)
+
+    """ Note:
+    each json object in externalPostList is different from 
+    each one in new_list!!!!!!!!!!!!!!!!
+    
+    I'll change this by March 5 morning. All posts in our server and 
+    outside our server will all use the same json format
+
+    Qianxi
+    
+    
+    
+    """
     context = {
 
         'posts': new_list,
@@ -489,14 +505,16 @@ def mypost(request):
     return render(request, 'Iconicity/my_post.html', context)
 
 def getAllFollowExternalAuthorPosts(currentUser):
+    # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
+    # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
+    post_list = []
     userProfile = UserProfile.objects.get(user=currentUser)
     if userProfile:
         externalAuthorUrls = userProfile.get_external_follows()
+        externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            print("hrere")
-            print(externalAuthorUrls)
             
             for each_url in externalAuthorUrls:
                 full_url = each_url
@@ -504,9 +522,13 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "posts/"
                 else:
                     full_url += "/posts/"
+                
+                responseJsonlist = requests.get(full_url).json()
+                print(responseJsonlist)
+                post_list += responseJsonlist
+    return post_list
 
-                response = urlopen(full_url).read()
-                print(response)
+
 
 
 
