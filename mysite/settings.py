@@ -125,7 +125,7 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Iconicity', 'media')
-STATIC_ROOT = os.path.join(BASE_DIR, 'Iconicity', STATIC_URL)
+STATIC_ROOT = os.path.join(BASE_DIR, 'Iconicity', 'static')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'Iconicity', 'static'),
