@@ -160,7 +160,7 @@ def mainPagePublic(request):
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
     print("testing")
-    getAllFollowExternalAuthorPosts(request.user)
+    #getAllFollowExternalAuthorPosts(request.user)
     print("testing")
     context = {
 
@@ -178,7 +178,8 @@ def createUserProfile(scheme, Display_name, User, Github, host):
                           github=Github,
                           host=host)
 
-    profile.url = str(scheme)+"://" + str(host) + '/author/' + str(profile.uid)
+
+    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.uid)
     profile.save()
 
 
@@ -233,12 +234,19 @@ class AddPostView(CreateView):
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
         print(request.FILES)
-
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
             form.author = request.user
-            form.origin = "https://" + str(host) + '/post/' + str(profile.uid)
+            userProfile = UserProfile.objects.get(user=request.user)
+
+
+            form.origin = (str(request.scheme) + "://" 
+                                               + str(request.get_host()) 
+                                               + 'author' 
+                                               + str(userProfile.pk) 
+                                               + '/post/' 
+                                               + str(self.model.post_id))
             form.save()
             return redirect('main_page')
 
