@@ -508,7 +508,13 @@ def getAllFollowExternalAuthorPosts(currentUser):
     # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
     # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
     post_list = []
-    userProfile = UserProfile.objects.get(user=currentUser)
+    try:
+        userProfile = UserProfile.objects.get(user=currentUser)
+    except Exception as e:
+        print(e)
+        return []
+    
+
     if userProfile:
         externalAuthorUrls = userProfile.get_external_follows()
         externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
