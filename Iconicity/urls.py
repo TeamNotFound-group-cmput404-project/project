@@ -36,10 +36,10 @@ urlpatterns = [
 	path('reject_friend_request', views.reject_friend_request, name='reject_friend_request'),
 
 	# APIs
-  path(r'posts/', views.Posts().as_view()),
-  path(r'posts', views.Posts().as_view()),
+    path(r'posts/', views.Posts().as_view()),
+    path(r'posts', views.Posts().as_view()),
 	path(r'author/<str:author_id>/posts/<str:post_id>/', views.PostById().as_view()),
-  path(r'author/<str:author_id>/posts/<str:post_id>', views.PostById().as_view()),
+    path(r'author/<str:author_id>/posts/<str:post_id>', views.PostById().as_view()),
 	path(r'author/<str:author_id>', views.AuthorById().as_view()),
 	path(r'author/<str:author_id>/', views.AuthorById().as_view()),
 	path(r'author/<str:author_id>/posts/', views.AllPostsByAuthor().as_view()),
