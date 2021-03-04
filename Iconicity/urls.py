@@ -27,14 +27,22 @@ urlpatterns = [
 
 
 	# Below are for friend requests functionalities:
-	path('friend_requests', views.friendRequests_received_view, name='friend_requests'),
+	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),
 
 
 	# APIs
-  path(r'posts/', views.Posts().as_view()),
-  path(r'posts', views.Posts().as_view()),
-	path(r'posts/<str:post_id>/', views.PostById().as_view()),
-  path(r'posts/<str:post_id>', views.PostById().as_view()),
+    path(r'posts/', views.Posts().as_view()),
+    path(r'posts', views.Posts().as_view()),
+	path(r'author/<str:author_id>/posts/<str:post_id>/', views.PostById().as_view()),
+    path(r'author/<str:author_id>/posts/<str:post_id>', views.PostById().as_view()),
+	path(r'author/<str:author_id>', views.AuthorById().as_view()),
+	path(r'author/<str:author_id>/', views.AuthorById().as_view()),
+	path(r'author/<str:author_id>/posts/', views.AllPostsByAuthor().as_view()),
+	path(r'author/<str:author_id>/posts', views.AllPostsByAuthor().as_view()),
+
+
+
+
 
 
 	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
