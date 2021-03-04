@@ -513,11 +513,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
     except Exception as e:
         print(e)
         return []
-    
-
     if userProfile:
+        #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
+        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -529,7 +528,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
                 else:
                     full_url += "/posts/"
                 temp = requests.get(full_url)
+                print(type(temp))
                 print("temp",temp)
+                print(temp.read())
                 responseJsonlist = temp.json()
                 print(responseJsonlist)
                 post_list += responseJsonlist
