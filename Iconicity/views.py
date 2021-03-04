@@ -592,3 +592,6 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+
+# app:
+#https://vast-shore-25201.herokuapp.com/
