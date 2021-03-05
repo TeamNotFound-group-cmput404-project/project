@@ -7,7 +7,7 @@ import json
 
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
-    externalFollows = serializers.SerializerMethodField()
+    externalFollows = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = ('externalFollows')
