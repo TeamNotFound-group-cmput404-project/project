@@ -5,6 +5,16 @@ import datetime
 from urllib import request
 import json
 
+
+class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
+    externalFollows = rest_serializers.SerializerMethodField()
+    class Meta:
+        model = UserProfile
+        fields = ('externalFollows')
+
+    def get_externalFollows(self, obj):
+        return obj.get_external_follows()
+
 # https://www.django-rest-framework.org
 class PostSerializer(rest_serializers.ModelSerializer):
 

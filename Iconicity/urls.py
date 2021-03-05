@@ -26,6 +26,7 @@ urlpatterns = [
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	path('update_post', views.update_post_view, name='update_post'),
 	path('delete',views.delete_post, name = "delete"),
+	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
 
 	# Friend Requests functionalities:
@@ -50,6 +51,8 @@ urlpatterns = [
 	path(r'author/<str:author_id>/posts', views.AllPostsByAuthor().as_view()),
 	path(r'author/', views.AllAuthors().as_view()),
 	path(r'author', views.AllAuthors().as_view()),
+	path(r'author/<str:author_id>/followers/', views.ExternalFollowersByAuthor().as_view()),
+    path(r'author/<str:author_id>/followers', views.ExternalFollowersByAuthor().as_view()),
  	#https://iconicity-test-a.herokuapp.com/author/b058b053-4766-4c6a-acaf-561c08badf64/posts/00db788e-45af-49eb-8350-f1c507eb42d0
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -4,7 +4,7 @@ from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django.core import serializers
+from django.core import serializers as core_serializers
 import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -30,7 +30,7 @@ from rest_framework.renderers import JSONRenderer
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+    author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
     raw_id = jsonload['pk']
     jsonload = jsonload['fields']
@@ -44,7 +44,7 @@ def getAuthor(id):
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+        author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
         jsonload = json.loads(author_profile)[0]
         raw_id = jsonload['pk']
         jsonload = jsonload['fields']
@@ -157,6 +157,7 @@ def mainPagePublic(request):
     # get all the posts posted by the current user
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
+    print(postList)
     new_list, comments = createJsonFromProfile(postList)
     externalPosts = getAllExternalPublicPosts()
     for eachPost in externalPosts:
@@ -242,7 +243,7 @@ def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
 
 def getComments():
-    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+    return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
     template = "/Iconicity/my_post.html"
@@ -550,24 +551,27 @@ def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
     comments = getComments()
+
     if postList !=[]:
-        obj = serializers.serialize("json", postList)
+        obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
+
             # print(User.objects.filter(id=fields['author']).first())
             fields['display_name'] = author_name
+
             fields['comments'] = {}
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-                    comment['author_name'] = Comment.objects.filter().first()
+                    comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
+
             new_list.append(fields)
+
     return new_list, comments
-
-
 
 def mypost(request):
     if request.user.is_anonymous:
@@ -624,8 +628,7 @@ def getAllConnectedServerHosts():
 def getAllPublicPostsCurrentUser():
     userProfile = UserProfile.objects.all()
     allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
-    #allAuthors += temp
-    # then, get all authors from external hosts
+
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
@@ -688,18 +691,39 @@ def getUserFriend(currentUser):
             print("they are friends")
             friendList.append(user)
 
-    # now check external followers. check whether they are bi-direction.
-    externalFollowsers = userProfile.get_external_follows() # a list of urls
-    
 
     return friendList
+
+def getExternalUserFriends(currentUser):
+    userProfile = getUserProfile(currentUser)
+    friendUrlList = []
+    # now check external followers. check whether they are bi-direction.
+    externalFollowers = userProfile.get_external_follows() # a list of urls
+    for each_url in externalFollowers:
+        full_url = each_url
+        
+        if each_url[-1] == "/":
+            full_url += "followers/"
+        else:
+            full_url += "/followers/"
+        print("full",full_url)
+        temp = requests.get(full_url)
+        print("temp",temp)
+        friends = temp.json()
+        # now check whether you are also his/hers followee.
+        print("friends",friends)
+        
+        #friendUrlList.append(friends)
+    # return a list of urls
+    print("friendUrlList",friendUrlList)
+    return friendUrlList
 
 def friends(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
     postList = []
-
+    externalFriends = getExternalUserFriends(request.user)
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
 
@@ -755,3 +779,38 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+
+
+class ExternalFollowersByAuthor(APIView):
+    def get(self, request, author_id):
+        authorProfile = UserProfile.objects.get(pk=author_id)
+        posts = Post.objects.filter(author=authorProfile.user).all()
+        return Response(ExternalFollowersSerializer(authorProfile).data)
+
+class AddCommentView(CreateView):
+    model = Comment
+    template = "Iconicity/comment_form.html"
+    def post(self, request):
+        print("posting")
+        template = "Iconicity/comment_form.html"
+        form = CommentsCreateForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.author = request.user
+            form.author_id = request.user.id
+            form = form.save()
+            return redirect('main_page')
+            
+        else:
+            print(form.errors)
+            form = CommentsCreateForm(request.POST)
+        
+        context = {
+            'form': form,
+        }
+        return render(request, template, context)
+
+    def get(self, request):
+        print("getting")
+        return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
+
