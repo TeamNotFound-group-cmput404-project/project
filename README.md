@@ -1,6 +1,7 @@
 # Iconicity
 
-* Install necessary libraries:<br/>
+* Install necessary libraries:
+================================
 pip install django-filter;<br/>
 pip install markdown;<br/>
 pip install djangorestframework;<br/>
@@ -39,13 +40,28 @@ pip install django-filter
 pip install markdown;
 pip install djangorestframework;-->
 
-* Specification: https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
+* Specification:
+================
+ https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
 
 * User Guideline:
+==================
 Iconicity is blog posting website hosted on Heroku
-
+To login, enter username and password then click sign in<br/>
+If you do not have an account, click sign up button to go to sign up page<br/>
+After login, your profile is on the left side of the main page,
+to update, click "profile" then go to edit profile page then click update.<br/>
+Your friends list is on the right side of the main page.<br/>
+To create a post, click "create post" in the main page, then enter your content. To comment any post, click "add comment" to add comment under the post. To like any post, click "like" under the post. To repost, click "repost" under the post.<br/>
+To view your posts, click "my post" button on nav-bar.To edit your post, click edit button under your post. To delete your post, click delete button under your post.<br/>
+To serch user, search the username in the search bar, after you hit the search button, a list of user will appear. You can choose to follow, add to friend or view profile.<br/>
+To check your notification, click the notification button in the nav-bar, then you can see the friend requests you received.<br/>
+To view the posts from users you are following, click following in the nav-bar.<br/>
+To view the psots from your friends, click the friends button in the nav-bar.<br/>
+To logout, click the logout button on the top right corner.<br/>
 
 * Citation:
+==============
 main_base.html is based on  from https://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_social&stacked=h<br/>
 
 image display in main_base.html(line6-line8) in main_base.html is refer to https://stackoverflow.com/questions/12368910/html-display-image-after-selecting-filename<br/>
