@@ -130,17 +130,14 @@ class LoginAndSignUpTest(TestCase):
 		User.objects.create_user(**self.user)
 
 	def signup_success(self):
-		print("6")
 		response = self.post(self.login_url,self.user)
 		self.assertEquals(response.status_code,200)
 
 	def test_login(self):
-		print("7")
 		response = self.client.post(self.login_url,self.user)
 		self.assertEquals(response.status_code,302)
     
 	def test_view(self):
-		print("8")
 		response = self.client.get(self.signup_url)	
 		self.assertEquals(response.status_code,200)
 	
