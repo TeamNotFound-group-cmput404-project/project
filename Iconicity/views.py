@@ -626,8 +626,7 @@ def getAllConnectedServerHosts():
 def getAllPublicPostsCurrentUser():
     userProfile = UserProfile.objects.all()
     allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
-    #allAuthors += temp
-    # then, get all authors from external hosts
+
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
@@ -690,23 +689,39 @@ def getUserFriend(currentUser):
             print("they are friends")
             friendList.append(user)
 
-    # now check external followers. check whether they are bi-direction.
-    externalFollowers = userProfile.get_external_follows() # a list of urls
-    print("external",externalFollowers)
-    for each_url in externalFollowers:
-
-        temp = requests.get(each_url)
-        responseJsonlist = temp.json()
-        print(responseJsonlist)
 
     return friendList
+
+def getExternalUserFriends(currentUser):
+    userProfile = getUserProfile(currentUser)
+    friendUrlList = []
+    # now check external followers. check whether they are bi-direction.
+    externalFollowers = userProfile.get_external_follows() # a list of urls
+    for each_url in externalFollowers:
+        full_url = each_url
+        
+        if each_url[-1] == "/":
+            full_url += "followers/"
+        else:
+            full_url += "/followers/"
+        print("full",full_url)
+        temp = requests.get(full_url)
+        print("temp",temp)
+        friends = temp.json()
+        # now check whether you are also his/hers followee.
+        print("friends",friends)
+        
+        #friendUrlList.append(friends)
+    # return a list of urls
+    print("friendUrlList",friendUrlList)
+    return friendUrlList
 
 def friends(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
     postList = []
-
+    externalFriends = getExternalUserFriends(request.user)
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
 
@@ -762,3 +777,9 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+
+class ExternalFollowersByAuthor(APIView):
+    def get(self, request, author_id):
+        authorProfile = UserProfile.objects.get(pk=author_id)
+        posts = Post.objects.filter(author=authorProfile.user).all()
+        return Response(ExternalFollowersSerializer(authorProfile).data)
