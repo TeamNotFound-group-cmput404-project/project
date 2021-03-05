@@ -132,13 +132,31 @@ def signup(request):
     return render(request, 'Iconicity/signup.html', {'form': form})
 
 
+# @login_required
+# def main_page(request):
+#     # https://docs.djangoproject.com/en/3.1/topics/serialization/
+#     if request.user.is_anonymous:
+#         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+#     # get all the posts posted by the current user
+
+#     postList = getPosts(request.user, visibility="FRIENDS")
+#     new_list, comments = createJsonFromProfile(postList)
+#     context = {
+#         'posts': new_list,
+#         'comments': comments,
+#         'UserProfile': getUserProfile(request.user),
+#         'myself': request.user,
+#     }
+#     return render(request, 'Iconicity/main_page.html', context)
+
+
 @login_required
 def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
-
+    #print("request.host",request.META['HTTP_HOST'])
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     # print(postList)
     new_list, comments = createJsonFromProfile(postList)
@@ -287,22 +305,34 @@ class AddPostView(CreateView):
 def follow_someone(request):
     if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
-        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        #c012db46-259f-40aa-b6a6-56d3b83fa705
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow:
-        curProfile.follow.add(followee_profile.user)
         # for external uses:
-        full_followee_url = followee_profile.host
-        if not followee_profile.host.startswith(str(request.scheme)):
-            full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
-        full_followee_url = str(request.scheme) + "://" + str(followee_profile.host)
-        if followee_profile.host[-1] == "/":
-            full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+        try:
+            followee_profile = UserProfile.objects.get(uid = followee_uid)
+        except Exception as e:
+            print(e)
+            print("Not local")
+            # if not local:
+            #print("request.host",request.META['HTTP_HOST'])
+            full_followee_url = followee_profile.host
+
+            if not followee_profile.host.startswith(str(request.scheme)):
+                full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+            if followee_profile.host[-1] == "/":
+                full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+            else:
+                full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+
+            if curProfile.externalFollows == {}:
+                curProfile.externalFollows['urls'] = []
+            curProfile.externalFollows['urls'].append(full_followee_url)
         else:
-            full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
-        if curProfile.externalFollows == {}:
-            curProfile.externalFollows['urls'] = []
-        curProfile.externalFollows['urls'].append(full_followee_url)
+            # if local:
+            curProfile.follow.add(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -311,14 +341,30 @@ def follow_someone(request):
 def unfollow_someone(request):
     if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
-        followee_profile = UserProfile.objects.get(uid = followee_uid)
         curProfile = UserProfile.objects.get(user = request.user)
-        # remove the uid from current user's follow:
-        if followee_profile.user in curProfile.follow.all():
-            curProfile.follow.remove(followee_profile.user)
-        # for external uses:
-        if followee_profile.host in curProfile.externalFollows['urls']:
-            curProfile.externalFollows['urls'].remove(followee_profile.host)
+
+        try:
+            followee_profile = UserProfile.objects.get(uid = followee_uid)
+        except Exception as e:
+            print(e)
+            print("Not local")
+            # for external uses:
+            full_followee_url = followee_profile.host
+            if not followee_profile.host.startswith(str(request.scheme)):
+                full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+            if followee_profile.host[-1] == "/":
+                full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+            else:
+                full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+            if full_followee_url in curProfile.externalFollows['urls']:
+                curProfile.externalFollows['urls'].remove(full_followee_url)
+        else:
+            # local user
+            # remove the uid from current user's follow:
+            if followee_profile.user in curProfile.follow.all():
+                curProfile.follow.remove(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -348,6 +394,12 @@ def accept_friend_request(request):
         #sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
         # if sender.externalFollows like {}, we should add key value pair
+
+        # assume all local:
+
+
+        '''
+
         if sender.externalFollows == {}:
             sender.externalFollows['urls'] = []
 
@@ -381,8 +433,10 @@ def accept_friend_request(request):
         sender.save()
         receiver.save()
         print("reveiver",receiver.externalFollows["urls"])
-        print(sender.externalFollows['urls'])
+        print(sender.externalFollows['urls'])'''
         # change the status of the friend request to accepted:
+        sender.save()
+        receiver.save()
         friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
         if friend_request.status == 'sent':
             friend_request.status = 'accepted'
@@ -437,7 +491,7 @@ class UserProfileListView(ListView):
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
-        follow_list.add(my_profile[0].follow)
+        follow_list = my_profile[0].get_followers()
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -489,16 +543,13 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
     sender = instance.actor
     receiver = instance.object_author
     sender.follow.remove(receiver.user)
-    if receiver.host in sender.externalFollows['urls']:
-        sender.externalFollows['urls'].remove(receiver.host) # external connectivity
+    if receiver.host in sender.externalFollows:
+        sender.externalFollows.remove(receiver.host) # external connectivity
     receiver.follow.remove(sender.user)
-    if sender.host in receiver.externalFollows['urls']:
-        receiver.externalFollows['urls'].remove(sender.host) # external connectivity
+    if sender.host in receiver.externalFollows:
+        receiver.externalFollows.remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
-
-
-
 
 def like_view(request):
     redirect_path = '/public'
@@ -523,7 +574,6 @@ def repost(request):
     ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'PUBLIC'}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
-    print(query_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
@@ -568,6 +618,7 @@ def update_post_view(request):
     if (pk):
         print('Step 1')
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        print("post:",post)
         post_form = PostUpdateForm(instance = post)
         print(type(post))
         context = {
@@ -643,7 +694,6 @@ def createJsonFromProfile(postList):
                     comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
 
             new_list.append(fields)
-
     return new_list, comments
 
 def mypost(request):
@@ -774,6 +824,7 @@ def getExternalUserFriends(currentUser):
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
     externalFollowers = userProfile.get_external_follows() # a list of urls
+    print(externalFollowers)
     for each_url in externalFollowers:
         full_url = each_url
 
@@ -882,26 +933,41 @@ class FriendPostsByAuthor(APIView):
 class AddCommentView(CreateView):
     model = Comment
     template = "Iconicity/comment_form.html"
-    def post(self, request):
-        print("posting")
-        template = "Iconicity/comment_form.html"
-        form = CommentsCreateForm(request.POST)
-        if form.is_valid():
-            form = form.save(commit=False)
-            form.author = request.user
-            form.author_id = request.user.id
-            form = form.save()
-            return redirect('public')
 
-        else:
-            print(form.errors)
+    def post(self, request):   
+        pk = request.POST.get('pk')
+        if pk:
+            post = get_object_or_404(Post, pk=request.POST.get('pk'))
+            context = {
+                'form':  CommentsCreateForm,
+                'post':post,
+            }
+        
+        post_id = request.POST.get('pid')
+        if post_id:
+            template = "Iconicity/comment_form.html"
             form = CommentsCreateForm(request.POST)
+            print("request.POST:", request.POST)
+            if form.is_valid():
+                form = form.save(commit=False)
+                form.post_id = post_id
+                form.author = request.user
+                form.author_id = request.user.id
+                form = form.save()
+                return redirect('public')
+                
+            else:
+                print(form.errors)
+                form = CommentsCreateForm(request.POST)
+            
+            context = {
+                'form': form,
+            }
+            return render(request, template, context)
 
-        context = {
-            'form': form,
-        }
-        return render(request, template, context)
+        return render(request, 'Iconicity/comment_form.html', context)
+
 
     def get(self, request):
         print("getting")
-        return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
+        return render(request, 'Iconicity/comment_form.html', {'form':  CommentsCreateForm})

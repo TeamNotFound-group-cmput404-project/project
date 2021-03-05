@@ -10,13 +10,18 @@
     <!-- By: Zhiqi Zhou-->
         <br><br><br><br><br><br><br><br>
         <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
-            <h1>Add Comment...</h1>
-                <form method="POST">
-                    {% csrf_token %}
-                    {{ form.as_p}}
-                <button>Send</button>
-             </form>
-              <br><br><br><br><br><br>
+        {% block content %}
+        <h1>Add Comment...</h1>
+
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p}}
+                <button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>
+                
+            </form>
+        {% endblock %}
+
+          <br><br><br><br><br><br>
         </div>
 
 <!-- End Page Container -->
