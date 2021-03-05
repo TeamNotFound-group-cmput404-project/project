@@ -155,7 +155,7 @@ def mainPagePublic(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
-
+    #print("request.host",request.META['HTTP_HOST'])
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     # print(postList)
     new_list, comments = createJsonFromProfile(postList)
@@ -302,22 +302,34 @@ class AddPostView(CreateView):
 def follow_someone(request):
     if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
-        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        #c012db46-259f-40aa-b6a6-56d3b83fa705
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow:
-        curProfile.follow.add(followee_profile.user)
         # for external uses:
-        full_followee_url = followee_profile.host
-        if not followee_profile.host.startswith(str(request.scheme)):
-            full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
-        full_followee_url = str(request.scheme) + "://" + str(followee_profile.host)
-        if followee_profile.host[-1] == "/":
-            full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+        try:
+            followee_profile = UserProfile.objects.get(uid = followee_uid)
+        except Exception as e:
+            print(e)
+            print("Not local")
+            # if not local:
+            #print("request.host",request.META['HTTP_HOST'])
+            full_followee_url = followee_profile.host
+
+            if not followee_profile.host.startswith(str(request.scheme)):
+                full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+            if followee_profile.host[-1] == "/":
+                full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+            else:
+                full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+
+            if curProfile.externalFollows == {}:
+                curProfile.externalFollows['urls'] = []
+            curProfile.externalFollows['urls'].append(full_followee_url)
         else:
-            full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
-        if curProfile.externalFollows == {}:
-            curProfile.externalFollows['urls'] = []
-        curProfile.externalFollows['urls'].append(full_followee_url)
+            # if local:
+            curProfile.follow.add(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -326,14 +338,33 @@ def follow_someone(request):
 def unfollow_someone(request):
     if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
-        followee_profile = UserProfile.objects.get(uid = followee_uid)
         curProfile = UserProfile.objects.get(user = request.user)
-        # remove the uid from current user's follow:
-        if followee_profile.user in curProfile.follow.all():
-            curProfile.follow.remove(followee_profile.user)
-        # for external uses:
-        if followee_profile.host in curProfile.externalFollows:
-            curProfile.externalFollows.remove(followee_profile.host)
+
+        try:
+            followee_profile = UserProfile.objects.get(uid = followee_uid)
+        except Exception as e:
+            print(e)
+            print("Not local")
+            # for external uses:
+            full_followee_url = followee_profile.host
+            if not followee_profile.host.startswith(str(request.scheme)):
+                full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+            if followee_profile.host[-1] == "/":
+                full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+            else:
+                full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+            if full_followee_url in curProfile.externalFollows['urls']:
+                curProfile.externalFollows['urls'].remove(full_followee_url)
+
+        else:
+            # local user
+            # remove the uid from current user's follow:
+            if followee_profile.user in curProfile.follow.all():
+                curProfile.follow.remove(followee_profile.user)
+
+            
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -363,6 +394,12 @@ def accept_friend_request(request):
         #sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
         # if sender.externalFollows like {}, we should add key value pair
+
+        # assume all local:
+
+
+        '''
+
         if sender.externalFollows == {}:
             sender.externalFollows['urls'] = []
 
@@ -396,8 +433,10 @@ def accept_friend_request(request):
         sender.save()
         receiver.save()
         print("reveiver",receiver.externalFollows["urls"])
-        print(sender.externalFollows['urls'])
+        print(sender.externalFollows['urls'])'''
         # change the status of the friend request to accepted:
+        sender.save()
+        receiver.save()
         friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
         if friend_request.status == 'sent':
             friend_request.status = 'accepted'
@@ -538,7 +577,6 @@ def repost(request):
     ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'PUBLIC'}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
-    print(query_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
@@ -789,6 +827,7 @@ def getExternalUserFriends(currentUser):
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
     externalFollowers = userProfile.get_external_follows() # a list of urls
+    print(externalFollowers)
     for each_url in externalFollowers:
         full_url = each_url
 
