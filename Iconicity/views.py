@@ -4,7 +4,7 @@ from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django.core import serializers as core_serializers
+from django.core import serializers
 import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -244,7 +244,7 @@ def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
 
 def getComments():
-    return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
+    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
     template = "/Iconicity/my_post.html"
@@ -307,7 +307,7 @@ def follow_someone(request):
         # save the new uid into current user's follow:
         curProfile.follow.add(followee_profile.user)
         # for external uses:
-        curProfile.externalFollow['urls'].append(followee_profile.host)
+        curProfile.externalFollows.append(followee_profile.host)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -319,9 +319,11 @@ def unfollow_someone(request):
         followee_profile = UserProfile.objects.get(uid = followee_uid)
         curProfile = UserProfile.objects.get(user = request.user)
         # remove the uid from current user's follow:
-        curProfile.follow.remove(followee_profile.user)
+        if followee_profile.user in curProfile.follow.all():
+            curProfile.follow.remove(followee_profile.user)
         # for external uses:
-        curProfile.externalFollow['urls'].remove(followee_profile.host)
+        if followee_profile.host in curProfile.externalFollows:
+            curProfile.externalFollows.remove(followee_profile.host)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -348,9 +350,9 @@ def accept_friend_request(request):
         receiver = UserProfile.objects.get(user = request.user)
         # save the new friend's uid into current user's follow and vice versa:
         sender.follow.add(receiver.user)
-        sender.externalFollow['urls'].append(receiver.host) # external connectivity
+        sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
-        receiver.externalFollow['urls'].append(sender.host) # external connectivity
+        receiver.externalFollows.append(sender.host) # external connectivity
         sender.save()
         receiver.save()
         # change the status of the friend request to accepted:
@@ -461,9 +463,11 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
     sender = instance.actor
     receiver = instance.object_author
     sender.follow.remove(receiver.user)
-    sender.externalFollow['urls'].remove(receiver.host) # external connectivity
+    if receiver.host in sender.externalFollows:
+        sender.externalFollows.remove(receiver.host) # external connectivity
     receiver.follow.remove(sender.user)
-    receiver.externalFollow['urls'].remove(sender.host) # external connectivity
+    if sender.host in receiver.externalFollows:
+        receiver.externalFollows.remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
 
