@@ -24,14 +24,10 @@ urlpatterns = [
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
-<<<<<<< HEAD
 	path('update_post', views.update_post_view, name='update_post'),
-
-=======
 	path('delete',views.delete_post, name = "delete"),
->>>>>>> master
 
-   
+
 	# Friend Requests functionalities:
 	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),
 	path('avail_profiles', views.avail_userProfile_list_view, name='avail_profiles'),
