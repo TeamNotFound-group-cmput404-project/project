@@ -1,5 +1,3 @@
-
-
 """
 https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html
 
@@ -16,7 +14,7 @@ class SignUpForm(UserCreationForm):
     github = forms.URLField(max_length=254)
     class Meta:
         model = User
-        fields = ('email', 'password1', 'password2', 'username', 'github', )
+        fields = ('email', 'password1', 'password2', 'username', 'github')
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
