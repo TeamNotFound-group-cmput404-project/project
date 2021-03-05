@@ -101,6 +101,23 @@ class TestUrls(SimpleTestCase):
 		url = reverse('reject_friend_request')
 		self.assertEquals(resolve(url).func, reject_friend_request)
 
+	def test_like_post_friend(self):
+		url = reverse('like_post_friend')
+		self.assertEquals(resolve(url).func, like_view)
+
+	def test_like_post_mypost(self):
+		url = reverse('like_post_mypost')
+		self.assertEquals(resolve(url).func, like_view)
+
+	def test_like_post_public(self):
+		url = reverse('like_post_public')
+		self.assertEquals(resolve(url).func, like_view)
+
+	def test_like_post_following(self):
+		url = reverse('like_post_following')
+		self.assertEquals(resolve(url).func, like_view)
+
+
 class LoginAndSignUpTest(TestCase):
 	def setUp(self):
 		self.signup_url = reverse('signup')
