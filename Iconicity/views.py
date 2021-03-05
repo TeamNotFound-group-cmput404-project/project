@@ -292,7 +292,22 @@ def follow_someone(request):
         # save the new uid into current user's follow:
         curProfile.follow.add(followee_profile.user)
         # for external uses:
-        curProfile.externalFollows.append(followee_profile.host)
+        full_followee_url = followee_profile.host
+        if not followee_profile.host.startswith(str(request.scheme)):
+            full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+        full_followee_url = str(request.scheme) + "://" + str(followee_profile.host)
+        if followee_profile.host[-1] == "/":
+            full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+        else:
+            full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+
+        if curProfile.externalFollows == {}:
+            curProfile.externalFollows['urls'] = []
+        curProfile.externalFollows['urls'].append(full_followee_url)
+
+
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -335,11 +350,43 @@ def accept_friend_request(request):
         receiver = UserProfile.objects.get(user = request.user)
         # save the new friend's uid into current user's follow and vice versa:
         sender.follow.add(receiver.user)
-        sender.externalFollows.append(receiver.host) # external connectivity
+        #sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
-        receiver.externalFollows.append(sender.host) # external connectivity
+        # if sender.externalFollows like {}, we should add key value pair
+        if sender.externalFollows == {}:
+            sender.externalFollows['urls'] = []
+            
+        # if sender.externalFollows like {"urls":[]}, we can append
+        full_recv_url = receiver.host
+        if not receiver.host.startswith(str(request.scheme)):
+            full_recv_url = str(request.scheme) + "://"  + str(receiver.host)
+
+        if receiver.host[-1] == "/":
+            full_recv_url = full_recv_url + "author/" + str(receiver.pk)
+        else:
+            full_recv_url = full_recv_url + "/author/" + str(receiver.pk)
+
+        if not sender.host.startswith(str(request.scheme)):
+            full_sender_url = str(request.scheme) + "://" + str(sender.host)
+        
+        if sender.host[-1] == "/":
+            full_sender_url = full_sender_url + "author/" + str(sender.pk)
+        else:
+            full_sender_url = full_sender_url + "/author/" + str(sender.pk)
+
+
+
+        sender.externalFollows['urls'].append(full_recv_url) # external connectivity
+
+        if receiver.externalFollows == {}:
+            receiver.externalFollows["urls"] = []
+
+
+        receiver.externalFollows['urls'].append(full_sender_url) # external connectivity
         sender.save()
         receiver.save()
+        print("reveiver",receiver.externalFollows["urls"])
+        print(sender.externalFollows['urls'])
         # change the status of the friend request to accepted:
         friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
         if friend_request.status == 'sent':
