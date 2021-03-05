@@ -8,17 +8,12 @@
     <!-- By: Zhiqi Zhou-->
         <br><br><br><br><br><br><br><br>
         <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
-
-
-
-        <h1>Add Blog Post</h1>
-
+            <h1>Add Blog Post</h1>
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p}}
                 <button>Post</button>
-
-            </form>
+             </form>
 
           <br><br><br><br><br><br>
         </div>
