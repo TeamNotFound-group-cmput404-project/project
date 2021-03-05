@@ -803,6 +803,7 @@ def following(request):
         'posts': new_list,
         'comments': comments,
         'UserProfile': userProfile,
+        'myself': str(request.user),
     }
     return render(request,'Iconicity/follow.html', context)
 
@@ -874,6 +875,7 @@ def friends(request):
         'posts': postList,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
+        'myself': str(request.user)
     }
 
     return render(request,'Iconicity/friends.html', context)
