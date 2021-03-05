@@ -4,7 +4,7 @@ from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django.core import serializers
+from django.core import serializers as core_serializers
 import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -244,7 +244,7 @@ def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
 
 def getComments():
-    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+    return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
     template = "/Iconicity/my_post.html"
