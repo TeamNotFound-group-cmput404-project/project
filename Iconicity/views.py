@@ -13,7 +13,7 @@ from .forms import PostsCreateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
@@ -241,6 +241,17 @@ def getPosts(user, visibility="PUBLIC"):
 
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+
+def delete_post(request):
+    template = "/Iconicity/my_post.html"
+    post_id = request.POST.get('pk')
+    if post_id:
+        post = get_object_or_404(Post,pk=request.POST.get('pk'))
+        print(post_id)
+        post.delete()
+  
+    return redirect("my_post")
+
 
 class AddPostView(CreateView):
     model = Post

@@ -171,7 +171,7 @@ class Post(models.Model):
         return self.like.count()
 
     def get_absolute_url(self):
-        return reverse("main_page")
+        return reverse("main_page",kwargs ={'pk':self.pk})
 
 
 
