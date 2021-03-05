@@ -466,7 +466,7 @@ def public(request):
 def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
-    comments = []
+    comments = getComments()
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
@@ -478,14 +478,15 @@ def createJsonFromProfile(postList):
             fields['author_name'] = author_name
             fields['comments'] = {}
             
-            comments = getComments()
+            
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
-                    # Comment id: Comment body
+                    # Comment author: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-
+                    comment['author_name'] = Comment.objects.filter().first()
             new_list.append(fields)
     return new_list, comments
+
 
 def mypost(request):
     if request.user.is_anonymous:
@@ -496,7 +497,6 @@ def mypost(request):
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list, comments = createJsonFromProfile(postList)
-    
     context = {
         'posts': new_list,
         'comments': comments,
