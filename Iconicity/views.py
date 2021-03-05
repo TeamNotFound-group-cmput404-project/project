@@ -297,7 +297,7 @@ class AddPostView(CreateView):
 # By Shway, the friend requests related stuff(including following):
 # by Shway, the follow function, to add someone to your follow list:
 def follow_someone(request):
-    if reqeust.method == 'POST':
+    if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
         followee_profile = UserProfile.objects.get(uid = followee_uid)
         curProfile = UserProfile.objects.get(user = request.user)
@@ -309,12 +309,12 @@ def follow_someone(request):
     return redirect('main')
 
 def unfollow_someone(request):
-    if reqeust.method == 'POST':
-        uid = request.POST.get('followee_uid')
+    if request.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
         followee_profile = UserProfile.objects.get(uid = followee_uid)
         curProfile = UserProfile.objects.get(user = request.user)
         # remove the uid from current user's follow:
-        curProfile.follow.remove(receiver.user)
+        curProfile.follow.remove(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -381,7 +381,7 @@ class UserProfileListView(ListView):
     # override:
     def get_queryset(self):
         # get all profiles except for current user
-        return UserProfile.objects.get_all_profiles(self.request.user)
+        return UserProfile.objects.get_all_profiles(exception = self.request.user)
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
