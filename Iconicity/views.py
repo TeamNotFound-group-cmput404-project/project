@@ -30,7 +30,7 @@ from rest_framework.renderers import JSONRenderer
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+    author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
     raw_id = jsonload['pk']
     jsonload = jsonload['fields']
@@ -44,7 +44,7 @@ def getAuthor(id):
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+        author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
         jsonload = json.loads(author_profile)[0]
         raw_id = jsonload['pk']
         jsonload = jsonload['fields']
@@ -158,6 +158,7 @@ def mainPagePublic(request):
     # get all the posts posted by the current user
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
+    print(postList)
     new_list, comments = createJsonFromProfile(postList)
     externalPosts = getAllExternalPublicPosts()
     for eachPost in externalPosts:
@@ -540,7 +541,7 @@ def createJsonFromProfile(postList):
     new_list = []
     comments = getComments()
     if postList !=[]:
-        obj = serializers.serialize("json", postList)
+        obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
         for i in post_json:
             fields = i['fields']
@@ -679,7 +680,12 @@ def getUserFriend(currentUser):
 
     # now check external followers. check whether they are bi-direction.
     externalFollowers = userProfile.get_external_follows() # a list of urls
-    
+    print("external",externalFollowers)
+    for each_url in externalFollowers:
+
+        temp = requests.get(each_url)
+        responseJsonlist = temp.json()
+        print(responseJsonlist)
 
     return friendList
 
