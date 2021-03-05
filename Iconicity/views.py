@@ -239,7 +239,7 @@ def delete_post(request):
         print(post_id)
         post.delete()
 
-    return redirect("my_post")
+    return redirect("mypost")
 
 
 class AddPostView(CreateView):
@@ -251,7 +251,8 @@ class AddPostView(CreateView):
         print("posting")
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
-        print(request.FILES)
+        print(form['image'])
+        # print(request.FILES)
         if form.is_valid():
             print("posting...")
             form = form.save(commit=False)
@@ -356,7 +357,7 @@ def accept_friend_request(request):
         # if sender.externalFollows like {}, we should add key value pair
         if sender.externalFollows == {}:
             sender.externalFollows['urls'] = []
-            
+
         # if sender.externalFollows like {"urls":[]}, we can append
         full_recv_url = receiver.host
         if not receiver.host.startswith(str(request.scheme)):
@@ -369,7 +370,7 @@ def accept_friend_request(request):
 
         if not sender.host.startswith(str(request.scheme)):
             full_sender_url = str(request.scheme) + "://" + str(sender.host)
-        
+
         if sender.host[-1] == "/":
             full_sender_url = full_sender_url + "author/" + str(sender.pk)
         else:
@@ -527,13 +528,14 @@ def like_view(request):
 def repost(request):
     # should pass back the post from the frontend
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'image':post.image, 'visibility':'PUBLIC'}
+    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'PUBLIC'}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     print(query_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
+        post_form.image = post.image
         post_form.source = (str(request.scheme) + "://"
                                            + str(request.get_host())
                                            + '/author/'
@@ -544,18 +546,19 @@ def repost(request):
         post_form.save()
     else:
         print(post_form.errors)
-    return redirect('main_page')
+    return redirect('public')
 
 def repost_to_friend(request):
     # should pass back the post from the frontend
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'image':post.image, 'visibility':'FRIEND'}
+    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'FRIENDS'}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     print(query_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
+        post_form.image = post.image
         post_form.source = (str(request.scheme) + "://"
                                            + str(request.get_host())
                                            + '/author/'
@@ -566,7 +569,7 @@ def repost_to_friend(request):
         post_form.save()
     else:
         print(post_form.errors)
-    return redirect('main_page')
+    return redirect('public')
 
 def update_post_view(request):
     pk=request.POST.get('pk')
@@ -593,7 +596,7 @@ def update_post_view(request):
             post.image = post_form.cleaned_data['image']
             post.visibility = post_form.cleaned_data['visibility']
             post.save()
-            return redirect('my_post')
+            return redirect('mypost')
     return render(request,'Iconicity/update_post.html', context)
 
 def profile(request):
@@ -743,12 +746,14 @@ def following(request):
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
     postList = getAllFollowAuthorPosts(request.user)
+    print(postList)
+    print('=========')
     new_list, comments = createJsonFromProfile(postList)
     temp = getAllFollowExternalAuthorPosts(request.user)
     for eachPost in temp:
         eachPost['display_name'] = eachPost['author']['display_name']
     new_list += temp
-
+    print(new_list)
     context = {
         'posts': new_list,
         'comments': comments,
@@ -791,7 +796,7 @@ def getExternalUserFriends(currentUser):
         if userProfile.url in friends:
             friendUrlList.append(each_url)
 
-        
+
     # return a list of urls
     print("friendUrlList",friendUrlList)
     return friendUrlList
@@ -801,16 +806,17 @@ def friends(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
     postList = []
-    
+
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
+        print('iter',postList)
 
     new_list, comments = createJsonFromProfile(postList)
     externalFriends = getExternalUserFriends(request.user)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
             full_url = each_url
-        
+
             if each_url[-1] == "/":
                 full_url += "friendposts/"
             else:
@@ -818,7 +824,7 @@ def friends(request):
             posts = requests.get(full_url).json()
             postList += posts
     postList += new_list
-        
+
     context = {
         'posts': postList,
         'comments': comments,
@@ -895,11 +901,11 @@ class AddCommentView(CreateView):
             form.author_id = request.user.id
             form = form.save()
             return redirect('public')
-            
+
         else:
             print(form.errors)
             form = CommentsCreateForm(request.POST)
-        
+
         context = {
             'form': form,
         }
@@ -908,4 +914,3 @@ class AddCommentView(CreateView):
     def get(self, request):
         print("getting")
         return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
-

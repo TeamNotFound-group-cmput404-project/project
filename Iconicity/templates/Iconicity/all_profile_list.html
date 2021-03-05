@@ -7,7 +7,7 @@
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou, here mainly by Shway Wang-->
-<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">    
+<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">
   <!-- The Grid -->
   <div class="w3-row">
     <!-- Middle Column -->
@@ -29,7 +29,6 @@
           <h4>{{ profile.display_name }}</h4><br>
           <p>Github link: {{ profile.github }}</p>
           <p>Host link: {{ profile.host }}</p>
-          <p>URL link: {{ profile.url }}</p>
           <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
           <!-- Now for the two buttons for adding and removing friends, also the notification if -->
           <!-- this person already has sent you a friend request -->
@@ -71,7 +70,7 @@
         </div>
         {% endfor %}
       {% endif %}
-      
+
       <!-- Pagination-->
       <br><br>
       <div class="center">
