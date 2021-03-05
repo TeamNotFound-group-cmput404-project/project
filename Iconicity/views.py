@@ -738,7 +738,7 @@ def friends(request):
                 full_url += "friendposts/"
             else:
                 full_url += "/friendposts/"
-            posts = request.get(full_url).json()
+            posts = requests.get(full_url).json()
             postList += posts
     postList += new_list
         
