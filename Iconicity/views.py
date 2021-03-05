@@ -558,10 +558,10 @@ def getAllPublicPostsCurrentUser():
         print("temp",temp)
         authors = temp.json()
         allAuthors += authors
-    print(allAuthors)
-    print(type(temp))
-    print(json.loads(temp, object_pairs_hook=collections.OrderedDict))
-#getAllPublicPostsCurrentUser()
+        print(allAuthors)
+
+        print(json.loads(temp, object_pairs_hook=collections.OrderedDict))
+getAllPublicPostsCurrentUser()
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
