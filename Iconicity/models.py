@@ -267,9 +267,3 @@ class Inbox(models.Model):
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     items = models.JSONField(default=dict)
-
-class ExternalServer(models.Model):
-    host = models.URLField(default="",primary_key=True,)
-
-    def get_host(self):
-        return self.host
