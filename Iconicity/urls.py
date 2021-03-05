@@ -19,13 +19,14 @@ urlpatterns = [
 
 	path('repost', views.repost, name='repost'),
 	path('profile',views.profile,name = "profile"),
-	path('mypost', views.mypost, name = 'my_post'),
-	path('public',views.mainPagePublic,name = "main_page"),
+	path('mypost', views.mypost, name = 'mypost'),
+	path('public',views.mainPagePublic,name = "public"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	path('update_post', views.update_post_view, name='update_post'),
 	path('delete',views.delete_post, name = "delete"),
+	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
 
 	# Friend Requests functionalities:
