@@ -13,7 +13,7 @@ from .forms import PostsCreateForm
 from .forms import SignUpForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
@@ -243,6 +243,17 @@ def getPosts(user, visibility="PUBLIC"):
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
+def delete_post(request):
+    template = "/Iconicity/my_post.html"
+    post_id = request.POST.get('pk')
+    if post_id:
+        post = get_object_or_404(Post,pk=request.POST.get('pk'))
+        print(post_id)
+        post.delete()
+  
+    return redirect("my_post")
+
+
 class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
@@ -469,7 +480,7 @@ def public(request):
 def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
-    comments = []
+    comments = getComments()
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
@@ -478,15 +489,14 @@ def createJsonFromProfile(postList):
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
+            # print(User.objects.filter(id=fields['author']).first())
             fields['author_name'] = author_name
             fields['comments'] = {}
             
-            comments = getComments()
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
-                    # Comment id: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-
+                    comment['author_name'] = Comment.objects.filter().first()
             new_list.append(fields)
     return new_list, comments
 
