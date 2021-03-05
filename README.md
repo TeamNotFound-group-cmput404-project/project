@@ -1,8 +1,8 @@
 # Iconicity
 
 * Install necessary libraries :
-pip install django-filter;
-pip install markdown;
+pip install django-filter; 
+pip install markdown; 
 pip install djangorestframework;
 pip install asgiref==3.3.1;
 pip install certifi==2020.12.5;
