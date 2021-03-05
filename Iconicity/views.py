@@ -489,6 +489,8 @@ def createJsonFromProfile(postList):
             new_list.append(fields)
     return new_list, comments
 
+
+
 def mypost(request):
     if request.user.is_anonymous:
         return render(request, 
@@ -518,7 +520,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        externalAuthorUrls = ["https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/"]
+        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -534,8 +536,36 @@ def getAllFollowExternalAuthorPosts(currentUser):
                 post_list += responseJsonlist
     return post_list
 
+def getAllConnectedServerHosts():
+    # return a list [hosturl1, hosturl2...]
+    return [i.get_host() for i in list(ExternalServer.objects.all())]
 
 
+
+class AllAuthors(APIView):
+    def get(self, request):
+        # first, get all local authors
+        userProfile = UserProfile.objects.all()
+        temp = GETProfileSerializer(userProfile,many=True).data
+        
+        '''
+        print("local:",allAuthors)
+
+        # then, get all authors from external hosts
+        externalHosts = getAllConnectedServerHosts()
+        
+        for host_url in externalHosts:
+            if host_url[-1] == "/":
+                full_url = host_url + "author"
+            else:
+                full_url = host_url + "/author"
+            print(full_url)
+            temp = requests.get(full_url)
+            print("temp",temp)
+            authors = temp.json()
+            allAuthors += authors
+        print(allAuthors)'''
+        return Response(temp)
 
 
 class AuthorById(APIView):
@@ -630,5 +660,3 @@ class AllPostsByAuthor(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
-# app:
-#https://vast-shore-25201.herokuapp.com/
