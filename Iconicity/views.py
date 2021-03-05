@@ -437,8 +437,9 @@ class UserProfileListView(ListView):
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
-        for i in my_profile.follow.all():
-            follow_list.add(i)
+        for i in my_profile:
+            for j in i:
+                follow_list.add(j.follow)
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
