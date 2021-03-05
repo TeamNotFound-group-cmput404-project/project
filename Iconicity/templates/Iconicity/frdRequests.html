@@ -5,7 +5,7 @@
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
-<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">    
+<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">
   <!-- The Grid -->
   <div class="w3-row">
     <!-- Middle Column -->
@@ -26,7 +26,6 @@
             <h4>{{ sender.display_name }}</h4>
             <p>Github link: {{ sender.github }}</p>
             <p>Host link: {{ sender.host }}</p>
-            <p>URL link: {{ sender.url }}</p>
             <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
             <form action="{% url 'accept_friend_request' %}" method='POST'>
               {% csrf_token %}
@@ -36,13 +35,13 @@
             <form action="{% url 'reject_friend_request' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='reject_uid' value='{{ sender.uid }}'>Delete</button>
+              name='reject_uid' value='{{ sender.uid }}'>Decline</button>
             </form>
           </div>
         {% endfor %}
       {% endif %}
       <!-- This is the end of a post -->
-      
+
       <!-- Pagination-->
       <br><br>
       <div class="center">

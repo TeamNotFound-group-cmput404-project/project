@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.forms.models import model_to_dict
 from django.db.models import Q
 # Create your models here.
-# Author, Followers, FriendRequest, Post, Comments, Likes, Liked, Inbox, 
+# Author, Followers, FriendRequest, Post, Comments, Likes, Liked, Inbox,
 """Reference (move to other locations later)
 model: https://docs.djangoproject.com/en/3.1/topics/db/examples/many_to_one/
 generate uuid: https://www.geeksforgeeks.org/generating-random-ids-using-uuid-python/
@@ -68,10 +68,10 @@ class UserProfile(models.Model):
 
     # Who i'm following on other servers.
     # Should be a dict of urls
-    externalFollows = models.JSONField(default=dict())
+    externalFollows = models.JSONField(default=dict)
 
     objects = UserProfileManager()
-    
+
     def get_external_follows(self):
         # return a list of urls of the external followed authors.
         if self.externalFollows == {} or self.externalFollows == []:
