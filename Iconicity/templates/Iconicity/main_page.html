@@ -99,7 +99,8 @@
         <!-- {% if myself == comment.comment_author_name_str %}
 
         {% endif %} -->
-
+        
+        <h3>Comments...</h3>
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
@@ -115,7 +116,7 @@
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
-      <br><br>
+      <!-- <br><br>
       <div class="center">
         <div class="pagination">
         <a href="#">&laquo;</a>
@@ -127,7 +128,7 @@
         <a href="#">6</a>
         <a href="#">&raquo;</a>
         </div>
-      </div>
+      </div> -->
       <!-- End of Pagination-->
 
     <!-- End Middle Column -->
