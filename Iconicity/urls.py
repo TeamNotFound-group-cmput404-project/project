@@ -9,7 +9,6 @@ urlpatterns = [
 	path('', views.LoginView.as_view(), name = 'login'),
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
-	path('main', views.main_page, name = 'main_page'),
 
 	# need to fix this part later
 	path('friends/like', views.like_view, name="like_post_friend"),
@@ -20,13 +19,14 @@ urlpatterns = [
 	path('repost', views.repost, name='repost'),
 	path('repost_to_friend', views.repost_to_friend, name='repost_to_friend'),
 	path('profile',views.profile,name = "profile"),
-	path('mypost', views.mypost, name = 'my_post'),
-	path('public',views.mainPagePublic,name = "main_page"),
+	path('mypost', views.mypost, name = 'mypost'),
+	path('public',views.mainPagePublic,name = "public"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	path('update_post', views.update_post_view, name='update_post'),
 	path('delete',views.delete_post, name = "delete"),
+	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
 
 	# Friend Requests functionalities:
@@ -54,5 +54,6 @@ urlpatterns = [
 	path(r'author/<str:author_id>/followers/', views.ExternalFollowersByAuthor().as_view()),
     path(r'author/<str:author_id>/followers', views.ExternalFollowersByAuthor().as_view()),
  	#https://iconicity-test-a.herokuapp.com/author/b058b053-4766-4c6a-acaf-561c08badf64/posts/00db788e-45af-49eb-8350-f1c507eb42d0
-
+	path(r'author/<str:author_id>/friendposts/', views.FriendPostsByAuthor().as_view()),
+	path(r'author/<str:author_id>/friendposts', views.FriendPostsByAuthor().as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
