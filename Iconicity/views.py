@@ -3,7 +3,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.core import serializers
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.core import serializers as core_serializers
 import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -19,12 +20,10 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
-
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-
-from .serializers import PostSerializer,GETProfileSerializer
+from .serializers import *
 from urllib.request import urlopen
 import requests
 import collections
@@ -240,7 +239,7 @@ def getPosts(user, visibility="PUBLIC"):
         return list(Post.objects.filter(author=user.id))
 
 def getComments():
-    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+    return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 class AddPostView(CreateView):
     model = Post
@@ -282,9 +281,32 @@ class AddPostView(CreateView):
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
 
+# By Shway, the friend requests related stuff(including following):
+# by Shway, the follow function, to add someone to your follow list:
+def follow_someone(request):
+    if reqeust.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # save the new uid into current user's follow:
+        curProfile.follow.add(followee_profile.user)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
+def unfollow_someone(request):
+    if reqeust.method == 'POST':
+        uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # remove the uid from current user's follow:
+        curProfile.follow.remove(receiver.user)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
-# By Shway, the friend requests related stuff:
 # by Shway, this view below shows the list of received friend requests:
 def friend_requests_received_view(request):
     profile = getUserProfile(request.user)
@@ -360,9 +382,12 @@ class UserProfileListView(ListView):
         accepted_requests = FriendRequest.objects.filter(
             (Q(object_author = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
         # listify the above two results:
+        follow_list = set()
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
+        for i in my_profile.follow.all():
+            follow_list.add(i)
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -370,6 +395,7 @@ class UserProfileListView(ListView):
         for i in accepted_requests:
             accepted_list.add(i.actor.user)
             accepted_list.add(i.object_author.user)
+        context['follows'] = follow_list
         context['pending_requests'] = pending_requests_list
         context['inbox_requests'] = inbox_requests_list
         context['accepted_requests'] = accepted_list
@@ -401,6 +427,7 @@ def remove_friend(request):
         friendRequest = FriendRequest.objects.get(
             (Q(actor=sender) & Q(object_author=receiver)) | (Q(actor=receiver) & Q(object_author=sender)))
         friendRequest.delete()
+        # want to also unfollow both, but it is done by the function beneath this one
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('main')
@@ -472,7 +499,6 @@ def createJsonFromProfile(postList):
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
-        
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
@@ -480,7 +506,6 @@ def createJsonFromProfile(postList):
             # print(User.objects.filter(id=fields['author']).first())
             fields['author_name'] = author_name
             fields['comments'] = {}
-            
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
@@ -542,7 +567,6 @@ def getAllConnectedServerHosts():
 
 def getAllPublicPostsCurrentUser():
     userProfile = UserProfile.objects.all()
-
     allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
     #allAuthors += temp
     # then, get all authors from external hosts
@@ -558,15 +582,13 @@ def getAllPublicPostsCurrentUser():
         authors = temp.json()
         allAuthors += authors
         print(allAuthors)
-
         print(json.loads(temp, object_pairs_hook=collections.OrderedDict))
-getAllPublicPostsCurrentUser()
+
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
         userProfile = UserProfile.objects.all()
         temp = GETProfileSerializer(userProfile,many=True).data
-        
         return Response(temp)
 
 
@@ -581,17 +603,13 @@ def following(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-
     postList = getAllFollowAuthorPosts(request.user)
     new_list, comments = createJsonFromProfile(postList)
-
-
     context = {
         'posts': new_list,
         'comments': comments,
         'UserProfile': userProfile,
     }
-
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
@@ -606,7 +624,6 @@ def getUserFriend(currentUser):
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
-
     return friendList
 
 def friends(request):
@@ -633,7 +650,6 @@ def repost(request):
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
 
 class Posts(APIView):
-
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
         if request.user.is_authenticated:
