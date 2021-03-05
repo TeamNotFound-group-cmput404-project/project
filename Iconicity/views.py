@@ -162,7 +162,8 @@ def mainPagePublic(request):
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
-
+    externalPosts = getAllExternalPublicPosts()
+    new_list +=externalPosts
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -551,27 +552,24 @@ def getAllConnectedServerHosts():
     # return a list [hosturl1, hosturl2...]
     return [i.get_host() for i in list(ExternalServer.objects.all())]
 
-def getAllPublicPostsCurrentUser():
-    userProfile = UserProfile.objects.all()
-
-    allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
-    #allAuthors += temp
-    # then, get all authors from external hosts
+def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
+    allPosts = []
+    #print(externalHosts)
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "author"
+            full_url = host_url + "posts"
         else:
-            full_url = host_url + "/author"
-        print(full_url)
+            full_url = host_url + "/posts"
         temp = requests.get(full_url)
-        print("temp",temp)
-        authors = temp.json()
-        allAuthors += authors
-        print(allAuthors)
+        #print(temp)
+        posts = temp.json()
+        allPosts += posts
+        #print(allPosts)
+    return allPosts
+        
 
-        print(json.loads(temp, object_pairs_hook=collections.OrderedDict))
-getAllPublicPostsCurrentUser()
+#getAllExternalPublicPosts()
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
@@ -647,6 +645,7 @@ class Posts(APIView):
 
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
+        '''
         if request.user.is_authenticated:
             posts = Post.objects.filter(visibility = "PUBLIC").all()
             serializer = PostSerializer(posts, many=True)
@@ -654,16 +653,25 @@ class Posts(APIView):
         else:
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)
+        '''
+    
+        posts = Post.objects.filter(visibility = "PUBLIC").all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
 
 class PostById(APIView):
     def get(self, request, post_id):
+        posts = Post.objects.filter(pk=post_id).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+        '''
         if request.user.is_authenticated:
             posts = Post.objects.filter(pk=post_id).all()
             serializer = PostSerializer(posts, many=True)
             return Response(serializer.data)
         else:
             # the user is unauthorized
-            return HttpResponse('Unauthorized', status=401)
+            return HttpResponse('Unauthorized', status=401)'''
 
 
 class AllPostsByAuthor(APIView):
