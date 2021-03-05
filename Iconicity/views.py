@@ -667,7 +667,7 @@ def following(request):
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
-    # get all followers of our user
+    # get all local followers of our user
     allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
@@ -676,6 +676,11 @@ def getUserFriend(currentUser):
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
+
+    # now check external followers. check whether they are bi-direction.
+    externalFollowers = userProfile.get_external_follows() # a list of urls
+    
+
     return friendList
 
 def friends(request):
