@@ -88,21 +88,20 @@
 
         <!-- Show Comments at Bottom-->
 
-        <h3>Comments:</h3>
-        <div class="w3-row-padding" style="margin:0 -16px">
-          {% for comment_id in post.comments %}
-            {% for comment in comments %}
-              {% if comment_id == comment.pk %}
+        <h3>Comments...</h3>
+        {% for comment_id in post.comments %}
+          {% for comment in comments %}
+            {% if comment_id == comment.pk %}
 
-                {{ comment.fields.author }}
-                {{ comment.fields.body }}
+              {{ comment.comment_author_name }}:
+              {{ comment.fields.comment }}
 
-                <br>
-              {% endif %}
-            {% endfor %}
+              <br>
+            {% endif %}
           {% endfor %}
-        </div>
-    </div>
+        {% endfor %}
+        <br/><br/>
+  </div>
 {% endfor %}
       <!-- This is the end of a post -->
 

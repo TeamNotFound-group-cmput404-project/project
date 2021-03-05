@@ -183,7 +183,7 @@ textarea {
             <form method="POST">
                 {% csrf_token %}
                 {{ form.as_p}}
-                <button>Send</button>
+                <button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>
                 
             </form>
         {% endblock %}
