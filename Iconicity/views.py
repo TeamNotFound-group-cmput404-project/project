@@ -892,7 +892,7 @@ class Posts(APIView):
         return Response(serializer.data)
 
 class PostById(APIView):
-    def get(self, request, post_id):
+    def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
