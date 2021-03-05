@@ -424,22 +424,20 @@ class UserProfileListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        my_profile = UserProfile.objects.filter(user = user)
+        my_profile = UserProfile.objects.filter(user = user) # a query set!
         # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
+        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile[0]) & Q(status = 'sent'))
         # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(Q(object_author = my_profile) & Q(status = 'sent'))
+        inbox_requests = FriendRequest.objects.filter(Q(object_author = my_profile[0]) & Q(status = 'sent'))
         # friend relations requests
         accepted_requests = FriendRequest.objects.filter(
-            (Q(object_author = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
+            (Q(object_author = my_profile[0]) | Q(actor = my_profile[0])) & Q(status = 'accepted'))
         # listify the above two results:
         follow_list = set()
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
-        for i in my_profile:
-            for j in i:
-                follow_list.add(j.follow)
+        follow_list.add(my_profile[0].follow)
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
