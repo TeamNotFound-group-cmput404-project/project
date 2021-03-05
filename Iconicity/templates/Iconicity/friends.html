@@ -78,38 +78,34 @@
           {% csrf_token %}
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
-        <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
+        
 
-        <!-- <button onclick="myFunction('comment_id')" class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-          <div id="comment_id" class="w3-hide"> -->
-            <!-- Comment Box-->
-            <!-- <h6 class="w3-opacity">Your Comment:</h6>
-            <p contenteditable="true" class="w3-border w3-padding"> </p>
-            <button type="button" class="w3-button w3-theme w3-left-align w3-margin-bottom"><i class="fa fa-pencil"></i>  Send</button>
-          </div> -->
+        <br/><br/><br/>
+        <form action="{% url 'comment_form' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom w3-theme", type="submit", name="pk", value={{post.pk}}><p>Add Comment</p></button>
+        </form>
 
         <!-- Show Comments at Bottom-->
-
-        <h3>Comments:</h3>
-        <div class="w3-row-padding" style="margin:0 -16px">
-          {% for comment_id in post.comments %}
-            {% for comment in comments %}
-              {% if comment_id == comment.pk %}
-
-                {{ comment.fields.author }}
-                {{ comment.fields.body }}
-
+        <h3>Comments...</h3>
+        {% for comment_id in post.comments %}
+          {% for comment in comments %}
+            {% if comment_id == comment.pk %}
+              {% if myself == comment.comment_author_name_str %}
+                {{ comment.comment_author_name }}:
+                {{ comment.fields.comment }}
                 <br>
               {% endif %}
-            {% endfor %}
+            {% endif %}
           {% endfor %}
-        </div>
+        {% endfor %}
+        <br/><br/>
     </div>
-{% endfor %}
+      {% endfor %}
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
-      <br><br>
+      <!-- <br><br>
       <div class="center">
         <div class="pagination">
         <a href="#">&laquo;</a>
@@ -121,7 +117,7 @@
         <a href="#">6</a>
         <a href="#">&raquo;</a>
         </div>
-      </div>
+      </div> -->
       <!-- End of Pagination-->
 
     <!-- End Middle Column -->

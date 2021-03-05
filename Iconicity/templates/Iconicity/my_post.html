@@ -77,7 +77,7 @@
           {% csrf_token %}
           <button class="button w3-margin-bottom", type="submit", name="pk",  value={{post.pk}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
         </form>
-
+        <br><br><br>
         <h3>Comments...</h3>
         {% for comment_id in post.comments %}
           {% for comment in comments %}
@@ -96,7 +96,7 @@
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
-      <br><br>
+      <!-- <br><br>
       <div class="center">
         <div class="pagination">
         <a href="#">&laquo;</a>
@@ -108,7 +108,7 @@
         <a href="#">6</a>
         <a href="#">&raquo;</a>
         </div>
-      </div>
+      </div> -->
       <!-- End of Pagination-->
 
     <!-- End Middle Column -->

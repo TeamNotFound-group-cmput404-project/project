@@ -131,7 +131,6 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
-
 # @login_required
 # def main_page(request):
 #     # https://docs.djangoproject.com/en/3.1/topics/serialization/
@@ -179,16 +178,14 @@ def mainPagePublic(request):
 
     Qianxi
 
-
-
     """
     context = {
-
         'posts': new_list,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
+        'myself': str(request.user),
     }
-
+        
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -692,7 +689,7 @@ def createJsonFromProfile(postList):
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
                     comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
-
+                    comment['comment_author_name_str'] = str(Comment.objects.filter(author=comment["fields"]["author"]).first())
             new_list.append(fields)
     return new_list, comments
 
@@ -800,6 +797,7 @@ def following(request):
         'posts': new_list,
         'comments': comments,
         'UserProfile': userProfile,
+        'myself': str(request.user),
     }
     return render(request,'Iconicity/follow.html', context)
 
@@ -871,6 +869,7 @@ def friends(request):
         'posts': postList,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
+        'myself': str(request.user)
     }
 
     return render(request,'Iconicity/friends.html', context)
