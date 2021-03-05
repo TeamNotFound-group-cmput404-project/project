@@ -21,7 +21,6 @@ class SignUpForm(UserCreationForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        # fields = ['display_name', 'github', 'host', 'follow']
         fields = ['github',]
 
 class PostsCreateForm(forms.ModelForm):
