@@ -45,6 +45,10 @@ Specification:
 ================
  https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
 
+Heroku Application URL:
+================
+https://iconicity-midterm.herokuapp.com/
+
 User Guideline:
 ==================
 * Iconicity is blog posting website hosted on Heroku
