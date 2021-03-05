@@ -3,14 +3,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.core import serializers
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.core import serializers as core_serializers
 import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import ProfileUpdateForm,UserUpdateForm
-from .forms import PostsCreateForm
-from .forms import SignUpForm
+from .forms import *
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.generic import ListView, DeleteView
@@ -19,12 +18,10 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
-
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-
-from .serializers import PostSerializer,GETProfileSerializer
+from .serializers import *
 from urllib.request import urlopen
 import requests
 import collections
@@ -81,7 +78,7 @@ class LoginView(View):
             print("go to main")
             print(request.user)
             return redirect(reverse('main_page'))
-        
+
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
     def post(self,request):
@@ -172,16 +169,16 @@ def mainPagePublic(request):
     #print(new_list)
 
     """ Note:
-    each json object in externalPostList is different from 
+    each json object in externalPostList is different from
     each one in new_list!!!!!!!!!!!!!!!!
-    
-    I'll change this by March 5 morning. All posts in our server and 
+
+    I'll change this by March 5 morning. All posts in our server and
     outside our server will all use the same json format
 
     Qianxi
-    
-    
-    
+
+
+
     """
     context = {
 
@@ -189,7 +186,7 @@ def mainPagePublic(request):
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
     }
-    
+
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -223,7 +220,7 @@ def getAllFollowAuthorPosts(currentUser):
                 # one direct
                 # only public
                 post_list += getPosts(user, visibility="PUBLIC")# join the post_list
-        
+
     print("current post_List")
     print(post_list)
     return post_list
@@ -242,8 +239,11 @@ def getPosts(user, visibility="PUBLIC"):
         # friends can see all your posts (public + friends posts)
         return list(Post.objects.filter(author=user.id))
 
+def getPost(post):
+    return Post.objects.filter(post_id=post.post_id).first()
+
 def getComments():
-    return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+    return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
     template = "/Iconicity/my_post.html"
@@ -252,7 +252,7 @@ def delete_post(request):
         post = get_object_or_404(Post,pk=request.POST.get('pk'))
         print(post_id)
         post.delete()
-  
+
     return redirect("my_post")
 
 
@@ -273,11 +273,11 @@ class AddPostView(CreateView):
             userProfile = UserProfile.objects.get(user=request.user)
             # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
 
-            form.origin = (str(request.scheme) + "://" 
-                                               + str(request.get_host()) 
-                                               + '/author/' 
-                                               + str(userProfile.pk) 
-                                               + '/posts/' 
+            form.origin = (str(request.scheme) + "://"
+                                               + str(request.get_host())
+                                               + '/author/'
+                                               + str(userProfile.pk)
+                                               + '/posts/'
                                                + str(self.model.post_id))
             form.save()
             return redirect('main_page')
@@ -296,9 +296,32 @@ class AddPostView(CreateView):
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
 
+# By Shway, the friend requests related stuff(including following):
+# by Shway, the follow function, to add someone to your follow list:
+def follow_someone(request):
+    if request.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # save the new uid into current user's follow:
+        curProfile.follow.add(followee_profile.user)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
+def unfollow_someone(request):
+    if request.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # remove the uid from current user's follow:
+        curProfile.follow.remove(followee_profile.user)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
-# By Shway, the friend requests related stuff:
 # by Shway, this view below shows the list of received friend requests:
 def friend_requests_received_view(request):
     profile = getUserProfile(request.user)
@@ -360,7 +383,7 @@ class UserProfileListView(ListView):
     # override:
     def get_queryset(self):
         # get all profiles except for current user
-        return UserProfile.objects.get_all_profiles(self.request.user)
+        return UserProfile.objects.get_all_profiles(exception = self.request.user)
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -374,9 +397,12 @@ class UserProfileListView(ListView):
         accepted_requests = FriendRequest.objects.filter(
             (Q(object_author = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
         # listify the above two results:
+        follow_list = set()
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
+        for i in my_profile.follow.all():
+            follow_list.add(i)
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -384,6 +410,7 @@ class UserProfileListView(ListView):
         for i in accepted_requests:
             accepted_list.add(i.actor.user)
             accepted_list.add(i.object_author.user)
+        context['follows'] = follow_list
         context['pending_requests'] = pending_requests_list
         context['inbox_requests'] = inbox_requests_list
         context['accepted_requests'] = accepted_list
@@ -415,6 +442,7 @@ def remove_friend(request):
         friendRequest = FriendRequest.objects.get(
             (Q(actor=sender) & Q(object_author=receiver)) | (Q(actor=receiver) & Q(object_author=sender)))
         friendRequest.delete()
+        # want to also unfollow both, but it is done by the function beneath this one
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('main')
@@ -450,25 +478,53 @@ def like_view(request):
     post.save()
     return redirect(redirect_path)
 
+def update_post_view(request):
+    pk=request.POST.get('pk')
+    if (pk):
+        print('Step 1')
+        post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        post_form = PostUpdateForm(instance = post)
+        print(type(post))
+        context = {
+        'post':post,
+        'post_form':post_form,
+        }
+    post_id = request.POST.get('pid')
+    if (post_id):
+        print('Step 2')
+        post = get_object_or_404(Post, pk=request.POST.get('pid'))
+        post_form = PostUpdateForm(request.POST, request.FILES)
+
+        if post_form.is_valid():
+            # https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Forms
+            # RenewbookForm
+            post.title = post_form.cleaned_data['title']
+            post.content = post_form.cleaned_data['content']
+            post.image = post_form.cleaned_data['image']
+            post.visibility = post_form.cleaned_data['visibility']
+            post.save()
+            return redirect('my_post')
+    return render(request,'Iconicity/update_post.html', context)
+
 def profile(request):
     userProfile = getUserProfile(request.user)
-    
+
     if request.method =="POST":
-        
+
         user_form = UserUpdateForm(request.POST,instance = request.user)
-        
+
         profile_form = ProfileUpdateForm(request.POST,instance = request.user.userprofile)
 
         if user_form.is_valid() and profile_form.is_valid():
-          
+
             user_form.save()
             profile_form.save()
             return redirect('main_page')
-        
-    else: 
+
+    else:
         user_form = UserUpdateForm(instance = request.user)
         profile_form = ProfileUpdateForm(instance = request.user.userprofile)
-        
+
     context = {
     'UserProfile': userProfile,
     'user_form':user_form,
@@ -486,7 +542,6 @@ def createJsonFromProfile(postList):
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
-        
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
@@ -494,7 +549,6 @@ def createJsonFromProfile(postList):
             # print(User.objects.filter(id=fields['author']).first())
             fields['display_name'] = author_name
             fields['comments'] = {}
-            
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
@@ -506,14 +560,14 @@ def createJsonFromProfile(postList):
 
 def mypost(request):
     if request.user.is_anonymous:
-        return render(request, 
-                      'Iconicity/login.html', 
+        return render(request,
+                      'Iconicity/login.html',
                       { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list, comments = createJsonFromProfile(postList)
-    
+
     context = {
         'posts': new_list,
         'comments': comments,
@@ -537,7 +591,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            
+
             for each_url in externalAuthorUrls:
                 full_url = each_url
                 if each_url[-1]=="/":
@@ -556,6 +610,12 @@ def getAllConnectedServerHosts():
     # return a list [hosturl1, hosturl2...]
     return [i.get_host() for i in list(ExternalServer.objects.all())]
 
+def getAllPublicPostsCurrentUser():
+    userProfile = UserProfile.objects.all()
+    allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
+    #allAuthors += temp
+    # then, get all authors from external hosts
+
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
     allPosts = []
@@ -569,14 +629,13 @@ def getAllExternalPublicPosts():
 
         allPosts += posts
     return allPosts
-        
+
 
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
         userProfile = UserProfile.objects.all()
         temp = GETProfileSerializer(userProfile,many=True).data
-        
         return Response(temp)
 
 
@@ -591,27 +650,28 @@ def following(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-
     postList = getAllFollowAuthorPosts(request.user)
     new_list, comments = createJsonFromProfile(postList)
+<<<<<<< HEAD
     temp = getAllFollowExternalAuthorPosts(request.user)
     for eachPost in temp:
         eachPost['display_name'] = eachPost['author']['display_name']
     new_list += temp
 
+=======
+>>>>>>> da4895d87263ba8e3d17d5d229fdf2d1a0cffe1a
     context = {
         'posts': new_list,
         'comments': comments,
         'UserProfile': userProfile,
     }
-
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
     # get all followers of our user
-    allFollowedAuthors = list(userProfile.get_followers()) 
+    allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
@@ -619,7 +679,6 @@ def getUserFriend(currentUser):
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
-
     return friendList
 
 def friends(request):
@@ -630,7 +689,7 @@ def friends(request):
 
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
-    
+
     new_list, comments = createJsonFromProfile(postList)
 
     context = {
@@ -646,7 +705,6 @@ def repost(request):
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
 
 class Posts(APIView):
-
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
         '''
@@ -658,7 +716,7 @@ class Posts(APIView):
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)
         '''
-    
+
         posts = Post.objects.filter(visibility = "PUBLIC").all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
@@ -684,4 +742,3 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-
