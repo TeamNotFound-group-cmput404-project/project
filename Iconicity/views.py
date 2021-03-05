@@ -545,9 +545,8 @@ class AllAuthors(APIView):
         # first, get all local authors
         userProfile = UserProfile.objects.all()
         temp = GETProfileSerializer(userProfile,many=True).data
-        print("temp",temp)
-        allAuthors = json.dumps(temp)
         
+        '''
         print("local:",allAuthors)
 
         # then, get all authors from external hosts
@@ -559,10 +558,12 @@ class AllAuthors(APIView):
             else:
                 full_url = host_url + "/author"
             print(full_url)
-            authors = requests.get(full_url).json()
+            temp = requests.get(full_url)
+            print("temp",temp)
+            authors = temp.json()
             allAuthors += authors
-        print(allAuthors)
-        return Response(allAuthors)
+        print(allAuthors)'''
+        return Response(temp)
 
 
 class AuthorById(APIView):
@@ -657,5 +658,3 @@ class AllPostsByAuthor(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
-# app:
-#https://vast-shore-25201.herokuapp.com/
