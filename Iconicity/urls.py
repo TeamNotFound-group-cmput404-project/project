@@ -9,7 +9,6 @@ urlpatterns = [
 	path('', views.LoginView.as_view(), name = 'login'),
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
-	path('main', views.main_page, name = 'main_page'),
 
 	# need to fix this part later
 	path('friends/like', views.like_view, name="like_post_friend"),

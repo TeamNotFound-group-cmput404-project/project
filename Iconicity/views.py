@@ -77,7 +77,7 @@ class LoginView(View):
         if not request.user.is_anonymous:
             print("go to main")
             print(request.user)
-            return redirect(reverse('main_page'))
+            return redirect(reverse('public'))
 
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
@@ -95,7 +95,7 @@ class LoginView(View):
 
             login(request, form.get_user())
 
-            return redirect(reverse('main_page'))
+            return redirect(reverse('public'))
 
         return render(request, 'Iconicity/login.html', { 'form': form })
 
@@ -127,27 +127,11 @@ def signup(request):
             createUserProfile(scheme, username, User, Github, host)
 
             login(request, User)
-            return redirect('main_page')
+            return redirect('public')
     else:
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
-@login_required
-def main_page(request):
-    # https://docs.djangoproject.com/en/3.1/topics/serialization/
-    if request.user.is_anonymous:
-        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    # get all the posts posted by the current user
-
-    postList = getPosts(request.user, visibility="FRIENDS")
-    new_list, comments = createJsonFromProfile(postList)
-
-    context = {
-        'posts': new_list,
-        'comments': comments,
-        'UserProfile': getUserProfile(request.user),
-    }
-    return render(request, 'Iconicity/main_page.html', context)
 
 @login_required
 def mainPagePublic(request):
@@ -163,6 +147,7 @@ def mainPagePublic(request):
     for eachPost in externalPosts:
         eachPost['display_name'] = eachPost['author']['display_name']
     new_list += externalPosts
+
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -281,7 +266,7 @@ class AddPostView(CreateView):
                                                + str(form.post_id))
             
             form.save()
-            return redirect('main_page')
+            return redirect('public')
 
         else:
             print(form.errors)
@@ -307,7 +292,22 @@ def follow_someone(request):
         # save the new uid into current user's follow:
         curProfile.follow.add(followee_profile.user)
         # for external uses:
-        curProfile.externalFollows.append(followee_profile.host)
+        full_followee_url = followee_profile.host
+        if not followee_profile.host.startswith(str(request.scheme)):
+            full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
+
+        full_followee_url = str(request.scheme) + "://" + str(followee_profile.host)
+        if followee_profile.host[-1] == "/":
+            full_followee_url = full_followee_url + "author/" + str(followee_profile.pk)
+        else:
+            full_followee_url = full_followee_url + "/author/" + str(followee_profile.pk)
+
+
+        if curProfile.externalFollows == {}:
+            curProfile.externalFollows['urls'] = []
+        curProfile.externalFollows['urls'].append(full_followee_url)
+
+
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -350,11 +350,43 @@ def accept_friend_request(request):
         receiver = UserProfile.objects.get(user = request.user)
         # save the new friend's uid into current user's follow and vice versa:
         sender.follow.add(receiver.user)
-        sender.externalFollows.append(receiver.host) # external connectivity
+        #sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
-        receiver.externalFollows.append(sender.host) # external connectivity
+        # if sender.externalFollows like {}, we should add key value pair
+        if sender.externalFollows == {}:
+            sender.externalFollows['urls'] = []
+            
+        # if sender.externalFollows like {"urls":[]}, we can append
+        full_recv_url = receiver.host
+        if not receiver.host.startswith(str(request.scheme)):
+            full_recv_url = str(request.scheme) + "://"  + str(receiver.host)
+
+        if receiver.host[-1] == "/":
+            full_recv_url = full_recv_url + "author/" + str(receiver.pk)
+        else:
+            full_recv_url = full_recv_url + "/author/" + str(receiver.pk)
+
+        if not sender.host.startswith(str(request.scheme)):
+            full_sender_url = str(request.scheme) + "://" + str(sender.host)
+        
+        if sender.host[-1] == "/":
+            full_sender_url = full_sender_url + "author/" + str(sender.pk)
+        else:
+            full_sender_url = full_sender_url + "/author/" + str(sender.pk)
+
+
+
+        sender.externalFollows['urls'].append(full_recv_url) # external connectivity
+
+        if receiver.externalFollows == {}:
+            receiver.externalFollows["urls"] = []
+
+
+        receiver.externalFollows['urls'].append(full_sender_url) # external connectivity
         sender.save()
         receiver.save()
+        print("reveiver",receiver.externalFollows["urls"])
+        print(sender.externalFollows['urls'])
         # change the status of the friend request to accepted:
         friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
         if friend_request.status == 'sent':
@@ -475,7 +507,7 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
 
 
 def like_view(request):
-    redirect_path = 'main_page'
+    redirect_path = '/public'
     if request.path == "/friends/like":
         redirect_path = "/friends"
     elif request.path == "/mypost/like":
@@ -532,7 +564,7 @@ def profile(request):
 
             user_form.save()
             profile_form.save()
-            return redirect('main_page')
+            return redirect('public')
 
     else:
         user_form = UserUpdateForm(instance = request.user)
@@ -821,7 +853,7 @@ class AddCommentView(CreateView):
             form.author = request.user
             form.author_id = request.user.id
             form = form.save()
-            return redirect('main_page')
+            return redirect('public')
             
         else:
             print(form.errors)
