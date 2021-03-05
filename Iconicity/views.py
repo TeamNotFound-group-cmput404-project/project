@@ -147,6 +147,8 @@ def main_page(request):
         'UserProfile': getUserProfile(request.user),
         'myself': request.user,
     }
+    print("Request.user:")
+    print(request.user)
     return render(request, 'Iconicity/main_page.html', context)
 
 @login_required

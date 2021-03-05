@@ -82,11 +82,11 @@
           {% csrf_token %}
           <button class="button w3-margin-bottom w3-theme", type="submit", name="pk", value={{post.pk}}><p>Add Comment</p></button>
         </form>
-
+        {{ myself }}
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
-              {{ myself }}
+              
               {{ comment.comment_author_name }}:
               {{ comment.fields.comment }}
 
