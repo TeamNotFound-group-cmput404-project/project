@@ -41,14 +41,14 @@
         <h1>{{ post.title }}</h1><br>
         <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
         <!-- <span class="w3-right w3-opacity">1 min</span> -->
-        <h5>By: {{ post.author_name}}</h5><br>
+        <h5>By: {{ post.display_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
 
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
-            {% if post.image != '' %}
+            {% if post.image != '' and post.image != None %}
               <img src="/media/{{ post.image }}">
             {% endif %}
           </div>

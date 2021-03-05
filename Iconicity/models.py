@@ -68,10 +68,10 @@ class UserProfile(models.Model):
 
     # Who i'm following on other servers.
     # Should be a dict of urls
-    externalFollows = models.JSONField(default=list)
+    externalFollows = models.JSONField(default=dict)
 
     objects = UserProfileManager()
-
+    
     def get_external_follows(self):
         # return a list of urls of the external followed authors.
         if self.externalFollows == {} or self.externalFollows == []:

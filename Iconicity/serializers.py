@@ -22,12 +22,12 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like',
         'count', 'size', 'published', 'author', 'host')
-    
+
+
     def get_post_id(self, obj):
         return obj.post_id
 
     def get_author(self, obj):
-
         return GETProfileSerializer(UserProfile.objects.filter(user=obj.author).first()).data
 
     def get_count(self, obj):
