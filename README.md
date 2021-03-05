@@ -101,4 +101,17 @@ getAllFollowExternalAuthorPosts() is refer to https://stackoverflow.com/question
 
 
 
+Contributors / Licensing
+========================
 
+Generally everything is LICENSE'D under the Apache 2 license by Meilin Lyu.
+
+All text is licensed under the CC-BY-SA 4.0 http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
+
+Contributors:
+
+    Meilin Lyu
+    Zhiqi Zhou
+    Qianxi Li
+    Hongru Qi
+    Shuwei Wang
