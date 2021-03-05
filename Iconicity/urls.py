@@ -54,5 +54,6 @@ urlpatterns = [
 	path(r'author/<str:author_id>/followers/', views.ExternalFollowersByAuthor().as_view()),
     path(r'author/<str:author_id>/followers', views.ExternalFollowersByAuthor().as_view()),
  	#https://iconicity-test-a.herokuapp.com/author/b058b053-4766-4c6a-acaf-561c08badf64/posts/00db788e-45af-49eb-8350-f1c507eb42d0
-
+	path(r'author/<str:author_id>/friendposts/', views.FriendPostsByAuthor().as_view()),
+	path(r'author/<str:author_id>/friendposts', views.FriendPostsByAuthor().as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

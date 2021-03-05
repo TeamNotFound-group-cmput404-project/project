@@ -7,10 +7,10 @@ import json
 
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
-    externalFollows = rest_serializers.SerializerMethodField()
+    externalFollows = rest_serializers.SerializerMethodField('get_externalFollows')
     class Meta:
         model = UserProfile
-        fields = ('externalFollows')
+        fields = ('externalFollows',)
 
     def get_externalFollows(self, obj):
         return obj.get_external_follows()
