@@ -33,13 +33,17 @@
 
       <div class="w3-row-padding">
         <div class="w3-col m12">
+
             <div class="w3-card w3-round w3-white">
-               <!-- What's Good-->
+
+              <!-- What's Good-->
               <div class="w3-container w3-padding">
                 <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
               </div>
+
             </div>
-          </div>
+
+        </div>
       </div>
 
       <!-- This is the beginning of a post -->
@@ -47,6 +51,8 @@
       {% for post in posts %}
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
         <h1>{{ post.title }}</h1><br>
+        <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
+        <!-- <span class="w3-right w3-opacity">1 min</span> -->
         <h5>By: {{ post.display_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
@@ -63,28 +69,18 @@
         <hr class="w3-clear">
 
         <!-- Below are the like, comment and repost buttons -->
-        <!-- <form action="{% url 'like_post_public' %}" method="POST">
-          {% csrf_token %} -->
+        <form action="{% url 'like_post_public' %}" method="POST">
+          {% csrf_token %}
           
           <button class="button w3-margin-bottom", 
           style = "float:left;",type="submit", name="pk", value={{post.pk}}>
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
           <p>{{post.count}}</p></button>
-
-
         
-        <!-- <h3>Comments...</h3>
-        <a href="{% url 'comment_form' %}" name="pk", value={{post.pk}}>Add Comment</a> -->
-
-        <form action="{% url 'comment_form' %}" method="POST">
-          {% csrf_token %}
-          <button class="button w3-margin-bottom w3-theme", type="submit", name="pk", value={{post.pk}}><p>Add Comment</p></button>
-        </form>
-
         </form>
         <form action="{% url 'repost' %}" method="POST">
           {% csrf_token %}
-            <button class="button w3-margin-bottom", 
+          <button class="button w3-margin-bottom", 
             style = "float:left;",
             type="submit", name="pk", value={{post.pk}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
@@ -94,12 +90,21 @@
           {% csrf_token %}
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
-        <br>
+        
+   
+        <a href="{% url 'comment_form' %}" name="pk", value={{post.pk}}>Add Comment</a>
+
+        <!-- <form action="{% url 'comment_form' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><p>Add Comment</p></button>
+        </form> -->
+
+        <br/><br/>
 
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
-              {{ myself }}
+
               {{ comment.comment_author_name }}:
               {{ comment.fields.comment }}
 
@@ -107,7 +112,7 @@
             {% endif %}
           {% endfor %}
         {% endfor %}
-        <br/>
+        <br/><br/>
       </div>
       {% endfor %}
       <!-- This is the end of a post -->
@@ -137,12 +142,12 @@
       <!-- Profile -->
       <div class="w3-card w3-round w3-white" >
         <div class="w3-container">
-         <h4 class="w3-center w3-margin-top">Follow List of {{ request.user }}:</h4>
+         <h4 class="w3-center w3-margin-top">Follower List of {{ request.user }}:</h4>
          <hr>
          {% for friend in UserProfile.get_followers %}
           <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
          {% endfor %}
-         <h5 class="w3-center w3-margin-top">You have followed {{ UserProfile.get_number_of_followers }} users.</h5>
+         <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} followers.</h5>
         </div>
       </div>
     </div>
