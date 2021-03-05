@@ -1,5 +1,6 @@
 {% extends 'Iconicity/main_base.html'%}
 {% load static %}
+{% load crispy_forms_tags %}
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
@@ -11,13 +12,18 @@
 
 
 
-        <h1>Add Blog Post</h1>
+        <h1>Update Blog Post</h1>
 
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ form.as_p}}
-                <button>Post</button>
+                <fieldset class = "form-group">
+                    <legend class = "border-bottom mb-4">Post</legend>
+                    {{post_form|crispy}}
 
+                </fieldset>
+                <div class = "form-group">
+                    <button class = "btn btn-outline-info", type="submit", name="pid", value="{{post.pk}}">Update</button>
+                </div>
             </form>
 
           <br><br><br><br><br><br>
