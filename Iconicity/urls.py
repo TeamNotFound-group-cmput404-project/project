@@ -26,6 +26,7 @@ urlpatterns = [
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
 	path('update_post', views.update_post_view, name='update_post'),
 	path('delete',views.delete_post, name = "delete"),
+	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
 
 	# Friend Requests functionalities:

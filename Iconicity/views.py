@@ -552,6 +552,7 @@ def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
     comments = getComments()
+
     if postList !=[]:
         obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
@@ -559,17 +560,19 @@ def createJsonFromProfile(postList):
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
+
             # print(User.objects.filter(id=fields['author']).first())
             fields['display_name'] = author_name
+
             fields['comments'] = {}
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-                    comment['author_name'] = Comment.objects.filter().first()
+                    comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
+
             new_list.append(fields)
+
     return new_list, comments
-
-
 
 def mypost(request):
     if request.user.is_anonymous:
@@ -778,8 +781,37 @@ class AllPostsByAuthor(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
+
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
         return Response(ExternalFollowersSerializer(authorProfile).data)
+
+class AddCommentView(CreateView):
+    model = Comment
+    template = "Iconicity/comment_form.html"
+    def post(self, request):
+        print("posting")
+        template = "Iconicity/comment_form.html"
+        form = CommentsCreateForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.author = request.user
+            form.author_id = request.user.id
+            form = form.save()
+            return redirect('main_page')
+            
+        else:
+            print(form.errors)
+            form = CommentsCreateForm(request.POST)
+        
+        context = {
+            'form': form,
+        }
+        return render(request, template, context)
+
+    def get(self, request):
+        print("getting")
+        return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
+
