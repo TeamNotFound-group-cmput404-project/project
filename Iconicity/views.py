@@ -269,9 +269,6 @@ class AddPostView(CreateView):
             print("posting...")
             form = form.save(commit=False)
             form.author = request.user
-            print('------------------')
-            print(form)
-            print('---------------')
             userProfile = UserProfile.objects.get(user=request.user)
             # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
 
