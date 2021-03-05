@@ -68,7 +68,7 @@ class UserProfile(models.Model):
 
     # Who i'm following on other servers.
     # Should be a dict of urls
-    externalFollows = models.JSONField(default=dict)
+    externalFollows = models.JSONField(default=dict())
 
     objects = UserProfileManager()
     

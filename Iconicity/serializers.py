@@ -1,21 +1,21 @@
 from .models import *
-from rest_framework import serializers
+from rest_framework import serializers as rest_serializers
 from django.contrib.auth.models import User
 import datetime
 from urllib import request
 import json
 
 # https://www.django-rest-framework.org
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(rest_serializers.ModelSerializer):
 
-    post_id = serializers.SerializerMethodField()
-    author = serializers.SerializerMethodField()
-    count = serializers.SerializerMethodField()
-    size = serializers.SerializerMethodField()
-    source = serializers.SerializerMethodField()
-    origin = serializers.SerializerMethodField()
-    contentType = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
+    post_id = rest_serializers.SerializerMethodField()
+    author = rest_serializers.SerializerMethodField()
+    count = rest_serializers.SerializerMethodField()
+    size = rest_serializers.SerializerMethodField()
+    source = rest_serializers.SerializerMethodField()
+    origin = rest_serializers.SerializerMethodField()
+    contentType = rest_serializers.SerializerMethodField()
+    description = rest_serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -51,12 +51,12 @@ class PostSerializer(serializers.ModelSerializer):
         else:
             return obj.content
 
-class GETProfileSerializer(serializers.ModelSerializer):
-    uid = serializers.SerializerMethodField("get_uid")
-    display_name = serializers.SerializerMethodField("get_name")
-    host = serializers.SerializerMethodField()
-    github = serializers.SerializerMethodField()
-    url = serializers.SerializerMethodField()
+class GETProfileSerializer(rest_serializers.ModelSerializer):
+    uid = rest_serializers.SerializerMethodField("get_uid")
+    display_name = rest_serializers.SerializerMethodField("get_name")
+    host = rest_serializers.SerializerMethodField()
+    github = rest_serializers.SerializerMethodField()
+    url = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = ('user_type', 'uid','display_name','host','github','url')
@@ -80,10 +80,10 @@ class GETProfileSerializer(serializers.ModelSerializer):
             return str(obj['host']) + '/author/' + str(obj['uid'])
         return str(obj.host) + '/author/' + str(obj.uid)
 
-class CommentSerializer(serializers.ModelSerializer):
-    comment = serializers.SerializerMethodField() # content
-    id = serializers.SerializerMethodField('get_comment_id') #comment_id
-    author = serializers.SerializerMethodField() #user_id
+class CommentSerializer(rest_serializers.ModelSerializer):
+    comment = rest_serializers.SerializerMethodField() # content
+    id = rest_serializers.SerializerMethodField('get_comment_id') #comment_id
+    author = rest_serializers.SerializerMethodField() #user_id
 
     class Meta:
         model = Comment
@@ -106,7 +106,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 # By: Shway Wang
 '''
-class FriendRequestSerializer(serializers.ModelSerializer):
+class FriendRequestSerializer(rest_serializers.ModelSerializer):
     type = models.CharField(max_length=10, default="Follow")
     summary = models.TextField(default="")
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
