@@ -307,7 +307,7 @@ def follow_someone(request):
         # save the new uid into current user's follow:
         curProfile.follow.add(followee_profile.user)
         # for external uses:
-        curProfile.externalFollows.append(followee_profile.host)
+        curProfile.externalFollows['urls'].append(followee_profile.host)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
