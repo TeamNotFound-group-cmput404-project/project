@@ -213,7 +213,7 @@ class FriendRequest(models.Model):
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     # ISO 8601 TIMESTAMP
     # publish time
     published = models.DateTimeField(default=timezone.now)
@@ -231,7 +231,7 @@ class Comment(models.Model):
                                    default="")
 
     def __str__(self):
-        return '%s' % (self.author)
+        return '%s - %s - %s' % (self.post.title, self.author, self.id)
 
 class LikeSingle(models.Model):
     """
