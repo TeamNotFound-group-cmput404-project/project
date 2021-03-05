@@ -15,10 +15,11 @@
     {% csrf_token %}
     {% for field in form %}
       <p>
-        {{ field.label_tag }}<br>{{ field }}
-        <small>{{ field.help_text }}</small>
+        {{ field.label_tag }}
+        {{ field }}
+        <div class = "help">{{ field.help_text }}</div>
         {% for error in field.errors %}
-          <div class = "error">{{ error }}</div>
+        <div class = "error">{{ error}}</div>
         {% endfor %}
       </p>
     {% endfor %}

@@ -10,19 +10,13 @@
     <!-- By: Zhiqi Zhou-->
         <br><br><br><br><br><br><br><br>
         <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
-
-
-
-        <h1>Add Comment...</h1>
-
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p}}
+            <h1>Add Comment...</h1>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p}}
                 <button>Send</button>
-
-            </form>
-
-          <br><br><br><br><br><br>
+             </form>
+              <br><br><br><br><br><br>
         </div>
 
 <!-- End Page Container -->

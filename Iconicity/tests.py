@@ -138,7 +138,7 @@ class LoginAndSignUpTest(TestCase):
 		print("7")
 		response = self.client.post(self.login_url,self.user)
 		self.assertEquals(response.status_code,302)
-
+    
 	def test_view(self):
 		print("8")
 		response = self.client.get(self.signup_url)	
