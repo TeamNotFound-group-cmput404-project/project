@@ -652,14 +652,11 @@ def following(request):
     # get all the posts posted by the current user
     postList = getAllFollowAuthorPosts(request.user)
     new_list, comments = createJsonFromProfile(postList)
-<<<<<<< HEAD
     temp = getAllFollowExternalAuthorPosts(request.user)
     for eachPost in temp:
         eachPost['display_name'] = eachPost['author']['display_name']
     new_list += temp
 
-=======
->>>>>>> da4895d87263ba8e3d17d5d229fdf2d1a0cffe1a
     context = {
         'posts': new_list,
         'comments': comments,
