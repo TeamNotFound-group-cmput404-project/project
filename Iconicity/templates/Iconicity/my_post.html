@@ -9,7 +9,7 @@
     <!-- Left Column -->
     <div class="w3-col m3">
       <!-- Profile -->
-     
+
     <br>
 
     <!-- End Left Column -->
@@ -44,7 +44,7 @@
         <h5>By: {{ post.author_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
-        
+
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
@@ -59,13 +59,21 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_mypost' %}" method="POST">
           {% csrf_token %}
-          
+
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i><p>{{post.count}}</p></button>
-          
+
         </form>
         <form action="{% url 'repost' %}" method="POST">
           {% csrf_token %}
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
+        </form>
+        <form action="{% url 'update_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-pencil-square-o" style="font-size:20px;"></i></button>
+        </form>
+        <form action="{% url 'repost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
         </form>
         <!-- <button class="button w3-margin-bottom"><i class="fa fa-comment-o" style="font-size:20px;"></i></button>  -->
 
@@ -78,13 +86,13 @@
           </div> -->
 
         <!-- Show Comments at Bottom-->
-        
+
         <h3>Comments:</h3>
         <div class="w3-row-padding" style="margin:0 -16px">
           {% for comment_id in post.comments %}
             {% for comment in comments %}
               {% if comment_id == comment.pk %}
-  
+
                 {{ comment.fields.author }}
                 {{ comment.fields.body }}
 
@@ -117,7 +125,7 @@
     </div>
 
     <!-- Added here by Shway-->
-    
+
 
   <!-- End Grid -->
   </div>
@@ -127,6 +135,3 @@
 
 
 {% endblock %}
-
-   
- 

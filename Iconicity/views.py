@@ -8,9 +8,7 @@ import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import ProfileUpdateForm,UserUpdateForm
-from .forms import PostsCreateForm
-from .forms import SignUpForm
+from .forms import *
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.generic import ListView
@@ -79,7 +77,7 @@ class LoginView(View):
             print("go to main")
             print(request.user)
             return redirect(reverse('main_page'))
-        
+
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
     def post(self,request):
@@ -167,16 +165,16 @@ def mainPagePublic(request):
     #print(new_list)
 
     """ Note:
-    each json object in externalPostList is different from 
+    each json object in externalPostList is different from
     each one in new_list!!!!!!!!!!!!!!!!
-    
-    I'll change this by March 5 morning. All posts in our server and 
+
+    I'll change this by March 5 morning. All posts in our server and
     outside our server will all use the same json format
 
     Qianxi
-    
-    
-    
+
+
+
     """
     context = {
 
@@ -184,7 +182,7 @@ def mainPagePublic(request):
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
     }
-    
+
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -218,7 +216,7 @@ def getAllFollowAuthorPosts(currentUser):
                 # one direct
                 # only public
                 post_list += getPosts(user, visibility="PUBLIC")# join the post_list
-        
+
     print("current post_List")
     print(post_list)
     return post_list
@@ -237,6 +235,9 @@ def getPosts(user, visibility="PUBLIC"):
         # friends can see all your posts (public + friends posts)
         return list(Post.objects.filter(author=user.id))
 
+def getPost(post):
+    return Post.objects.filter(post_id=post.post_id).first()
+
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
 
@@ -254,14 +255,17 @@ class AddPostView(CreateView):
             print("posting...")
             form = form.save(commit=False)
             form.author = request.user
+            print('------------------')
+            print(form)
+            print('---------------')
             userProfile = UserProfile.objects.get(user=request.user)
             # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
 
-            form.origin = (str(request.scheme) + "://" 
-                                               + str(request.get_host()) 
-                                               + '/author/' 
-                                               + str(userProfile.pk) 
-                                               + '/posts/' 
+            form.origin = (str(request.scheme) + "://"
+                                               + str(request.get_host())
+                                               + '/author/'
+                                               + str(userProfile.pk)
+                                               + '/posts/'
                                                + str(self.model.post_id))
             form.save()
             return redirect('main_page')
@@ -434,25 +438,53 @@ def like_view(request):
     post.save()
     return redirect(redirect_path)
 
+def update_post_view(request):
+    pk=request.POST.get('pk')
+    if (pk):
+        print('Step 1')
+        post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        post_form = PostUpdateForm(instance = post)
+        print(type(post))
+        context = {
+        'post':post,
+        'post_form':post_form,
+        }
+    post_id = request.POST.get('pid')
+    if (post_id):
+        print('Step 2')
+        post = get_object_or_404(Post, pk=request.POST.get('pid'))
+        post_form = PostUpdateForm(request.POST, request.FILES)
+
+        if post_form.is_valid():
+            # https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Forms
+            # RenewbookForm
+            post.title = post_form.cleaned_data['title']
+            post.content = post_form.cleaned_data['content']
+            post.image = post_form.cleaned_data['image']
+            post.visibility = post_form.cleaned_data['visibility']
+            post.save()
+            return redirect('my_post')
+    return render(request,'Iconicity/update_post.html', context)
+
 def profile(request):
     userProfile = getUserProfile(request.user)
-    
+
     if request.method =="POST":
-        
+
         user_form = UserUpdateForm(request.POST,instance = request.user)
-        
+
         profile_form = ProfileUpdateForm(request.POST,instance = request.user.userprofile)
 
         if user_form.is_valid() and profile_form.is_valid():
-          
+
             user_form.save()
             profile_form.save()
             return redirect('main_page')
-        
-    else: 
+
+    else:
         user_form = UserUpdateForm(instance = request.user)
         profile_form = ProfileUpdateForm(instance = request.user.userprofile)
-        
+
     context = {
     'UserProfile': userProfile,
     'user_form':user_form,
@@ -470,14 +502,14 @@ def createJsonFromProfile(postList):
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
-        
+
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
             fields['author_name'] = author_name
             fields['comments'] = {}
-            
+
             comments = getComments()
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
@@ -489,14 +521,14 @@ def createJsonFromProfile(postList):
 
 def mypost(request):
     if request.user.is_anonymous:
-        return render(request, 
-                      'Iconicity/login.html', 
+        return render(request,
+                      'Iconicity/login.html',
                       { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list, comments = createJsonFromProfile(postList)
-    
+
     context = {
         'posts': new_list,
         'comments': comments,
@@ -520,7 +552,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            
+
             for each_url in externalAuthorUrls:
                 full_url = each_url
                 if each_url[-1]=="/":
@@ -564,7 +596,7 @@ def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
     # get all followers of our user
-    allFollowedAuthors = list(userProfile.get_followers()) 
+    allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
@@ -583,7 +615,7 @@ def friends(request):
 
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
-    
+
     new_list, comments = createJsonFromProfile(postList)
 
     context = {
