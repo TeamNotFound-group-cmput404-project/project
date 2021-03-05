@@ -333,7 +333,7 @@ def follow_someone(request):
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
+    return redirect('public')
 
 def unfollow_someone(request):
     if request.method == 'POST':
@@ -357,18 +357,15 @@ def unfollow_someone(request):
 
             if full_followee_url in curProfile.externalFollows['urls']:
                 curProfile.externalFollows['urls'].remove(full_followee_url)
-
         else:
             # local user
             # remove the uid from current user's follow:
             if followee_profile.user in curProfile.follow.all():
                 curProfile.follow.remove(followee_profile.user)
-
-            
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
+    return redirect('public')
 
 # by Shway, this view below shows the list of received friend requests:
 def friend_requests_received_view(request):
@@ -491,7 +488,7 @@ class UserProfileListView(ListView):
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
-        follow_list.add(my_profile[0].follow)
+        follow_list = my_profile[0].get_followers()
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -550,9 +547,6 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
         receiver.externalFollows.remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
-
-
-
 
 def like_view(request):
     redirect_path = '/public'
