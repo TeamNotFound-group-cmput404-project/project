@@ -781,5 +781,6 @@ class AllPostsByAuthor(APIView):
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
-        posts = Post.objects.filter(author=authorProfile.user).all()
+        #posts = Post.objects.filter(author=authorProfile.user).all()
+        print(ExternalFollowersSerializer(authorProfile).data)
         return Response(ExternalFollowersSerializer(authorProfile).data)
