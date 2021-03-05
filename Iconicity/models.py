@@ -171,7 +171,7 @@ class Post(models.Model):
         return self.like.count()
 
     def get_absolute_url(self):
-        return reverse("main_page")
+        return reverse("main_page",kwargs ={'pk':self.pk})
 
 
 
@@ -213,7 +213,7 @@ class FriendRequest(models.Model):
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
     # ISO 8601 TIMESTAMP
     # publish time
     published = models.DateTimeField(default=timezone.now)
@@ -231,7 +231,7 @@ class Comment(models.Model):
                                    default="")
 
     def __str__(self):
-        return '%s - %s - %s' % (self.post.title, self.author, self.id)
+        return '%s' % (self.author)
 
 class LikeSingle(models.Model):
     """
@@ -267,3 +267,9 @@ class Inbox(models.Model):
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     items = models.JSONField(default=dict)
+
+class ExternalServer(models.Model):
+    host = models.URLField(default="",primary_key=True,)
+
+    def get_host(self):
+        return self.host

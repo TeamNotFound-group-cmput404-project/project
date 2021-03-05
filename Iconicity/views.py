@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 from .forms import *
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from django.contrib.auth import logout
 from django.http.request import HttpRequest
 from django.views.generic import CreateView
@@ -25,6 +25,8 @@ from django.dispatch import receiver
 from .serializers import PostSerializer,GETProfileSerializer
 from urllib.request import urlopen
 import requests
+import collections
+from rest_framework.renderers import JSONRenderer
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -158,7 +160,8 @@ def mainPagePublic(request):
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
-
+    externalPosts = getAllExternalPublicPosts()
+    new_list +=externalPosts
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -240,6 +243,17 @@ def getPost(post):
 
 def getComments():
     return json.loads(serializers.serialize("json", list(Comment.objects.filter())))
+
+def delete_post(request):
+    template = "/Iconicity/my_post.html"
+    post_id = request.POST.get('pk')
+    if post_id:
+        post = get_object_or_404(Post,pk=request.POST.get('pk'))
+        print(post_id)
+        post.delete()
+
+    return redirect("my_post")
+
 
 class AddPostView(CreateView):
     model = Post
@@ -498,7 +512,7 @@ def public(request):
 def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
-    comments = []
+    comments = getComments()
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
@@ -507,17 +521,18 @@ def createJsonFromProfile(postList):
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
+            # print(User.objects.filter(id=fields['author']).first())
             fields['author_name'] = author_name
             fields['comments'] = {}
 
-            comments = getComments()
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
-                    # Comment id: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-
+                    comment['author_name'] = Comment.objects.filter().first()
             new_list.append(fields)
     return new_list, comments
+
+
 
 def mypost(request):
     if request.user.is_anonymous:
@@ -548,7 +563,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        externalAuthorUrls = ["https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/"]
+        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -565,7 +580,35 @@ def getAllFollowExternalAuthorPosts(currentUser):
     return post_list
 
 
+def getAllConnectedServerHosts():
+    # return a list [hosturl1, hosturl2...]
+    return [i.get_host() for i in list(ExternalServer.objects.all())]
 
+def getAllExternalPublicPosts():
+    externalHosts = getAllConnectedServerHosts()
+    allPosts = []
+    #print(externalHosts)
+    for host_url in externalHosts:
+        if host_url[-1] == "/":
+            full_url = host_url + "posts"
+        else:
+            full_url = host_url + "/posts"
+        temp = requests.get(full_url)
+        #print(temp)
+        posts = temp.json()
+        allPosts += posts
+        #print(allPosts)
+    return allPosts
+
+
+#getAllExternalPublicPosts()
+class AllAuthors(APIView):
+    def get(self, request):
+        # Get all local authors
+        userProfile = UserProfile.objects.all()
+        temp = GETProfileSerializer(userProfile,many=True).data
+
+        return Response(temp)
 
 
 class AuthorById(APIView):
@@ -634,6 +677,7 @@ class Posts(APIView):
 
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
+        '''
         if request.user.is_authenticated:
             posts = Post.objects.filter(visibility = "PUBLIC").all()
             serializer = PostSerializer(posts, many=True)
@@ -641,16 +685,25 @@ class Posts(APIView):
         else:
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)
+        '''
+
+        posts = Post.objects.filter(visibility = "PUBLIC").all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
 
 class PostById(APIView):
     def get(self, request, post_id):
+        posts = Post.objects.filter(pk=post_id).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+        '''
         if request.user.is_authenticated:
             posts = Post.objects.filter(pk=post_id).all()
             serializer = PostSerializer(posts, many=True)
             return Response(serializer.data)
         else:
             # the user is unauthorized
-            return HttpResponse('Unauthorized', status=401)
+            return HttpResponse('Unauthorized', status=401)'''
 
 
 class AllPostsByAuthor(APIView):
@@ -659,6 +712,3 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-
-# app:
-#https://vast-shore-25201.herokuapp.com/
