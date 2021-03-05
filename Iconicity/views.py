@@ -132,6 +132,24 @@ def signup(request):
     return render(request, 'Iconicity/signup.html', {'form': form})
 
 
+# @login_required
+# def main_page(request):
+#     # https://docs.djangoproject.com/en/3.1/topics/serialization/
+#     if request.user.is_anonymous:
+#         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+#     # get all the posts posted by the current user
+
+#     postList = getPosts(request.user, visibility="FRIENDS")
+#     new_list, comments = createJsonFromProfile(postList)
+#     context = {
+#         'posts': new_list,
+#         'comments': comments,
+#         'UserProfile': getUserProfile(request.user),
+#         'myself': request.user,
+#     }
+#     return render(request, 'Iconicity/main_page.html', context)
+
+
 @login_required
 def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
@@ -568,6 +586,7 @@ def update_post_view(request):
     if (pk):
         print('Step 1')
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        print("post:",post)
         post_form = PostUpdateForm(instance = post)
         print(type(post))
         context = {
@@ -643,7 +662,6 @@ def createJsonFromProfile(postList):
                     comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
 
             new_list.append(fields)
-
     return new_list, comments
 
 def mypost(request):
@@ -882,26 +900,41 @@ class FriendPostsByAuthor(APIView):
 class AddCommentView(CreateView):
     model = Comment
     template = "Iconicity/comment_form.html"
-    def post(self, request):
-        print("posting")
-        template = "Iconicity/comment_form.html"
-        form = CommentsCreateForm(request.POST)
-        if form.is_valid():
-            form = form.save(commit=False)
-            form.author = request.user
-            form.author_id = request.user.id
-            form = form.save()
-            return redirect('public')
 
-        else:
-            print(form.errors)
+    def post(self, request):   
+        pk = request.POST.get('pk')
+        if pk:
+            post = get_object_or_404(Post, pk=request.POST.get('pk'))
+            context = {
+                'form':  CommentsCreateForm,
+                'post':post,
+            }
+        
+        post_id = request.POST.get('pid')
+        if post_id:
+            template = "Iconicity/comment_form.html"
             form = CommentsCreateForm(request.POST)
+            print("request.POST:", request.POST)
+            if form.is_valid():
+                form = form.save(commit=False)
+                form.post_id = post_id
+                form.author = request.user
+                form.author_id = request.user.id
+                form = form.save()
+                return redirect('public')
+                
+            else:
+                print(form.errors)
+                form = CommentsCreateForm(request.POST)
+            
+            context = {
+                'form': form,
+            }
+            return render(request, template, context)
 
-        context = {
-            'form': form,
-        }
-        return render(request, template, context)
+        return render(request, 'Iconicity/comment_form.html', context)
+
 
     def get(self, request):
         print("getting")
-        return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
+        return render(request, 'Iconicity/comment_form.html', {'form':  CommentsCreateForm})
