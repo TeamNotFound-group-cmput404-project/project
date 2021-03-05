@@ -19,7 +19,7 @@ urlpatterns = [
 
 	path('repost', views.repost, name='repost'),
 	path('profile',views.profile,name = "profile"),
-	path('mypost', views.mypost, name = 'my_post'),
+	path('mypost', views.mypost, name = 'mypost'),
 	path('public',views.mainPagePublic,name = "public"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
