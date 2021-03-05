@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.core import serializers
 import json
 from django.contrib.auth import login, authenticate
@@ -17,12 +18,10 @@ from django.http.request import HttpRequest
 from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
-
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-
-from .serializers import PostSerializer,GETProfileSerializer
+from .serializers import *
 from urllib.request import urlopen
 import requests
 import collections
@@ -31,7 +30,7 @@ from rest_framework.renderers import JSONRenderer
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def getAuthor(id):
-    author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+    author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
     jsonload = json.loads(author_profile)[0]
     raw_id = jsonload['pk']
     jsonload = jsonload['fields']
@@ -45,7 +44,7 @@ def getAuthor(id):
 class AuthorProfile(APIView):
     # get a author's profile by its id
     def get(self, request, id):
-        author_profile = serializers.serialize("json", UserProfile.objects.filter(uid=id))
+        author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
         jsonload = json.loads(author_profile)[0]
         raw_id = jsonload['pk']
         jsonload = jsonload['fields']
@@ -159,9 +158,12 @@ def mainPagePublic(request):
     # get all the posts posted by the current user
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
+    print(postList)
     new_list, comments = createJsonFromProfile(postList)
     externalPosts = getAllExternalPublicPosts()
-    new_list +=externalPosts
+    for eachPost in externalPosts:
+        eachPost['display_name'] = eachPost['author']['display_name']
+    new_list += externalPosts
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -295,9 +297,38 @@ class AddPostView(CreateView):
         return render(request, 'Iconicity/post_form.html', { 'form':  PostsCreateForm })
 
 
+# By Shway, the friend requests related stuff(including following):
+# by Shway, the follow function, to add someone to your follow list:
+def follow_someone(request):
+    if request.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # save the new uid into current user's follow:
+        curProfile.follow.add(followee_profile.user)
+        # for external uses:
+        curProfile.externalFollows.append(followee_profile.host)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
+def unfollow_someone(request):
+    if request.method == 'POST':
+        followee_uid = request.POST.get('followee_uid')
+        followee_profile = UserProfile.objects.get(uid = followee_uid)
+        curProfile = UserProfile.objects.get(user = request.user)
+        # remove the uid from current user's follow:
+        if followee_profile.user in curProfile.follow.all():
+            curProfile.follow.remove(followee_profile.user)
+        # for external uses:
+        if followee_profile.host in curProfile.externalFollows:
+            curProfile.externalFollows.remove(followee_profile.host)
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('main')
 
-# By Shway, the friend requests related stuff:
 # by Shway, this view below shows the list of received friend requests:
 def friend_requests_received_view(request):
     profile = getUserProfile(request.user)
@@ -319,7 +350,9 @@ def accept_friend_request(request):
         receiver = UserProfile.objects.get(user = request.user)
         # save the new friend's uid into current user's follow and vice versa:
         sender.follow.add(receiver.user)
+        sender.externalFollows.append(receiver.host) # external connectivity
         receiver.follow.add(sender.user)
+        receiver.externalFollows.append(sender.host) # external connectivity
         sender.save()
         receiver.save()
         # change the status of the friend request to accepted:
@@ -359,7 +392,7 @@ class UserProfileListView(ListView):
     # override:
     def get_queryset(self):
         # get all profiles except for current user
-        return UserProfile.objects.get_all_profiles(self.request.user)
+        return UserProfile.objects.get_all_profiles(exception = self.request.user)
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -373,9 +406,12 @@ class UserProfileListView(ListView):
         accepted_requests = FriendRequest.objects.filter(
             (Q(object_author = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
         # listify the above two results:
+        follow_list = set()
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
+        for i in my_profile.follow.all():
+            follow_list.add(i)
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -383,6 +419,7 @@ class UserProfileListView(ListView):
         for i in accepted_requests:
             accepted_list.add(i.actor.user)
             accepted_list.add(i.object_author.user)
+        context['follows'] = follow_list
         context['pending_requests'] = pending_requests_list
         context['inbox_requests'] = inbox_requests_list
         context['accepted_requests'] = accepted_list
@@ -414,6 +451,7 @@ def remove_friend(request):
         friendRequest = FriendRequest.objects.get(
             (Q(actor=sender) & Q(object_author=receiver)) | (Q(actor=receiver) & Q(object_author=sender)))
         friendRequest.delete()
+        # want to also unfollow both, but it is done by the function beneath this one
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('main')
@@ -425,7 +463,11 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
     sender = instance.actor
     receiver = instance.object_author
     sender.follow.remove(receiver.user)
+    if receiver.host in sender.externalFollows:
+        sender.externalFollows.remove(receiver.host) # external connectivity
     receiver.follow.remove(sender.user)
+    if sender.host in receiver.externalFollows:
+        receiver.externalFollows.remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
 
@@ -511,17 +553,15 @@ def createJsonFromProfile(postList):
     new_list = []
     comments = getComments()
     if postList !=[]:
-        obj = serializers.serialize("json", postList)
+        obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
-
         for i in post_json:
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
             # print(User.objects.filter(id=fields['author']).first())
-            fields['author_name'] = author_name
+            fields['display_name'] = author_name
             fields['comments'] = {}
-
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
@@ -560,7 +600,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
+        print(externalAuthorUrls)
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -573,7 +613,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "/posts/"
                 temp = requests.get(full_url)
                 responseJsonlist = temp.json()
+                
                 post_list += responseJsonlist
+
     return post_list
 
 
@@ -581,30 +623,32 @@ def getAllConnectedServerHosts():
     # return a list [hosturl1, hosturl2...]
     return [i.get_host() for i in list(ExternalServer.objects.all())]
 
+def getAllPublicPostsCurrentUser():
+    userProfile = UserProfile.objects.all()
+    allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
+    #allAuthors += temp
+    # then, get all authors from external hosts
+
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
     allPosts = []
-    #print(externalHosts)
     for host_url in externalHosts:
         if host_url[-1] == "/":
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
         temp = requests.get(full_url)
-        #print(temp)
         posts = temp.json()
+
         allPosts += posts
-        #print(allPosts)
     return allPosts
 
 
-#getAllExternalPublicPosts()
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
         userProfile = UserProfile.objects.all()
         temp = GETProfileSerializer(userProfile,many=True).data
-
         return Response(temp)
 
 
@@ -619,23 +663,24 @@ def following(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
-
     postList = getAllFollowAuthorPosts(request.user)
     new_list, comments = createJsonFromProfile(postList)
-
+    temp = getAllFollowExternalAuthorPosts(request.user)
+    for eachPost in temp:
+        eachPost['display_name'] = eachPost['author']['display_name']
+    new_list += temp
 
     context = {
         'posts': new_list,
         'comments': comments,
         'UserProfile': userProfile,
     }
-
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
-    # get all followers of our user
+    # get all local followers of our user
     allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
@@ -644,6 +689,15 @@ def getUserFriend(currentUser):
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
+
+    # now check external followers. check whether they are bi-direction.
+    externalFollowers = userProfile.get_external_follows() # a list of urls
+    print("external",externalFollowers)
+    for each_url in externalFollowers:
+
+        temp = requests.get(each_url)
+        responseJsonlist = temp.json()
+        print(responseJsonlist)
 
     return friendList
 
@@ -671,7 +725,6 @@ def repost(request):
     post = get_object_or_404(Post, pk=request.POST.get('pk'))
 
 class Posts(APIView):
-
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
         '''

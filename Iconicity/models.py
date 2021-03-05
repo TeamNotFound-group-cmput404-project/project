@@ -33,9 +33,9 @@ class UserProfileManager(models.Manager):
         #print(available)
         return available
 
-    def get_all_profiles(self, curUser):
+    def get_all_profiles(self, exception):
         # curUser is of type User
-        return UserProfile.objects.all().exclude(user = curUser)
+        return UserProfile.objects.all().exclude(user = exception)
 
 class UserProfile(models.Model):
     # max length for the user display name
@@ -68,10 +68,10 @@ class UserProfile(models.Model):
 
     # Who i'm following on other servers.
     # Should be a dict of urls
-    externalFollows = models.JSONField(default=list)
+    externalFollows = models.JSONField(default=dict())
 
     objects = UserProfileManager()
-
+    
     def get_external_follows(self):
         # return a list of urls of the external followed authors.
         if self.externalFollows == {} or self.externalFollows == []:
