@@ -34,13 +34,14 @@
           <!-- Now for the two buttons for adding and removing friends, also the notification if -->
           <!-- this person already has sent you a friend request -->
           <!-- Case 0: Follow and unfollow buttons -->
-          {% if profile.user in follow_list %}
+          {% if profile.user in follows %}
             <form action="{% url 'unfollow_someone' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='followee_uid' value="{{ profile.uid }}">Unfollow</button>
             </form>
-          {% else %}
+          {% endif %}
+          {% if profile.user not in follows %}
             <form action="{% url 'follow_someone' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"

@@ -33,9 +33,9 @@ class UserProfileManager(models.Manager):
         #print(available)
         return available
 
-    def get_all_profiles(self, curUser):
+    def get_all_profiles(self, exception):
         # curUser is of type User
-        return UserProfile.objects.all().exclude(user = curUser)
+        return UserProfile.objects.all().exclude(user = exception)
 
 class UserProfile(models.Model):
     # max length for the user display name
