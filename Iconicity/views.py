@@ -806,12 +806,12 @@ def friends(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
     postList = []
-
+    friends_test = getUserFriend(request.user)
+    tmp_list = []
     for friend_id in getUserFriend(request.user):
-        postList += getPosts(friend_id, visibility="FRIENDS")
-        print('iter',postList)
+        tmp_list += getPosts(friend_id, visibility="FRIENDS")
 
-    new_list, comments = createJsonFromProfile(postList)
+    new_list, comments = createJsonFromProfile(tmp_list)
     externalFriends = getExternalUserFriends(request.user)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
@@ -823,8 +823,7 @@ def friends(request):
                 full_url += "/friendposts/"
             posts = requests.get(full_url).json()
             postList += posts
-    postList += new_list
-
+    postList += new_list  
     context = {
         'posts': postList,
         'comments': comments,
