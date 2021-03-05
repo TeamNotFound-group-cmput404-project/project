@@ -27,6 +27,8 @@ from django.dispatch import receiver
 from .serializers import PostSerializer,GETProfileSerializer
 from urllib.request import urlopen
 import requests
+import collections
+from rest_framework.renderers import JSONRenderer
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -534,15 +536,34 @@ def getAllFollowExternalAuthorPosts(currentUser):
                 post_list += responseJsonlist
     return post_list
 
+
 def getAllConnectedServerHosts():
     # return a list [hosturl1, hosturl2...]
     return [i.get_host() for i in list(ExternalServer.objects.all())]
 
-
-
+def getAllPublicPostsCurrentUser():
+    userProfile = UserProfile.objects.all()
+    allAuthors = json.dumps(GETProfileSerializer(userProfile,many=True).data)
+    #allAuthors += temp
+    # then, get all authors from external hosts
+    externalHosts = getAllConnectedServerHosts()
+    for host_url in externalHosts:
+        if host_url[-1] == "/":
+            full_url = host_url + "author"
+        else:
+            full_url = host_url + "/author"
+        print(full_url)
+        temp = requests.get(full_url)
+        print("temp",temp)
+        authors = temp.json()
+        allAuthors += authors
+    print(allAuthors)
+    print(type(temp))
+    print(json.loads(temp, object_pairs_hook=collections.OrderedDict))
+#getAllPublicPostsCurrentUser()
 class AllAuthors(APIView):
     def get(self, request):
-        # first, get all local authors
+        # Get all local authors
         userProfile = UserProfile.objects.all()
         temp = GETProfileSerializer(userProfile,many=True).data
         
