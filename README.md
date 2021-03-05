@@ -67,7 +67,7 @@ to update, click "profile" then go to edit profile page then click update.<br/>
 
 Citation:
 ==============
-main_base.html is based onhttps://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_social&stacked=h From https://www.w3schools.com/<br/>
+main_base.html is based on https://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_social&stacked=h From https://www.w3schools.com/<br/>
 
 image display in main_base.html(line6-line8) in main_base.html is refer to https://stackoverflow.com/questions/12368910/html-display-image-after-selecting-filename From Stackoverflow by ygssoni https://stackoverflow.com/users/1591101/ygssoni<br/>
 
@@ -99,19 +99,8 @@ update_post_view() is refer to "Django Tutorial Part 9: Working with forms" http
 getAllFollowExternalAuthorPosts() is refer to https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script by Anurag Uniyal
  https://stackoverflow.com/users/6946/anurag-uniyal<br/>
 
+AddCommentView() is refer to https://www.youtube.com/watch?v=hZrlh4qU4eQ.<br/>
 
+Comment sections in comment_form.html, main_page.html, friends.html, follow.html, my_post.html is refer to https://www.youtube.com/watch?v=hZrlh4qU4eQ.<br/>
 
-Contributors / Licensing
-========================
-
-Generally everything is LICENSE'D under the Apache 2 license by Meilin Lyu.
-
-All text is licensed under the CC-BY-SA 4.0 http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
-
-Contributors:
-
-    Meilin Lyu
-    Zhiqi Zhou
-    Qianxi Li
-    Hongru Qi
-    Shuwei Wang
+post_form.html is refer to https://www.youtube.com/watch?v=m3efqF9abyg. <br/>
