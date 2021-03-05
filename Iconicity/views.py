@@ -306,7 +306,7 @@ def follow_someone(request):
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
+    return redirect('public')
 
 def unfollow_someone(request):
     if request.method == 'POST':
@@ -322,7 +322,7 @@ def unfollow_someone(request):
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
+    return redirect('public')
 
 # by Shway, this view below shows the list of received friend requests:
 def friend_requests_received_view(request):
