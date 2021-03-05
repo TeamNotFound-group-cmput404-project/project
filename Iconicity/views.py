@@ -272,13 +272,14 @@ class AddPostView(CreateView):
             form.author = request.user
             userProfile = UserProfile.objects.get(user=request.user)
             # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
-
+            form.save()
             form.origin = (str(request.scheme) + "://"
                                                + str(request.get_host())
                                                + '/author/'
                                                + str(userProfile.pk)
                                                + '/posts/'
-                                               + str(self.model.post_id))
+                                               + str(form.post_id))
+            
             form.save()
             return redirect('main_page')
 
@@ -706,14 +707,14 @@ def getExternalUserFriends(currentUser):
             full_url += "followers/"
         else:
             full_url += "/followers/"
-        print("full",full_url)
-        temp = requests.get(full_url)
-        print("temp",temp)
-        friends = temp.json()
+
         # now check whether you are also his/hers followee.
-        print("friends",friends)
+        temp = requests.get(full_url)
+        friends = temp.json()['externalFollows']
+        if userProfile.url in friends:
+            friendUrlList.append(each_url)
+
         
-        #friendUrlList.append(friends)
     # return a list of urls
     print("friendUrlList",friendUrlList)
     return friendUrlList
@@ -723,14 +724,26 @@ def friends(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
     postList = []
-    externalFriends = getExternalUserFriends(request.user)
+    
     for friend_id in getUserFriend(request.user):
         postList += getPosts(friend_id, visibility="FRIENDS")
 
     new_list, comments = createJsonFromProfile(postList)
-
+    externalFriends = getExternalUserFriends(request.user)
+    if externalFriends and externalFriends !=[]:
+        for each_url in externalFriends:
+            full_url = each_url
+        
+            if each_url[-1] == "/":
+                full_url += "friendposts/"
+            else:
+                full_url += "/friendposts/"
+            posts = requests.get(full_url).json()
+            postList += posts
+    postList += new_list
+        
     context = {
-        'posts': new_list,
+        'posts': postList,
         'comments': comments,
         'UserProfile': getUserProfile(request.user),
     }
@@ -784,6 +797,15 @@ class AllPostsByAuthor(APIView):
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
+        print(ExternalFollowersSerializer(authorProfile).data)
+        return Response(ExternalFollowersSerializer(authorProfile).data)
+
+class FriendPostsByAuthor(APIView):
+    def get(self, request, author_id):
+        print(type(request))
+        authorProfile = UserProfile.objects.get(pk=author_id)
+        friendPosts = Post.objects.filter(author=authorProfile.user)
+        return Response(PostSerializer(friendPosts, many=True).data)
         posts = Post.objects.filter(author=authorProfile.user).all()
         return Response(ExternalFollowersSerializer(authorProfile).data)
 
@@ -813,4 +835,3 @@ class AddCommentView(CreateView):
     def get(self, request):
         print("getting")
         return render(request, 'Iconicity/comment_form.html', { 'form':  CommentsCreateForm })
-
