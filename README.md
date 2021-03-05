@@ -1,6 +1,6 @@
 # Iconicity
 
-* Install necessary libraries:
+Install necessary libraries:
 ================================
 pip install django-filter;<br/>
 pip install markdown;<br/>
@@ -40,7 +40,7 @@ pip install django-filter
 pip install markdown;
 pip install djangorestframework;-->
 
-* Specification:
+Specification:
 ================
  https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
 
@@ -60,7 +60,7 @@ To view the posts from users you are following, click following in the nav-bar.<
 To view the psots from your friends, click the friends button in the nav-bar.<br/>
 To logout, click the logout button on the top right corner.<br/>
 
-* Citation:
+Citation:
 ==============
 main_base.html is based on  from https://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_social&stacked=h<br/>
 
