@@ -56,7 +56,7 @@
         <h5>By: {{ post.display_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
-        
+
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
@@ -72,8 +72,17 @@
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
           
-          <!-- <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i><p>{{post.count}}</p></button> -->
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-heart-o" style="font-size:20px;" ></i><p>{{post.count}}</p></button>
 
+        </form>
+        <form action="{% url 'repost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
+        </form>
+        <form action="{% url 'repost_to_friend' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+        </form>
         
         <h3>Comments...</h3>
         <a href="{% url 'comment_form' %}" name="pk", value={{post.pk}}>Add Comment</a>
@@ -84,6 +93,7 @@
         </form> -->
 
         <br/><br/>
+
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
@@ -145,6 +155,3 @@
 
 
 {% endblock %}
-
-   
- 
