@@ -77,7 +77,7 @@ class LoginView(View):
         if not request.user.is_anonymous:
             print("go to main")
             print(request.user)
-            return redirect(reverse('main_page'))
+            return redirect(reverse('public'))
 
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
 
@@ -95,7 +95,7 @@ class LoginView(View):
 
             login(request, form.get_user())
 
-            return redirect(reverse('main_page'))
+            return redirect(reverse('public'))
 
         return render(request, 'Iconicity/login.html', { 'form': form })
 
@@ -127,27 +127,11 @@ def signup(request):
             createUserProfile(scheme, username, User, Github, host)
 
             login(request, User)
-            return redirect('main_page')
+            return redirect('public')
     else:
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
-@login_required
-def main_page(request):
-    # https://docs.djangoproject.com/en/3.1/topics/serialization/
-    if request.user.is_anonymous:
-        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    # get all the posts posted by the current user
-
-    postList = getPosts(request.user, visibility="FRIENDS")
-    new_list, comments = createJsonFromProfile(postList)
-
-    context = {
-        'posts': new_list,
-        'comments': comments,
-        'UserProfile': getUserProfile(request.user),
-    }
-    return render(request, 'Iconicity/main_page.html', context)
 
 @login_required
 def mainPagePublic(request):
@@ -163,6 +147,7 @@ def mainPagePublic(request):
     for eachPost in externalPosts:
         eachPost['display_name'] = eachPost['author']['display_name']
     new_list += externalPosts
+
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -281,7 +266,7 @@ class AddPostView(CreateView):
                                                + str(form.post_id))
             
             form.save()
-            return redirect('main_page')
+            return redirect('public')
 
         else:
             print(form.errors)
@@ -475,7 +460,7 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
 
 
 def like_view(request):
-    redirect_path = 'main_page'
+    redirect_path = '/public'
     if request.path == "/friends/like":
         redirect_path = "/friends"
     elif request.path == "/mypost/like":
@@ -532,7 +517,7 @@ def profile(request):
 
             user_form.save()
             profile_form.save()
-            return redirect('main_page')
+            return redirect('public')
 
     else:
         user_form = UserUpdateForm(instance = request.user)
@@ -821,7 +806,7 @@ class AddCommentView(CreateView):
             form.author = request.user
             form.author_id = request.user.id
             form = form.save()
-            return redirect('main_page')
+            return redirect('public')
             
         else:
             print(form.errors)
