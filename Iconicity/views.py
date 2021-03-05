@@ -557,7 +557,7 @@ def getAllExternalPublicPosts():
         print(allPosts)
         
 
-getAllExternalPublicPosts()
+#getAllExternalPublicPosts()
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
