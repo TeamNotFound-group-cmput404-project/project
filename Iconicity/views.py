@@ -573,12 +573,14 @@ def repost(request):
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
+        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
         post_form.image = post.image
+        post_form.origin = post.origin
         post_form.source = (str(request.scheme) + "://"
                                            + str(request.get_host())
                                            + '/author/'
-                                           + str(post.author)
+                                           + str(userProfile.pk)
                                            + '/posts/'
                                            + str(post.post_id))
         post_form.author = request.user
@@ -596,12 +598,14 @@ def repost_to_friend(request):
     print(query_dict)
     post_form = PostsCreateForm(query_dict)
     if post_form.is_valid():
+        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
         post_form.image = post.image
+        post_form.origin = post.origin
         post_form.source = (str(request.scheme) + "://"
                                            + str(request.get_host())
                                            + '/author/'
-                                           + str(post.author)
+                                           + str(userProfile.pk)
                                            + '/posts/'
                                            + str(post.post_id))
         post_form.author = request.user
