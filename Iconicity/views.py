@@ -128,7 +128,6 @@ def signup(request):
 
             login(request, User)
             return redirect('main_page')
-
     else:
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
