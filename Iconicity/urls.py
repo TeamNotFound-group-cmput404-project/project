@@ -18,6 +18,7 @@ urlpatterns = [
 	path('following/like', views.like_view, name="like_post_following"),
 
 	path('repost', views.repost, name='repost'),
+	path('repost_to_friend', views.repost_to_friend, name='repost_to_friend'),
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'my_post'),
 	path('public',views.mainPagePublic,name = "main_page"),

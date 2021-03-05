@@ -21,6 +21,7 @@ from django.urls import reverse
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.http import QueryDict
 from .serializers import *
 from urllib.request import urlopen
 import requests
@@ -158,7 +159,7 @@ def mainPagePublic(request):
     # get all the posts posted by the current user
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
-    print(postList)
+    # print(postList)
     new_list, comments = createJsonFromProfile(postList)
     externalPosts = getAllExternalPublicPosts()
     for eachPost in externalPosts:
@@ -273,13 +274,13 @@ class AddPostView(CreateView):
             form.author = request.user
             userProfile = UserProfile.objects.get(user=request.user)
             # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
-
+            form.save()
             form.origin = (str(request.scheme) + "://"
                                                + str(request.get_host())
                                                + '/author/'
                                                + str(userProfile.pk)
                                                + '/posts/'
-                                               + str(self.model.post_id))
+                                               + str(form.post_id))
             form.save()
             return redirect('main_page')
 
@@ -491,6 +492,50 @@ def like_view(request):
     post.save()
     return redirect(redirect_path)
 
+def repost(request):
+    # should pass back the post from the frontend
+    post = get_object_or_404(Post, pk=request.POST.get('pk'))
+    ordinary_dict = {'title': post.title, 'content': post.content, 'image':post.image, 'visibility':'PUBLIC'}
+    query_dict = QueryDict('', mutable=True)
+    query_dict.update(ordinary_dict)
+    print(query_dict)
+    post_form = PostsCreateForm(query_dict)
+    if post_form.is_valid():
+        post_form = post_form.save(commit=False)
+        post_form.source = (str(request.scheme) + "://"
+                                           + str(request.get_host())
+                                           + '/author/'
+                                           + str(post.author)
+                                           + '/posts/'
+                                           + str(post.post_id))
+        post_form.author = request.user
+        post_form.save()
+    else:
+        print(post_form.errors)
+    return redirect('main_page')
+
+def repost_to_friend(request):
+    # should pass back the post from the frontend
+    post = get_object_or_404(Post, pk=request.POST.get('pk'))
+    ordinary_dict = {'title': post.title, 'content': post.content, 'image':post.image, 'visibility':'FRIEND'}
+    query_dict = QueryDict('', mutable=True)
+    query_dict.update(ordinary_dict)
+    print(query_dict)
+    post_form = PostsCreateForm(query_dict)
+    if post_form.is_valid():
+        post_form = post_form.save(commit=False)
+        post_form.source = (str(request.scheme) + "://"
+                                           + str(request.get_host())
+                                           + '/author/'
+                                           + str(post.author)
+                                           + '/posts/'
+                                           + str(post.post_id))
+        post_form.author = request.user
+        post_form.save()
+    else:
+        print(post_form.errors)
+    return redirect('main_page')
+
 def update_post_view(request):
     pk=request.POST.get('pk')
     if (pk):
@@ -613,7 +658,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "/posts/"
                 temp = requests.get(full_url)
                 responseJsonlist = temp.json()
-                
+
                 post_list += responseJsonlist
 
     return post_list
@@ -699,7 +744,7 @@ def getExternalUserFriends(currentUser):
     externalFollowers = userProfile.get_external_follows() # a list of urls
     for each_url in externalFollowers:
         full_url = each_url
-        
+
         if each_url[-1] == "/":
             full_url += "followers/"
         else:
@@ -710,7 +755,7 @@ def getExternalUserFriends(currentUser):
         friends = temp.json()
         # now check whether you are also his/hers followee.
         print("friends",friends)
-        
+
         #friendUrlList.append(friends)
     # return a list of urls
     print("friendUrlList",friendUrlList)
@@ -734,10 +779,6 @@ def friends(request):
     }
 
     return render(request,'Iconicity/friends.html', context)
-
-def repost(request):
-    # should pass back the post from the frontend
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
 
 class Posts(APIView):
     def get(self, request):
