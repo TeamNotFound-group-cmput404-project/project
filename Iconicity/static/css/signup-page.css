@@ -46,10 +46,7 @@ width: 150px;
 height: 150px;
 
 }
-small{
-color:gray;
-}
-#error{
+.error{
 color:red;
 }
 input{
@@ -63,7 +60,6 @@ box-sizing: border-box;
 color: #555151;
 background-color: #e0dcdc
 }
-
 
 #signup{
 width:100%;
