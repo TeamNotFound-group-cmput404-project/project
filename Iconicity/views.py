@@ -468,7 +468,7 @@ def public(request):
 def createJsonFromProfile(postList):
     # return (posts and comments) in json format
     new_list = []
-    comments = []
+    comments = getComments()
     if postList !=[]:
         obj = serializers.serialize("json", postList)
         post_json = json.loads(obj)
@@ -477,15 +477,14 @@ def createJsonFromProfile(postList):
             fields = i['fields']
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
+            # print(User.objects.filter(id=fields['author']).first())
             fields['author_name'] = author_name
             fields['comments'] = {}
             
-            comments = getComments()
             for comment in comments:
                 if comment['fields']["post"] == fields["pk"]:
-                    # Comment id: Comment body
                     fields['comments'][comment['pk']] = (comment['fields']['comment'])
-
+                    comment['author_name'] = Comment.objects.filter().first()
             new_list.append(fields)
     return new_list, comments
 
