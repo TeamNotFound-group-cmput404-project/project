@@ -24,7 +24,7 @@ urlpatterns = [
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
-
+	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
 	# Friend Requests functionalities:
 	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),

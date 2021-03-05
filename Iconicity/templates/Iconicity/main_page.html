@@ -80,7 +80,8 @@
           <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-paper-plane-o" style="font-size:20px;"></i></button>
         </form>
         
-        <h3>Comments:</h3>
+        <h3>Comments...</h3>
+        <a href="{% url 'comment_form' %}">Add Comment</a><br/><br/>
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
@@ -92,6 +93,7 @@
             {% endif %}
           {% endfor %}
         {% endfor %}
+        <br/><br/>
       </div>
       {% endfor %}
       <!-- This is the end of a post -->

@@ -662,3 +662,8 @@ class AllPostsByAuthor(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
+class AddCommentView(CreateView):
+    model = Comment
+    template = "Iconicity/comment_form.html"
+    # fields = '__all__'
+    fields = ['post', 'author', 'comment']
