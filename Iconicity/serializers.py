@@ -6,7 +6,7 @@ from urllib import request
 import json
 
 
-class ExternalFollowersSerializer(serializers.ModelSerializer):
+class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
     externalFollows = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
