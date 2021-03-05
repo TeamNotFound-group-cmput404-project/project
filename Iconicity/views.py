@@ -162,7 +162,8 @@ def mainPagePublic(request):
 
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
-
+    externalPosts = getAllExternalPublicPosts()
+    new_list +=externalPosts
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -544,17 +545,18 @@ def getAllConnectedServerHosts():
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
     allPosts = []
-    print(externalHosts)
+    #print(externalHosts)
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "post"
+            full_url = host_url + "posts"
         else:
-            full_url = host_url + "/post"
+            full_url = host_url + "/posts"
         temp = requests.get(full_url)
-        print(temp)
+        #print(temp)
         posts = temp.json()
         allPosts += posts
-        print(allPosts)
+        #print(allPosts)
+    return allPosts
         
 
 #getAllExternalPublicPosts()
