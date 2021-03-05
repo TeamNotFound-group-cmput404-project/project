@@ -423,7 +423,7 @@ class UserProfileListView(ListView):
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = User.objects.get(username__iexact = self.request.user)
+        user = self.request.user
         my_profile = UserProfile.objects.get(user = user)
         # whom I want to follow
         pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
