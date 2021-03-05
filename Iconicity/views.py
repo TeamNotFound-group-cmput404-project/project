@@ -317,8 +317,8 @@ def unfollow_someone(request):
         if followee_profile.user in curProfile.follow.all():
             curProfile.follow.remove(followee_profile.user)
         # for external uses:
-        if followee_profile.host in curProfile.externalFollows:
-            curProfile.externalFollows.remove(followee_profile.host)
+        if followee_profile.host in curProfile.externalFollows['urls']:
+            curProfile.externalFollows['urls'].remove(followee_profile.host)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -489,11 +489,11 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
     sender = instance.actor
     receiver = instance.object_author
     sender.follow.remove(receiver.user)
-    if receiver.host in sender.externalFollows:
-        sender.externalFollows.remove(receiver.host) # external connectivity
+    if receiver.host in sender.externalFollows['urls']:
+        sender.externalFollows['urls'].remove(receiver.host) # external connectivity
     receiver.follow.remove(sender.user)
-    if sender.host in receiver.externalFollows:
-        receiver.externalFollows.remove(sender.host) # external connectivity
+    if sender.host in receiver.externalFollows['urls']:
+        receiver.externalFollows['urls'].remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
 
