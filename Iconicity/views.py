@@ -163,7 +163,9 @@ def mainPagePublic(request):
     postList = list(Post.objects.filter(visibility='PUBLIC'))
     new_list, comments = createJsonFromProfile(postList)
     externalPosts = getAllExternalPublicPosts()
-    new_list +=externalPosts
+    for eachPost in externalPosts:
+        eachPost['display_name'] = eachPost['author']['display_name']
+    new_list += externalPosts
     #externalPostList = getAllFollowExternalAuthorPosts(request.user)
     #print("extrenal",externalPostList)
     #new_list += externalPostList
@@ -490,7 +492,7 @@ def createJsonFromProfile(postList):
             fields['pk'] = i['pk']
             author_name = User.objects.filter(id=fields['author']).first().username
             # print(User.objects.filter(id=fields['author']).first())
-            fields['author_name'] = author_name
+            fields['display_name'] = author_name
             fields['comments'] = {}
             
             for comment in comments:
@@ -531,7 +533,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        #externalAuthorUrls = ["https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686"]
+        print(externalAuthorUrls)
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -544,7 +546,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     full_url += "/posts/"
                 temp = requests.get(full_url)
                 responseJsonlist = temp.json()
+                
                 post_list += responseJsonlist
+
     return post_list
 
 
@@ -555,21 +559,18 @@ def getAllConnectedServerHosts():
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
     allPosts = []
-    #print(externalHosts)
     for host_url in externalHosts:
         if host_url[-1] == "/":
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
         temp = requests.get(full_url)
-        #print(temp)
         posts = temp.json()
+
         allPosts += posts
-        #print(allPosts)
     return allPosts
         
 
-#getAllExternalPublicPosts()
 class AllAuthors(APIView):
     def get(self, request):
         # Get all local authors
@@ -593,7 +594,10 @@ def following(request):
 
     postList = getAllFollowAuthorPosts(request.user)
     new_list, comments = createJsonFromProfile(postList)
-
+    temp = getAllFollowExternalAuthorPosts(request.user)
+    for eachPost in temp:
+        eachPost['display_name'] = eachPost['author']['display_name']
+    new_list += temp
 
     context = {
         'posts': new_list,

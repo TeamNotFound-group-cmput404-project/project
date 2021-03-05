@@ -71,7 +71,7 @@ class UserProfile(models.Model):
     externalFollows = models.JSONField(default=list)
 
     objects = UserProfileManager()
-
+    
     def get_external_follows(self):
         # return a list of urls of the external followed authors.
         if self.externalFollows == {} or self.externalFollows == []:
