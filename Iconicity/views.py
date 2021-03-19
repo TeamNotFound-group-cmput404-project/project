@@ -909,6 +909,44 @@ class PostById(APIView):
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)'''
 
+class Inbox(APIView):
+    def get(self, request, author_id):
+        print("inbox get")
+        # if authenticated: get a list of posts sent to {AUTHOR_ID}
+        try:
+            userProfile = UserProfile.objects.get(pk=author_id)
+        except Exception as e:
+            print(e)
+            return Response([],status="HTTP_404_NOT_FOUND")
+        if userProfile:
+            #print("in")
+            externalAuthorUrls = userProfile.get_external_follows()
+            print(externalAuthorUrls)
+            if externalAuthorUrls != []:
+                # now it should be a list of urls of the external followers
+                # should like [url1, url2]
+
+                for each_url in externalAuthorUrls:
+                    full_url = each_url
+                    if each_url[-1]=="/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    temp = requests.get(full_url)
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
+            serilizer = PostSerializer(post_list,many=True)
+            return Response(serializer.data)
+
+    def post(self, request, author_id):
+        print("inbox post")
+        # if the type is “post” then add that post to the author’s inbox
+        # if the type is “follow” then add that follow is added to the author’s inbox to approve later
+        # if the type is “like” then add that like to the author’s inbox
+
+    def delete(self, request, author_id):
+        print("inbox delete")
+        # clear the inbox
 
 class AllPostsByAuthor(APIView):
     def get(self, request, author_id):
