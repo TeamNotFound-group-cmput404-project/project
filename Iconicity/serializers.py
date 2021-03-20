@@ -30,7 +30,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
-        'author', 'content', 'visibility', 'categories', 'unlisted','image','like',
+        'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
         'count', 'size', 'published', 'author', 'host')
 
 

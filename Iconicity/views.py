@@ -578,7 +578,8 @@ def like_view(request):
             current_url = current_user_profile.url
             print(e)
             get_json_response = requests.get(pk_raw)
-            response_dict = json.loads(get_json_response.text)
+            response_dict = json.loads(get_json_response.text)[0]
+            print("response_dict",response_dict)
             post_external_like = response_dict["external_likes"]
             if post_external_like == {}:
                 post_external_like['urls'] = []
