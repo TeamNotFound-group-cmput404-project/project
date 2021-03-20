@@ -47,10 +47,10 @@ class PostSerializer(rest_serializers.ModelSerializer):
         return obj.size
 
     def get_source(self, obj):
-        return str(obj.host) + 'posts/' + str(obj.post_id)
+        return str(obj.source)
 
     def get_origin(self, obj):
-        return str(obj.host) + 'posts/' + str(obj.post_id)
+        return str(obj.origin)
 
     def get_contentType(self, obj):
         return obj.contentType

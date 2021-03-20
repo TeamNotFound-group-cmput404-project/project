@@ -179,6 +179,7 @@ def mainPagePublic(request):
     Qianxi
 
     """
+    #print("new list",new_list[-1])
     context = {
         'posts': new_list,
         'comments': comments,
@@ -563,17 +564,20 @@ def like_view(request):
     # 1. if this post is on our server, then pk works
     # 2. if this post is not on our server, then url works
     pk_raw = request.POST.get('pk')
+    print(request.POST)
+    print(pk_raw)
+    #print(request.POST.data)
     if '/' in pk_raw:
         try:
             pk_new = [i for i in pk_raw.split('/') if i][-1]
             print(pk_new)
-            post = Posts.objects.get(pk=pk_new)
+            post = Post.objects.get(pk=pk_new)
         except Exception as e:
             # means that this is not on our server
             current_user_profile = UserProfile.objects.get(user=request.user)
             current_url = current_user_profile.url
             print(e)
-            post_json = request.get(pk_raw)
+            post_json = requests.get(pk_raw)
             post_external_like = post_json["external_likes"]
             if post_external_like == {}:
                 post_external_like['urls'] = []
@@ -805,6 +809,7 @@ def getAllExternalPublicPosts():
             full_url = host_url + "/posts"
         temp = requests.get(full_url)
         posts = temp.json()
+        #print("post",posts)
 
         allPosts += posts
     return allPosts
@@ -934,6 +939,7 @@ class Posts(APIView):
 
         posts = Post.objects.filter(visibility = "PUBLIC").all()
         serializer = PostSerializer(posts, many=True)
+        #print("serializer data",serializer.data)
         return Response(serializer.data)
 
 
