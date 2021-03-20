@@ -566,6 +566,7 @@ def like_view(request):
     pk_raw = request.POST.get('pk')
     print(request.POST)
     print(pk_raw)
+    post = None
     #print(request.POST.data)
     if '/' in pk_raw:
         try:
@@ -593,14 +594,16 @@ def like_view(request):
                 # You haven't clicked on the like button before, so append it to 
                 # this post's external like list.
                 post_external_like['urls'].append(current_url)
-            response = requests.post(pk_raw, data=json.dumps({"external_likes":post_external_like['urls']}))
+            print(post_external_like['urls'])
+            response = requests.post(pk_raw, data={"external_likes":post_external_like['urls']})
             print("like response",response)
 
         else:
             # means that this post is on our server
             post.like.add(request.user)
             post.count = post.count_like()
-            post.save(update_fields=['like', 'count'])
+            print("count",post.count)
+            post.save()
 
         
     else:
@@ -609,7 +612,8 @@ def like_view(request):
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
         post.like.add(request.user)
         post.count = post.count_like()
-        post.save(update_fields=['like', 'count'])
+        print("count",post.count)
+        post.save()
     return redirect(redirect_path)
 
 def repost(request):
