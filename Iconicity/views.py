@@ -729,9 +729,10 @@ def createJsonFromProfile(postList):
     if postList !=[]:
         obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
-        for i in post_json:
-            fields = i['fields']
-            fields['pk'] = i['pk']
+        for i in range(len(post_json)):
+            fields = post_json[i]['fields']
+            fields['pk'] = post_json[i]['pk']
+            fields['like_count'] = postList[i].count_like
             author_name = User.objects.filter(id=fields['author']).first().username
 
             # print(User.objects.filter(id=fields['author']).first())
