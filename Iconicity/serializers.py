@@ -22,6 +22,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
     author = rest_serializers.SerializerMethodField()
     count = rest_serializers.SerializerMethodField()
     size = rest_serializers.SerializerMethodField()
+    like_count = rest_serializers.SerializerMethodField()
     source = rest_serializers.SerializerMethodField()
     origin = rest_serializers.SerializerMethodField()
     contentType = rest_serializers.SerializerMethodField()
@@ -31,7 +32,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         model = Post
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
-        'count', 'size', 'published', 'author', 'host')
+        'count', 'size', 'published', 'author', 'host','like_count')
 
 
     def get_post_id(self, obj):
@@ -39,6 +40,9 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
     def get_author(self, obj):
         return GETProfileSerializer(UserProfile.objects.filter(user=obj.author).first()).data
+
+    def get_like_count(self, obj):
+        return obj.count_like()
 
     def get_count(self, obj):
         return obj.count

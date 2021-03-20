@@ -79,7 +79,7 @@
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
           {% endif%}
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-          <p>{{post.count}}</p></button>
+          <p>{{post.like_count}}</p></button>
 
         </form>
         <form action="{% url 'repost' %}" method="POST">

@@ -601,8 +601,7 @@ def like_view(request):
         else:
             # means that this post is on our server
             post.like.add(request.user)
-            post.count = post.count_like()
-            print("count",post.count)
+            post.like_count = post.count_like()
             post.save()
 
         
@@ -611,8 +610,7 @@ def like_view(request):
 
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
         post.like.add(request.user)
-        post.count = post.count_like()
-        print("count",post.count)
+        post.like_count = post.count_like()
         post.save()
     return redirect(redirect_path)
 

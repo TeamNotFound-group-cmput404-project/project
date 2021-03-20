@@ -135,7 +135,7 @@ class Post(models.Model):
     # categories field
     categories = models.JSONField(default=dict)
 
-    # count field
+    # count field : total number of comments for this post
     count = models.IntegerField(default=0)
 
     size = models.IntegerField(default=0)
