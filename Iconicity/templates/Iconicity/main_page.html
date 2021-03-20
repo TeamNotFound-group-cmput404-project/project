@@ -71,9 +71,13 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
-          
-          <button class="button w3-margin-bottom", 
-          style = "float:left;",type="submit", name="pk", value={{post.pk}}>
+          {% if post.source != ''%}
+            <button class="button w3-margin-bottom", 
+            style = "float:left;",type="submit", name="pk", value={{post.source}}>
+          {% else %}
+            <button class="button w3-margin-bottom", 
+            style = "float:left;",type="submit", name="pk", value={{post.origin}}>
+          {% endif%}
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
           <p>{{post.count}}</p></button>
 

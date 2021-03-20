@@ -559,10 +559,51 @@ def like_view(request):
     elif request.path == "/following/like":
         redirect_path = "/following"
 
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    post.like.add(request.user)
-    post.count = post.count_like()
-    post.save()
+    # here two cases:
+    # 1. if this post is on our server, then pk works
+    # 2. if this post is not on our server, then url works
+    pk_raw = request.POST.get('pk')
+    if '/' in pk_raw:
+        try:
+            pk_new = [i for i in pk_raw.split('/') if i][-1]
+            print(pk_new)
+            post = Posts.objects.get(pk=pk_new)
+        except Exception as e:
+            # means that this is not on our server
+            current_user_profile = UserProfile.objects.get(user=request.user)
+            current_url = current_user_profile.url
+            print(e)
+            post_json = request.get(pk_raw)
+            post_external_like = post_json["external_likes"]
+            if post_external_like == {}:
+                post_external_like['urls'] = []
+
+            # Means that this post has already been liked by you.
+            # We remove this like from the list, means unlike the post
+            if current_url in post_external_like['urls']:
+                print("This user has clicked on like on this post before")
+                post_external_like['urls'].remove(current_url)
+            else:
+                # You haven't clicked on the like button before, so append it to 
+                # this post's external like list.
+                post_external_like['urls'].append(current_url)
+            response = requests.post(pk_raw, data=json.dumps({"external_likes":post_external_like['urls']}))
+            print("like response",response)
+
+        else:
+            # means that this post is on our server
+            post.like.add(request.user)
+            post.count = post.count_like()
+            post.save(update_fields=['like', 'count'])
+
+        
+    else:
+        # Pass in primary key, this post is on our system.
+
+        post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        post.like.add(request.user)
+        post.count = post.count_like()
+        post.save(update_fields=['like', 'count'])
     return redirect(redirect_path)
 
 def repost(request):
@@ -895,6 +936,8 @@ class Posts(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
+
+
 class PostById(APIView):
     def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
@@ -909,8 +952,33 @@ class PostById(APIView):
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)'''
 
+    def post(self, request, post_id, author_id):
+        '''
+        update an existed post
+        Usage:
+        pass in a json file like {"title":"123", "count":2341}, 
+        these two fields in the post model will be set to the new values 
+        in the above dict.
+        '''
+        post = Post.objects.get(pk=post_id)
+        for each in request.data.items():
+            setattr(post, each[0],each[1])
+
+        post.save(update_fields=[each[0] for each in request.data.items()])
+        serializer = PostSerializer(post, many=False)
+
+        return Response(serializer.data)
+
+    def delete(self, request, post_id, author_id):
+        Post.objects.get(pk=post_id).delete()
+        return Response([],status="HTTP_204_NO_CONTENT")
+
+    def put(self, request, post_id, author_id):
+        pass
+
 class Inbox(APIView):
     def get(self, request, author_id):
+        post_list = []
         print("inbox get")
         # if authenticated: get a list of posts sent to {AUTHOR_ID}
         try:
@@ -935,8 +1003,7 @@ class Inbox(APIView):
                     temp = requests.get(full_url)
                     responseJsonlist = temp.json()
                     post_list += responseJsonlist
-            serilizer = PostSerializer(post_list,many=True)
-            return Response(serializer.data)
+            return Response(post_list)
 
     def post(self, request, author_id):
         print("inbox post")
