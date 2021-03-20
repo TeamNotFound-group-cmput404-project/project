@@ -595,7 +595,7 @@ def like_view(request):
                 # this post's external like list.
                 post_external_like['urls'].append(current_url)
             print(post_external_like['urls'])
-            response = requests.post(pk_raw, data=json.dumps({"external_likes":{"urls":post_external_like['urls']}}))
+            response = requests.post(pk_raw, data={"external_likes":json.dumps({"urls":post_external_like['urls']})})
             print("like response",response)
 
         else:
@@ -973,8 +973,11 @@ class PostById(APIView):
         in the above dict.
         '''
         post = Post.objects.get(pk=post_id)
-        for each in json.loads(request.data).items():
-            setattr(post, each[0],each[1])
+        for each in request.data.items():
+            if each[0] == "external_likes":
+                setattr(post, each[0], json.loads(each[1]))
+            else:
+                setattr(post, each[0],each[1])
 
         post.save(update_fields=[each[0] for each in request.data.items()])
         serializer = PostSerializer(post, many=False)
