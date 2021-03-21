@@ -756,7 +756,7 @@ def mypost(request):
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list, comments = createJsonFromProfile(postList)
-
+    print("new list",new_list)
     context = {
         'posts': new_list,
         'comments': comments,
