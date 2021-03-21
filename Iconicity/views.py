@@ -155,34 +155,22 @@ def mainPagePublic(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
-    #print("request.host",request.META['HTTP_HOST'])
     postList = list(Post.objects.filter(visibility='PUBLIC'))
-    # print(postList)
-    new_list, comments = createJsonFromProfile(postList)
+    #new_list, comments = createJsonFromProfile(postList)
+    
+    string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+
+    new_list = requests.get(string).json()
+
     externalPosts = getAllExternalPublicPosts()
-    for eachPost in externalPosts:
-        eachPost['display_name'] = eachPost['author']['display_name']
+    #print("external",externalPosts)
+    #for eachPost in externalPosts:
+    #    eachPost['display_name'] = eachPost['author']['display_name']
     new_list += externalPosts
 
-    #externalPostList = getAllFollowExternalAuthorPosts(request.user)
-    #print("extrenal",externalPostList)
-    #new_list += externalPostList
-    #print(new_list)
 
-    """ Note:
-    each json object in externalPostList is different from
-    each one in new_list!!!!!!!!!!!!!!!!
-
-    I'll change this by March 5 morning. All posts in our server and
-    outside our server will all use the same json format
-
-    Qianxi
-
-    """
-    #print("new list",new_list[-1])
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': getUserProfile(request.user),
         'myself': str(request.user),
     }
@@ -815,8 +803,6 @@ def getAllExternalPublicPosts():
         temp = requests.get(full_url)
 
         posts = temp.json()
-        print("post",posts)
-
         allPosts += posts
     return allPosts
 
@@ -945,7 +931,6 @@ class Posts(APIView):
 
         posts = Post.objects.filter(visibility = "PUBLIC").all()
         serializer = PostSerializer(posts, many=True)
-        print("serializer data",serializer.data)
         return Response(serializer.data)
 
 

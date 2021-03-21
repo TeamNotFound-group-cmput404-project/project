@@ -53,7 +53,7 @@
         <h1>{{ post.title }}</h1><br>
         <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
         <!-- <span class="w3-right w3-opacity">1 min</span> -->
-        <h5>By: {{ post.display_name}}</h5><br>
+        <h5>By: {{ post.author_display_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
 
@@ -111,6 +111,12 @@
         {% endif %} -->
         
         <h3>Comments...</h3>
+        {% for comment in post.comments %}  
+          {{ comment.comment_author_name }}:
+          {{ comment.comment }}
+          <br>
+        {% endfor %}
+        <!--
         {% for comment_id in post.comments %}
           {% for comment in comments %}
             {% if comment_id == comment.pk %}
@@ -119,7 +125,7 @@
             <br>
             {% endif %}
           {% endfor %}
-        {% endfor %}
+        {% endfor %}-->
         <br/><br/>
       </div>
       {% endfor %}

@@ -28,14 +28,18 @@ class PostSerializer(rest_serializers.ModelSerializer):
     contentType = rest_serializers.SerializerMethodField()
     description = rest_serializers.SerializerMethodField()
     comments = rest_serializers.SerializerMethodField()
+    author_display_name = rest_serializers.SerializerMethodField()
+
     class Meta:
         model = Post
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
-        'count', 'size', 'published', 'author', 'host','like_count','comments')
+        'count', 'size', 'published', 'author', 'host','like_count','comments', 'author_display_name')
+
+    def get_author_display_name(self, obj):
+        return UserProfile.objects.filter(user=obj.author).first().display_name
 
     def get_comments(self, obj):
-        print("hererear")
         url = obj.origin
         if obj.source != "" and obj.source != None:
             url = obj.source
@@ -87,9 +91,13 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
 class CommentSerializer(rest_serializers.ModelSerializer):
     id = rest_serializers.SerializerMethodField()
+    comment_author_name = rest_serializers.SerializerMethodField()
     class Meta:
         model = Comment
-        fields = ('type', 'author','published','contentType','comment','id')
+        fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
+
+    def get_comment_author_name(self, obj):
+        return UserProfile.objects.filter(url=obj.author).first().display_name
 
     def get_author(self, obj):
         return GETProfileSerializer(UserProfile.objects.filter(url=obj.author).first()).data
