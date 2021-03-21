@@ -813,8 +813,9 @@ def getAllExternalPublicPosts():
         else:
             full_url = host_url + "/posts"
         temp = requests.get(full_url)
+
         posts = temp.json()
-        #print("post",posts)
+        print("post",posts)
 
         allPosts += posts
     return allPosts
@@ -944,7 +945,7 @@ class Posts(APIView):
 
         posts = Post.objects.filter(visibility = "PUBLIC").all()
         serializer = PostSerializer(posts, many=True)
-        #print("serializer data",serializer.data)
+        print("serializer data",serializer.data)
         return Response(serializer.data)
 
 

@@ -32,7 +32,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         model = Post
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
-        'count', 'size', 'published', 'author', 'host','like_count')
+        'count', 'size', 'published', 'author', 'host','like_count','comments')
 
     def get_comments(self, obj):
         url = obj.origin
@@ -45,6 +45,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         except Exception as e:
             if url[-1] != '/':
                 url += '/'
+            print(requests.get(url+'comments').json())
             return requests.get(url+'comments').json()
 
         else:
