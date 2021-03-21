@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 import datetime
 from urllib import request
 import json
-
+import requests
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
     externalFollows = rest_serializers.SerializerMethodField('get_externalFollows')
@@ -27,13 +27,30 @@ class PostSerializer(rest_serializers.ModelSerializer):
     origin = rest_serializers.SerializerMethodField()
     contentType = rest_serializers.SerializerMethodField()
     description = rest_serializers.SerializerMethodField()
-
+    comments = rest_serializers.SerializerMethodField()
     class Meta:
         model = Post
         fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
         'count', 'size', 'published', 'author', 'host','like_count')
 
+    def get_comments(self, obj):
+        url = obj.origin
+        if obj.source != "" and obj.source != None:
+            url = obj.source
+
+        try:
+            comments = Comment.objects.filter(post=url)
+
+        except Exception as e:
+            if url[-1] != '/':
+                url += '/'
+            return requests.get(url+'comments').json()
+
+        else:
+            return CommentSerializer(comments,many=True)
+
+        
 
     def get_post_id(self, obj):
         return obj.post_id
@@ -65,6 +82,23 @@ class PostSerializer(rest_serializers.ModelSerializer):
         else:
             return obj.content
 
+class CommentSerializer(rest_serializers.ModelSerializer):
+    id = rest_serializers.SerializerMethodField()
+    class Meta:
+        model = Comment
+        fields = ('type', 'author','published','contentType','comment','id')
+
+    def get_author(self, obj):
+        return GETProfileSerializer(UserProfile.objects.filter(url=obj.author).first()).data
+         
+    def get_id(self, obj):
+        if obj.post[-1] == "/":
+            return str(obj.post) + "comments/" + str(obj.id)
+
+        else:
+            return str(obj.post) + "/comments/" + str(obj.id)
+        
+
 class GETProfileSerializer(rest_serializers.ModelSerializer):
     uid = rest_serializers.SerializerMethodField("get_uid")
     display_name = rest_serializers.SerializerMethodField("get_name")
@@ -94,29 +128,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
             return str(obj['host']) + '/author/' + str(obj['uid'])
         return str(obj.host) + '/author/' + str(obj.uid)
 
-class CommentSerializer(rest_serializers.ModelSerializer):
-    comment = rest_serializers.SerializerMethodField() # content
-    id = rest_serializers.SerializerMethodField('get_comment_id') #comment_id
-    author = rest_serializers.SerializerMethodField() #user_id
 
-    class Meta:
-        model = Comment
-        fields = ('author','comment','contentType','published','id', 'post_id')
-
-    def get_comment(self, obj):
-        return obj.content
-
-    def get_comment_id(self, obj):
-        return obj.comment_id
-
-    def get_author(self, obj):
-        # Reference:
-        # https://www.kancloud.cn/thinkphp/python-guide/39426
-
-        with request.urlopen(obj.user_id) as f:
-            data = f.read().decode('utf-8')
-            data = json.loads(data)
-            return data
 
 # By: Shway Wang
 '''

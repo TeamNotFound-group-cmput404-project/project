@@ -16,7 +16,9 @@
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p}}
-            <button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>
+            <!--<button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>-->
+
+            <button class="button w3-margin-bottom",type="submit", name="pk", value={{url}}><p>Send</p></button>
             
         </form>
         

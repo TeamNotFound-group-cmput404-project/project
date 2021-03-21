@@ -45,7 +45,8 @@ urlpatterns = [
     path(r'posts', views.Posts().as_view()),
 	path(r'author/<str:author_id>/inbox', views.Inbox().as_view()),
     path(r'author/<str:author_id>/inbox/', views.Inbox().as_view()),
-
+	path(r'author/<str:author_id>/posts/<str:post_id>/comments', views.Comments().as_view()),
+    path(r'author/<str:author_id>/posts/<str:post_id>/comments/', views.Comments().as_view()),
 	path(r'author/<str:author_id>/posts/<str:post_id>/', views.PostById().as_view()),
     path(r'author/<str:author_id>/posts/<str:post_id>', views.PostById().as_view()),
 	path(r'author/<str:author_id>', views.AuthorById().as_view()),

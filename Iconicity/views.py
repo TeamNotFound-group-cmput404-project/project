@@ -1057,39 +1057,117 @@ class AddCommentView(CreateView):
     template = "Iconicity/comment_form.html"
 
     def post(self, request):   
-        pk = request.POST.get('pk')
-        if pk:
-            post = get_object_or_404(Post, pk=request.POST.get('pk'))
-            context = {
-                'form':  CommentsCreateForm,
-                'post':post,
-            }
-        
-        post_id = request.POST.get('pid')
-        if post_id:
-            template = "Iconicity/comment_form.html"
-            form = CommentsCreateForm(request.POST)
-            print("request.POST:", request.POST)
-            if form.is_valid():
-                form = form.save(commit=False)
-                form.post_id = post_id
-                form.author = request.user
-                form.author_id = request.user.id
-                form = form.save()
-                return redirect('public')
-                
-            else:
-                print(form.errors)
+        print("posting...")
+        currentUserProfile = UserProfile.objects.get(user=request.user)
+        pk_raw = request.POST.get('pk')
+        print("pk_raw", pk_raw)
+        post = None
+        pk_new = None
+        if '/' in pk_raw:
+            try:
+                pk_new = [i for i in pk_raw.split('/') if i][-1]
+                print(pk_new)
+                post = Post.objects.get(pk=pk_new)
+                print("post",post)
+            except Exception as e:
+                # means that this is not on our server
+                context = {
+                    'form':CommentsCreateForm,
+                    'post':post,
+                }
+                post_id = pk_raw
+                template = "Iconicity/comment_form.html"
                 form = CommentsCreateForm(request.POST)
-            
-            context = {
-                'form': form,
-            }
-            return render(request, template, context)
+                if form.is_valid():
+                    form = form.save(commit=False)
+                    form.post = post_id
+                    form.author = currentUserProfile.url
+                    form.save()
+                    if pk_raw[-1] == "/":
+                        response = requests.post(pk_raw+"comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                    else:
+                        response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                    if 200 <= response.status_code < 300:
+                        return redirect('public')
+                    
+                else:
+                    print(form.errors)
+                    form = CommentsCreateForm(request.POST)
+                
+                context = {
+                    'form': form,
+                }
+                
+                return render(request, template, context)
+            else:
+                print("on our server")
+                # means that this post is on our server
+                context = {
+                    'form':  CommentsCreateForm,
+                    'post':post,
+                }
+                template = "Iconicity/comment_form.html"
+                form = CommentsCreateForm(request.POST)
+                if form.is_valid():
+                    newform = form.save(commit=False)
+                    newform.post = pk_raw
+                    newform.author = currentUserProfile.url
+                    #form.author_id = request.user.id
+                    newform.save()
+                    form.save_m2m()
+                    print("saved")
+                    return redirect('public')
+                    
+                else:
+                    print(form.errors)
+                    form = CommentsCreateForm(request.POST)
+                
+                context = {
+                    'form': form,
+                }
+                return render(request, template, context)
 
-        return render(request, 'Iconicity/comment_form.html', context)
+        #return render(request, 'Iconicity/comment_form.html', context)
 
 
     def get(self, request):
         print("getting")
-        return render(request, 'Iconicity/comment_form.html', {'form':  CommentsCreateForm})
+        pk_url = request.GET.get('pk')
+        print(pk_url)
+        return render(request, 'Iconicity/comment_form.html', {'form': CommentsCreateForm, "url": pk_url})
+
+
+class Comments(APIView):
+
+    def post(self, request, post_id, author_id):
+        # POST if you post an object of “type”:”comment”, 
+        # it will add your comment to the post
+        comment = Comment()
+
+        comment.post = (str(request.scheme) + "://"
+                                           + str(request.get_host())
+                                           + '/author/'
+                                           + str(author_id)
+                                           + '/posts/'
+                                           + str(post_id))
+        # only two things need to be pass through request are the comment content
+        # and the url of the author that write the comment on your post. 
+        comment.comment = request.data['comment']
+        comment.author = request.data['author']
+        comment.save()
+        return Response(CommentSerializer(comment, many=False),status="HTTP_201_CREATED")
+
+
+        
+
+    def get(self, request, post_id, author_id):
+        # GET get comments of the post
+        post = (str(request.scheme) + "://"
+                                    + str(request.get_host())
+                                    + '/author/'
+                                    + str(author_id)
+                                    + '/posts/'
+                                    + str(post_id))
+        comments = list(Comment.objects.filter(post=post))
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
