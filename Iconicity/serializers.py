@@ -35,6 +35,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         'count', 'size', 'published', 'author', 'host','like_count','comments')
 
     def get_comments(self, obj):
+        print("hererear")
         url = obj.origin
         if obj.source != "" and obj.source != None:
             url = obj.source
@@ -45,11 +46,12 @@ class PostSerializer(rest_serializers.ModelSerializer):
         except Exception as e:
             if url[-1] != '/':
                 url += '/'
-            print(requests.get(url+'comments').json())
+
             return requests.get(url+'comments').json()
 
         else:
-            return CommentSerializer(comments,many=True)
+
+            return CommentSerializer(list(comments),many=True).data
 
         
 
