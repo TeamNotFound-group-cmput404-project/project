@@ -30,38 +30,6 @@ from rest_framework.renderers import JSONRenderer
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
-def getAuthor(id):
-    author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
-    jsonload = json.loads(author_profile)[0]
-    raw_id = jsonload['pk']
-    jsonload = jsonload['fields']
-    temp = str(jsonload['host']) + '/author/' + str(raw_id)
-    jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
-    jsonload['url'] = jsonload['user_id']
-    return Response(jsonload)
-
-
-# not in use at this moment
-class AuthorProfile(APIView):
-    # get a author's profile by its id
-    def get(self, request, id):
-        author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
-        jsonload = json.loads(author_profile)[0]
-        raw_id = jsonload['pk']
-        jsonload = jsonload['fields']
-        temp = str(jsonload['host']) + '/author/' + str(raw_id)
-        jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
-        jsonload['url'] = jsonload['user_id']
-        return Response(jsonload)
-
-# get all followers this author has
-# id is the author's id
-def getFollowers(id):
-    authorfollow = getAuthor(id).data['follow'] # return followe list of this author
-    # now it should be a list of urls.
-    print(type(authorfollow))
-    print(authorfollow)
-    #print(json.loads(authorfollow))
 
 def logout_view(request):
     # in use, support log out
@@ -101,17 +69,6 @@ class LoginView(View):
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
 
-"""TODO:
-Question asked by Qianxi:
-for the following two lines:
-
-user = authenticate(username=username, password=raw_password)
-login(request, user)
-
-we need exception handling.
-
-Finish it and delete this comment block
-"""
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -131,57 +88,19 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
-# @login_required
-# def main_page(request):
-#     # https://docs.djangoproject.com/en/3.1/topics/serialization/
-#     if request.user.is_anonymous:
-#         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-#     # get all the posts posted by the current user
-
-#     postList = getPosts(request.user, visibility="FRIENDS")
-#     new_list, comments = createJsonFromProfile(postList)
-#     context = {
-#         'posts': new_list,
-#         'comments': comments,
-#         'UserProfile': getUserProfile(request.user),
-#         'myself': request.user,
-#     }
-#     return render(request, 'Iconicity/main_page.html', context)
-
 
 @login_required
 def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    # get all the posts posted by the current user
-    #print("request.host",request.META['HTTP_HOST'])
-    postList = list(Post.objects.filter(visibility='PUBLIC'))
-    # print(postList)
-    new_list, comments = createJsonFromProfile(postList)
+
+    string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+    new_list = requests.get(string).json()
     externalPosts = getAllExternalPublicPosts()
-    for eachPost in externalPosts:
-        eachPost['display_name'] = eachPost['author']['display_name']
     new_list += externalPosts
-
-    #externalPostList = getAllFollowExternalAuthorPosts(request.user)
-    #print("extrenal",externalPostList)
-    #new_list += externalPostList
-    #print(new_list)
-
-    """ Note:
-    each json object in externalPostList is different from
-    each one in new_list!!!!!!!!!!!!!!!!
-
-    I'll change this by March 5 morning. All posts in our server and
-    outside our server will all use the same json format
-
-    Qianxi
-
-    """
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': getUserProfile(request.user),
         'myself': str(request.user),
     }
@@ -559,10 +478,58 @@ def like_view(request):
     elif request.path == "/following/like":
         redirect_path = "/following"
 
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    post.like.add(request.user)
-    post.count = post.count_like()
-    post.save()
+    # here two cases:
+    # 1. if this post is on our server, then pk works
+    # 2. if this post is not on our server, then url works
+    pk_raw = request.POST.get('pk')
+    print(request.POST)
+    print(pk_raw)
+    post = None
+    #print(request.POST.data)
+    if '/' in pk_raw:
+        try:
+            pk_new = [i for i in pk_raw.split('/') if i][-1]
+            print(pk_new)
+            post = Post.objects.get(pk=pk_new)
+        except Exception as e:
+            # means that this is not on our server
+            current_user_profile = UserProfile.objects.get(user=request.user)
+            current_url = current_user_profile.url
+            print(e)
+            get_json_response = requests.get(pk_raw)
+            response_dict = json.loads(get_json_response.text)[0]
+            print("response_dict",response_dict)
+            post_external_like = response_dict["external_likes"]
+            if post_external_like == {}:
+                post_external_like['urls'] = []
+
+            # Means that this post has already been liked by you.
+            # We remove this like from the list, means unlike the post
+            if current_url in post_external_like['urls']:
+                print("This user has clicked on like on this post before")
+                post_external_like['urls'].remove(current_url)
+            else:
+                # You haven't clicked on the like button before, so append it to 
+                # this post's external like list.
+                post_external_like['urls'].append(current_url)
+            print(post_external_like['urls'])
+            response = requests.post(pk_raw, data={"external_likes":json.dumps({"urls":post_external_like['urls']})})
+            print("like response",response)
+
+        else:
+            # means that this post is on our server
+            post.like.add(request.user)
+            post.like_count = post.count_like()
+            post.save()
+
+        
+    else:
+        # Pass in primary key, this post is on our system.
+
+        post = get_object_or_404(Post, pk=request.POST.get('pk'))
+        post.like.add(request.user)
+        post.like_count = post.count_like()
+        post.save()
     return redirect(redirect_path)
 
 def repost(request):
@@ -680,9 +647,10 @@ def createJsonFromProfile(postList):
     if postList !=[]:
         obj = core_serializers.serialize("json", postList)
         post_json = json.loads(obj)
-        for i in post_json:
-            fields = i['fields']
-            fields['pk'] = i['pk']
+        for i in range(len(post_json)):
+            fields = post_json[i]['fields']
+            fields['pk'] = post_json[i]['pk']
+            fields['like_count'] = postList[i].count_like
             author_name = User.objects.filter(id=fields['author']).first().username
 
             # print(User.objects.filter(id=fields['author']).first())
@@ -698,6 +666,7 @@ def createJsonFromProfile(postList):
     return new_list, comments
 
 def mypost(request):
+
     if request.user.is_anonymous:
         return render(request,
                       'Iconicity/login.html',
@@ -705,11 +674,11 @@ def mypost(request):
     # get all the posts posted by the current user
 
     postList = getPosts(request.user, visibility="FRIENDS")
-    new_list, comments = createJsonFromProfile(postList)
+    new_list = PostSerializer(postList, many=True).data
+    #new_list, comments = createJsonFromProfile(postList)
 
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': getUserProfile(request.user),
     }
     return render(request, 'Iconicity/my_post.html', context)
@@ -726,7 +695,6 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        print(externalAuthorUrls)
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -762,10 +730,12 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
+        print("url",full_url)
         temp = requests.get(full_url)
-        posts = temp.json()
 
+        posts = temp.json()
         allPosts += posts
+    print("all",allPosts)
     return allPosts
 
 
@@ -784,22 +754,19 @@ class AuthorById(APIView):
         return Response(serializer.data)
 
 def following(request):
+
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
     postList = getAllFollowAuthorPosts(request.user)
-    print(postList)
-    print('=========')
-    new_list, comments = createJsonFromProfile(postList)
-    temp = getAllFollowExternalAuthorPosts(request.user)
-    for eachPost in temp:
-        eachPost['display_name'] = eachPost['author']['display_name']
-    new_list += temp
-    print(new_list)
+    new_list = PostSerializer(postList, many=True).data
+    #new_list, comments = createJsonFromProfile(postList)
+
+    new_list += getAllFollowExternalAuthorPosts(request.user)
+
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': userProfile,
         'myself': str(request.user),
     }
@@ -826,7 +793,7 @@ def getExternalUserFriends(currentUser):
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
     externalFollowers = userProfile.get_external_follows() # a list of urls
-    print(externalFollowers)
+
     for each_url in externalFollowers:
         full_url = each_url
 
@@ -841,9 +808,6 @@ def getExternalUserFriends(currentUser):
         if userProfile.url in friends:
             friendUrlList.append(each_url)
 
-
-    # return a list of urls
-    print("friendUrlList",friendUrlList)
     return friendUrlList
 
 def friends(request):
@@ -853,10 +817,13 @@ def friends(request):
     postList = []
     friends_test = getUserFriend(request.user)
     tmp_list = []
-    for friend_id in getUserFriend(request.user):
+    #print("friend list",friends_test)
+    for friend_id in friends_test:
         tmp_list += getPosts(friend_id, visibility="FRIENDS")
 
-    new_list, comments = createJsonFromProfile(tmp_list)
+    #new_list, comments = createJsonFromProfile(tmp_list)
+    new_list = PostSerializer(tmp_list, many=True).data
+    #print("new list",new_list)
     externalFriends = getExternalUserFriends(request.user)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
@@ -869,11 +836,11 @@ def friends(request):
             posts = requests.get(full_url).json()
             postList += posts
     postList += new_list  
+    userProfile = getUserProfile(request.user)
     context = {
         'posts': postList,
-        'comments': comments,
-        'UserProfile': getUserProfile(request.user),
-        'myself': str(request.user)
+        'UserProfile': userProfile,
+        'myself': str(userProfile.url)
     }
 
     return render(request,'Iconicity/friends.html', context)
@@ -895,6 +862,8 @@ class Posts(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
+
+
 class PostById(APIView):
     def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
@@ -909,6 +878,71 @@ class PostById(APIView):
             # the user is unauthorized
             return HttpResponse('Unauthorized', status=401)'''
 
+    def post(self, request, post_id, author_id):
+        '''
+        update an existed post
+        Usage:
+        pass in a json file like {"title":"123", "count":2341}, 
+        these two fields in the post model will be set to the new values 
+        in the above dict.
+        '''
+        post = Post.objects.get(pk=post_id)
+        for each in request.data.items():
+            if each[0] == "external_likes":
+                setattr(post, each[0], json.loads(each[1]))
+            else:
+                setattr(post, each[0],each[1])
+
+        post.save(update_fields=[each[0] for each in request.data.items()])
+        serializer = PostSerializer(post, many=False)
+
+        return Response(serializer.data)
+
+    def delete(self, request, post_id, author_id):
+        Post.objects.get(pk=post_id).delete()
+        return Response([],status="HTTP_204_NO_CONTENT")
+
+    def put(self, request, post_id, author_id):
+        pass
+
+class Inbox(APIView):
+    def get(self, request, author_id):
+        post_list = []
+        print("inbox get")
+        # if authenticated: get a list of posts sent to {AUTHOR_ID}
+        try:
+            userProfile = UserProfile.objects.get(pk=author_id)
+        except Exception as e:
+            print(e)
+            return Response([],status_code=404)
+        if userProfile:
+            #print("in")
+            externalAuthorUrls = userProfile.get_external_follows()
+            print(externalAuthorUrls)
+            if externalAuthorUrls != []:
+                # now it should be a list of urls of the external followers
+                # should like [url1, url2]
+
+                for each_url in externalAuthorUrls:
+                    full_url = each_url
+                    if each_url[-1]=="/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    temp = requests.get(full_url)
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
+            return Response(post_list)
+
+    def post(self, request, author_id):
+        print("inbox post")
+        # if the type is “post” then add that post to the author’s inbox
+        # if the type is “follow” then add that follow is added to the author’s inbox to approve later
+        # if the type is “like” then add that like to the author’s inbox
+
+    def delete(self, request, author_id):
+        print("inbox delete")
+        # clear the inbox
 
 class AllPostsByAuthor(APIView):
     def get(self, request, author_id):
@@ -921,56 +955,130 @@ class AllPostsByAuthor(APIView):
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
-        print(ExternalFollowersSerializer(authorProfile).data)
         return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
-        print(type(request))
+
         authorProfile = UserProfile.objects.get(pk=author_id)
         friendPosts = Post.objects.filter(author=authorProfile.user)
         return Response(PostSerializer(friendPosts, many=True).data)
-        posts = Post.objects.filter(author=authorProfile.user).all()
-        return Response(ExternalFollowersSerializer(authorProfile).data)
+        #posts = Post.objects.filter(author=authorProfile.user).all()
+        #return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class AddCommentView(CreateView):
     model = Comment
     template = "Iconicity/comment_form.html"
 
     def post(self, request):   
-        pk = request.POST.get('pk')
-        if pk:
-            post = get_object_or_404(Post, pk=request.POST.get('pk'))
-            context = {
-                'form':  CommentsCreateForm,
-                'post':post,
-            }
-        
-        post_id = request.POST.get('pid')
-        if post_id:
-            template = "Iconicity/comment_form.html"
-            form = CommentsCreateForm(request.POST)
-            print("request.POST:", request.POST)
-            if form.is_valid():
-                form = form.save(commit=False)
-                form.post_id = post_id
-                form.author = request.user
-                form.author_id = request.user.id
-                form = form.save()
-                return redirect('public')
-                
-            else:
-                print(form.errors)
+        print("posting...")
+        currentUserProfile = UserProfile.objects.get(user=request.user)
+        pk_raw = request.POST.get('pk')
+        post = None
+        pk_new = None
+        if '/' in pk_raw:
+            try:
+                pk_new = [i for i in pk_raw.split('/') if i][-1]
+                post = Post.objects.get(pk=pk_new)
+            except Exception as e:
+                # means that this is not on our server
+                context = {
+                    'form':CommentsCreateForm,
+                    'post':post,
+                }
+                post_id = pk_raw
+                template = "Iconicity/comment_form.html"
                 form = CommentsCreateForm(request.POST)
-            
-            context = {
-                'form': form,
-            }
-            return render(request, template, context)
+                if form.is_valid():
+                    form = form.save(commit=False)
+                    form.post = post_id
+                    form.author = currentUserProfile.url
+                    form.save()
+                    if pk_raw[-1] == "/":
+                        response = requests.post(pk_raw+"comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                    else:
+                        
+                        response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                    return redirect('public')
+                    
+                else:
+                    print(form.errors)
+                    form = CommentsCreateForm(request.POST)
+                
+                context = {
+                    'form': form,
+                }
+                
+                return render(request, template, context)
+            else:
+                print("on our server")
+                # means that this post is on our server
+                context = {
+                    'form':  CommentsCreateForm,
+                    'post':post,
+                }
+                template = "Iconicity/comment_form.html"
+                form = CommentsCreateForm(request.POST)
+                if form.is_valid():
+                    newform = form.save(commit=False)
+                    newform.post = pk_raw
+                    newform.author = currentUserProfile.url
+                    #form.author_id = request.user.id
+                    newform.save()
+                    form.save_m2m()
+                    print("saved")
+                    return redirect('public')
+                    
+                else:
+                    print(form.errors)
+                    form = CommentsCreateForm(request.POST)
+                
+                context = {
+                    'form': form,
+                }
+                return render(request, template, context)
 
-        return render(request, 'Iconicity/comment_form.html', context)
+        #return render(request, 'Iconicity/comment_form.html', context)
 
 
     def get(self, request):
         print("getting")
-        return render(request, 'Iconicity/comment_form.html', {'form':  CommentsCreateForm})
+        pk_url = request.GET.get('pk')
+        print(pk_url)
+        return render(request, 'Iconicity/comment_form.html', {'form': CommentsCreateForm, "url": pk_url})
+
+
+class Comments(APIView):
+
+    def post(self, request, post_id, author_id):
+        # POST if you post an object of “type”:”comment”, 
+        # it will add your comment to the post
+        comment = Comment()
+
+        comment.post = (str(request.scheme) + "://"
+                                           + str(request.get_host())
+                                           + '/author/'
+                                           + str(author_id)
+                                           + '/posts/'
+                                           + str(post_id))
+        # only two things need to be pass through request are the comment content
+        # and the url of the author that write the comment on your post. 
+        comment.comment = request.data['comment']
+        comment.author = request.data['author']
+        comment.save()
+        return Response([],status_code=201)
+
+
+        
+
+    def get(self, request, post_id, author_id):
+        # GET get comments of the post
+        post = (str(request.scheme) + "://"
+                                    + str(request.get_host())
+                                    + '/author/'
+                                    + str(author_id)
+                                    + '/posts/'
+                                    + str(post_id))
+        comments = list(Comment.objects.filter(post=post))
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)

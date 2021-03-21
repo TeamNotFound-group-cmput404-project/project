@@ -135,12 +135,14 @@ class Post(models.Model):
     # categories field
     categories = models.JSONField(default=dict)
 
-    # count field
+    # count field : total number of comments for this post
     count = models.IntegerField(default=0)
 
     size = models.IntegerField(default=0)
 
     like = models.ManyToManyField(User, related_name="blog_posts")
+
+    external_likes = models.JSONField(default=dict)
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)
@@ -168,7 +170,20 @@ class Post(models.Model):
 
     host = models.URLField(default="")
     def count_like(self):
+        # TODO: external like field
+        print("external like",self.external_likes)
+        if self.external_likes != {}:
+            return self.like.count() + len(self.external_likes['urls'])
         return self.like.count()
+
+    def add_external_like(self, url):
+        print("self.external_likes",self.external_likes)
+        if self.external_likes == {}:
+            self.external_likes['urls'] = []
+        if url in self.external_likes['urls']:
+            return
+        else:
+            self.external_likes['urls'].append(url)
 
     def get_absolute_url(self):
         return reverse("main_page",kwargs ={'pk':self.pk})
@@ -212,9 +227,11 @@ class FriendRequest(models.Model):
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    #post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
+    #author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
+    author = models.URLField(default="") # author is the creator of this comment, not post author
+    post = models.URLField(default="")
     # ISO 8601 TIMESTAMP
     # publish time
     published = models.DateTimeField(default=timezone.now)
