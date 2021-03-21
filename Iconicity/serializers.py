@@ -97,7 +97,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        return UserProfile.objects.filter(url=obj.author).first().display_name
+        return requests.get(obj.author).json()['display_name']
 
     def get_author(self, obj):
         return GETProfileSerializer(UserProfile.objects.filter(url=obj.author).first()).data

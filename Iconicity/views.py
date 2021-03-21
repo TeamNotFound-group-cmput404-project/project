@@ -30,38 +30,6 @@ from rest_framework.renderers import JSONRenderer
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
-def getAuthor(id):
-    author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
-    jsonload = json.loads(author_profile)[0]
-    raw_id = jsonload['pk']
-    jsonload = jsonload['fields']
-    temp = str(jsonload['host']) + '/author/' + str(raw_id)
-    jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
-    jsonload['url'] = jsonload['user_id']
-    return Response(jsonload)
-
-
-# not in use at this moment
-class AuthorProfile(APIView):
-    # get a author's profile by its id
-    def get(self, request, id):
-        author_profile = core_serializers.serialize("json", UserProfile.objects.filter(uid=id))
-        jsonload = json.loads(author_profile)[0]
-        raw_id = jsonload['pk']
-        jsonload = jsonload['fields']
-        temp = str(jsonload['host']) + '/author/' + str(raw_id)
-        jsonload['user_id'] = str(jsonload['host']) + '/author/' + str(raw_id)
-        jsonload['url'] = jsonload['user_id']
-        return Response(jsonload)
-
-# get all followers this author has
-# id is the author's id
-def getFollowers(id):
-    authorfollow = getAuthor(id).data['follow'] # return followe list of this author
-    # now it should be a list of urls.
-    print(type(authorfollow))
-    print(authorfollow)
-    #print(json.loads(authorfollow))
 
 def logout_view(request):
     # in use, support log out
@@ -101,17 +69,6 @@ class LoginView(View):
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
 
-"""TODO:
-Question asked by Qianxi:
-for the following two lines:
-
-user = authenticate(username=username, password=raw_password)
-login(request, user)
-
-we need exception handling.
-
-Finish it and delete this comment block
-"""
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -131,44 +88,17 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'Iconicity/signup.html', {'form': form})
 
-# @login_required
-# def main_page(request):
-#     # https://docs.djangoproject.com/en/3.1/topics/serialization/
-#     if request.user.is_anonymous:
-#         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-#     # get all the posts posted by the current user
-
-#     postList = getPosts(request.user, visibility="FRIENDS")
-#     new_list, comments = createJsonFromProfile(postList)
-#     context = {
-#         'posts': new_list,
-#         'comments': comments,
-#         'UserProfile': getUserProfile(request.user),
-#         'myself': request.user,
-#     }
-#     return render(request, 'Iconicity/main_page.html', context)
-
 
 @login_required
 def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    # get all the posts posted by the current user
-    postList = list(Post.objects.filter(visibility='PUBLIC'))
-    #new_list, comments = createJsonFromProfile(postList)
-    
+
     string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
-
     new_list = requests.get(string).json()
-
     externalPosts = getAllExternalPublicPosts()
-    #print("external",externalPosts)
-    #for eachPost in externalPosts:
-    #    eachPost['display_name'] = eachPost['author']['display_name']
     new_list += externalPosts
-
-
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -804,6 +734,7 @@ def getAllExternalPublicPosts():
 
         posts = temp.json()
         allPosts += posts
+    print("all",allPosts)
     return allPosts
 
 
