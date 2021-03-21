@@ -1006,10 +1006,8 @@ class AddCommentView(CreateView):
                     else:
                         
                         response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
-                    print(response.status_code)
-                    if 200 <= response.status_code < 300:
-                        print("here")
-                        return redirect('public')
+
+                    return redirect('public')
                     
                 else:
                     print(form.errors)
