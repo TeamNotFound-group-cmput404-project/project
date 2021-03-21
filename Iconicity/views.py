@@ -730,6 +730,7 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
+        print("url",full_url)
         temp = requests.get(full_url)
 
         posts = temp.json()
@@ -916,7 +917,7 @@ class Inbox(APIView):
             userProfile = UserProfile.objects.get(pk=author_id)
         except Exception as e:
             print(e)
-            return Response([],status="HTTP_404_NOT_FOUND")
+            return Response([],status_code=404)
         if userProfile:
             #print("in")
             externalAuthorUrls = userProfile.get_external_follows()
@@ -977,7 +978,6 @@ class AddCommentView(CreateView):
         print("posting...")
         currentUserProfile = UserProfile.objects.get(user=request.user)
         pk_raw = request.POST.get('pk')
-        print("pk_raw", pk_raw)
         post = None
         pk_new = None
         if '/' in pk_raw:
@@ -1072,7 +1072,7 @@ class Comments(APIView):
         comment.comment = request.data['comment']
         comment.author = request.data['author']
         comment.save()
-        return Response(CommentSerializer(comment, many=False),status="HTTP_201_CREATED")
+        return Response(CommentSerializer(comment, many=False),status_code=201)
 
 
         
