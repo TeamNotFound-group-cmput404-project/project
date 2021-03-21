@@ -1000,11 +1000,15 @@ class AddCommentView(CreateView):
                     form.post = post_id
                     form.author = currentUserProfile.url
                     form.save()
+                    print("pk_raw",pk_raw)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments", data={"comment":form.comment,"author":currentUserProfile.url})
                     else:
+                        
                         response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                    print(response.status_code)
                     if 200 <= response.status_code < 300:
+                        print("here")
                         return redirect('public')
                     
                 else:
@@ -1072,7 +1076,7 @@ class Comments(APIView):
         comment.comment = request.data['comment']
         comment.author = request.data['author']
         comment.save()
-        return Response(CommentSerializer(comment, many=False),status_code=201)
+        return Response([],status_code=201)
 
 
         
