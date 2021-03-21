@@ -666,6 +666,7 @@ def createJsonFromProfile(postList):
     return new_list, comments
 
 def mypost(request):
+
     if request.user.is_anonymous:
         return render(request,
                       'Iconicity/login.html',
@@ -673,11 +674,11 @@ def mypost(request):
     # get all the posts posted by the current user
 
     postList = getPosts(request.user, visibility="FRIENDS")
-    new_list, comments = createJsonFromProfile(postList)
-    print("new list",new_list)
+    new_list = PostSerializer(postList, many=True).data
+    #new_list, comments = createJsonFromProfile(postList)
+
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': getUserProfile(request.user),
     }
     return render(request, 'Iconicity/my_post.html', context)
@@ -694,7 +695,6 @@ def getAllFollowExternalAuthorPosts(currentUser):
     if userProfile:
         #print("in")
         externalAuthorUrls = userProfile.get_external_follows()
-        print(externalAuthorUrls)
         if externalAuthorUrls != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
@@ -754,22 +754,19 @@ class AuthorById(APIView):
         return Response(serializer.data)
 
 def following(request):
+
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
     # get all the posts posted by the current user
     postList = getAllFollowAuthorPosts(request.user)
-    print(postList)
-    print('=========')
-    new_list, comments = createJsonFromProfile(postList)
-    temp = getAllFollowExternalAuthorPosts(request.user)
-    for eachPost in temp:
-        eachPost['display_name'] = eachPost['author']['display_name']
-    new_list += temp
-    print(new_list)
+    new_list = PostSerializer(postList, many=True).data
+    #new_list, comments = createJsonFromProfile(postList)
+
+    new_list += getAllFollowExternalAuthorPosts(request.user)
+
     context = {
         'posts': new_list,
-        'comments': comments,
         'UserProfile': userProfile,
         'myself': str(request.user),
     }
@@ -796,7 +793,7 @@ def getExternalUserFriends(currentUser):
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
     externalFollowers = userProfile.get_external_follows() # a list of urls
-    print(externalFollowers)
+
     for each_url in externalFollowers:
         full_url = each_url
 
@@ -811,9 +808,6 @@ def getExternalUserFriends(currentUser):
         if userProfile.url in friends:
             friendUrlList.append(each_url)
 
-
-    # return a list of urls
-    print("friendUrlList",friendUrlList)
     return friendUrlList
 
 def friends(request):
@@ -823,10 +817,13 @@ def friends(request):
     postList = []
     friends_test = getUserFriend(request.user)
     tmp_list = []
-    for friend_id in getUserFriend(request.user):
+    #print("friend list",friends_test)
+    for friend_id in friends_test:
         tmp_list += getPosts(friend_id, visibility="FRIENDS")
 
-    new_list, comments = createJsonFromProfile(tmp_list)
+    #new_list, comments = createJsonFromProfile(tmp_list)
+    new_list = PostSerializer(tmp_list, many=True).data
+    #print("new list",new_list)
     externalFriends = getExternalUserFriends(request.user)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
@@ -839,11 +836,11 @@ def friends(request):
             posts = requests.get(full_url).json()
             postList += posts
     postList += new_list  
+    userProfile = getUserProfile(request.user)
     context = {
         'posts': postList,
-        'comments': comments,
-        'UserProfile': getUserProfile(request.user),
-        'myself': str(request.user)
+        'UserProfile': userProfile,
+        'myself': str(userProfile.url)
     }
 
     return render(request,'Iconicity/friends.html', context)
@@ -958,17 +955,16 @@ class AllPostsByAuthor(APIView):
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
-        print(ExternalFollowersSerializer(authorProfile).data)
         return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
-        print(type(request))
+
         authorProfile = UserProfile.objects.get(pk=author_id)
         friendPosts = Post.objects.filter(author=authorProfile.user)
         return Response(PostSerializer(friendPosts, many=True).data)
-        posts = Post.objects.filter(author=authorProfile.user).all()
-        return Response(ExternalFollowersSerializer(authorProfile).data)
+        #posts = Post.objects.filter(author=authorProfile.user).all()
+        #return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class AddCommentView(CreateView):
     model = Comment
@@ -983,9 +979,7 @@ class AddCommentView(CreateView):
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
-                print(pk_new)
                 post = Post.objects.get(pk=pk_new)
-                print("post",post)
             except Exception as e:
                 # means that this is not on our server
                 context = {
@@ -1000,13 +994,11 @@ class AddCommentView(CreateView):
                     form.post = post_id
                     form.author = currentUserProfile.url
                     form.save()
-                    print("pk_raw",pk_raw)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments", data={"comment":form.comment,"author":currentUserProfile.url})
                     else:
                         
                         response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
-
                     return redirect('public')
                     
                 else:

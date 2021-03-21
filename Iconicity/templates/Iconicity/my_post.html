@@ -39,7 +39,7 @@
       {% for post in posts %}
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
         <h1>{{ post.title }}</h1><br>
-        <h5>By: {{ post.display_name}}</h5><br>
+        <h5>By: {{ post.author_display_name}}</h5><br>
         <hr class="w3-clear">
         <p>{{ post.content }}</p>
 
@@ -79,16 +79,10 @@
         </form>
         <br><br><br>
         <h3>Comments...</h3>
-        {% for comment_id in post.comments %}
-          {% for comment in comments %}
-            {% if comment_id == comment.pk %}
-
-              {{ comment.comment_author_name }}:
-              {{ comment.fields.comment }}
-
-              <br>
-            {% endif %}
-          {% endfor %}
+        {% for comment in post.comments %}  
+          {{ comment.comment_author_name }}:
+          {{ comment.comment }}
+          <br>
         {% endfor %}
         <br/><br/>
   </div>
