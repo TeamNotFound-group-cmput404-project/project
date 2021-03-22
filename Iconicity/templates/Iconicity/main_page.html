@@ -64,7 +64,6 @@
               <img src="/media/{{ post.image }}">
             {% endif %}
           </div>
-
         </div>
         <hr class="w3-clear">
 
@@ -72,61 +71,49 @@
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
           {% if post.source != '' and post.source != None %}
-            <button class="button w3-margin-bottom", 
+            <button class="button", 
             style = "float:left;",type="submit", name="pk", value={{post.source}}>
           {% else %}
-            <button class="button w3-margin-bottom", 
+            <button class="button", 
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
           {% endif%}
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-          <p>{{post.like_count}}</p></button>
-
+          </button>
         </form>
+
+        <form action="{% url 'comment_form' %}" method="GET">
+          {% csrf_token %}
+          {% if post.source != '' and post.source != None %}
+            <button class="button", 
+            type="submit", name="pk", style="float:left;", value={{post.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+          {% else %}
+            <button class="button", 
+            type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+          {% endif%}
+        </form>
+
         <form action="{% url 'repost' %}" method="POST">
           {% csrf_token %}
-          <button class="button w3-margin-bottom", 
+          <button class="button", 
             style = "float:left;",
             type="submit", name="pk", value={{post.pk}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
         </form>
+
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
-        <br><br><br>
-        <form action="{% url 'comment_form' %}" method="GET">
-          {% csrf_token %}
-          {% if post.source != '' and post.source != None %}
-            <button class="button w3-margin-bottom w3-theme", 
-            type="submit", name="pk", value={{post.source}}><p>Add Comment</p></button>
-          {% else %}
-            <button class="button w3-margin-bottom w3-theme", 
-            type="submit", name="pk", value={{post.origin}}><p>Add Comment</p></button>
-          {% endif%}
-        </form>
-
-        <!-- {% if myself == comment.comment_author_name_str %}
-
-        {% endif %} -->
-        
-        <h3>Comments...</h3>
+        <br>
+        <p>{{post.like_count}} liked this post.</p>
+        <br>
         {% for comment in post.comments %}  
           {{ comment.comment_author_name }}:
           {{ comment.comment }}
           <br>
         {% endfor %}
-        <!--
-        {% for comment_id in post.comments %}
-          {% for comment in comments %}
-            {% if comment_id == comment.pk %}
-                {{ comment.comment_author_name }}:
-                {{ comment.fields.comment }}
-            <br>
-            {% endif %}
-          {% endfor %}
-        {% endfor %}-->
-        <br/><br/>
+        <br>
       </div>
       {% endfor %}
       <!-- This is the end of a post -->
