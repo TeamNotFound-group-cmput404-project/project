@@ -24,7 +24,7 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostsCreateForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', "image", 'visibility']
+        fields = ['title', 'content', "image", 'visibility', 'contentType']
 
 
 class UserUpdateForm(forms.ModelForm):

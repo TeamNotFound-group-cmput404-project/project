@@ -41,7 +41,14 @@
         <h1>{{ post.title }}</h1><br>
         <h5>By: {{ post.author_display_name}}</h5><br>
         <hr class="w3-clear">
-        <p>{{ post.content }}</p>
+        
+        {% if post.contentType == "text/plain" %}
+          <p>{{ post.content }}</p>
+        {% endif %}
+
+        {% if post.contentType == "text/markdown" %}
+          <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+        {% endif %}
 
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
@@ -58,16 +65,16 @@
         <form action="{% url 'like_post_mypost' %}" method="POST">
           {% csrf_token %}
 
-          <button class="button w3-margin-bottom", 
+          <button class="button", 
           style = "float:left;",type="submit", name="pk", value={{post.pk}}>
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-          <p>{{post.like_count}}</p></button>
+          </button>
       
           
         </form>
         <form action="{% url 'update_post' %}" method="POST">
           {% csrf_token %}
-          <button class="button w3-margin-bottom", 
+          <button class="button", 
             style = "float:left;",
             type="submit", name="pk", value={{post.pk}}>
             <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
@@ -75,18 +82,20 @@
         </form>
         <form action="{% url 'delete' %}" method="POST">
           {% csrf_token %}
-          <button class="button w3-margin-bottom", type="submit", name="pk",  value={{post.pk}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+          <button class="button", type="submit", name="pk",  value={{post.pk}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
         </form>
-        <br><br><br>
-        <h3>Comments...</h3>
+
+        <p>{{post.like_count}} liked this post.</p>
         {% for comment in post.comments %}  
           {{ comment.comment_author_name }}:
           {{ comment.comment }}
           <br>
         {% endfor %}
-        <br/><br/>
-  </div>
-{% endfor %}
+        <br/>
+      </div>
+      {% endfor %}
+
+      <script>showInMarkdown();</script>
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
