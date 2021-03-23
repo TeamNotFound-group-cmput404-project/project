@@ -28,8 +28,7 @@ urlpatterns = [
 	path('delete',views.delete_post, name = "delete"),
 	path('comment_form', views.AddCommentView.as_view(), name="comment_form"),
 
-
-	# Friend Requests functionalities:
+	# Friend Requests functionalities by Shway Wang:
 	path('follow_someone', views.follow_someone, name='follow_someone'),
 	path('unfollow_someone', views.unfollow_someone, name='unfollow_someone'),
 	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),

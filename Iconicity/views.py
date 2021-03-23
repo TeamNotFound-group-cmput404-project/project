@@ -88,7 +88,6 @@ def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-
     string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = requests.get(string).json()
     externalPosts = getAllExternalPublicPosts()
@@ -98,7 +97,6 @@ def mainPagePublic(request):
         'UserProfile': getUserProfile(request.user),
         'myself': str(request.user),
     }
-        
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -245,6 +243,7 @@ def follow_someone(request):
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
 
+# by Shway, the follow function, to add someone to your follow list:
 def unfollow_someone(request):
     if request.method == 'POST':
         followee_uid = request.POST.get('followee_uid')
@@ -344,7 +343,7 @@ def accept_friend_request(request):
         # change the status of the friend request to accepted:
         sender.save()
         receiver.save()
-        friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
+        friend_request = FriendRequest.objects.get(actor = sender, object_author = receiver)
         if friend_request.status == 'sent':
             friend_request.status = 'accepted'
             friend_request.save()
@@ -379,8 +378,10 @@ class UserProfileListView(ListView):
     context_object_name = 'profiles'
     # override:
     def get_queryset(self):
-        # get all profiles except for current user
-        return UserProfile.objects.get_all_profiles(exception = self.request.user)
+        # get all profiles except for current user from both local host and remote hosts:
+        local = UserProfile.objects.get_all_profiles(exception = self.request.user)
+        remote = getAllExternalAuthors()
+        return local.append(remote)
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -503,7 +504,8 @@ def like_view(request):
                 # this post's external like list.
                 post_external_like['urls'].append(current_url)
             print(post_external_like['urls'])
-            response = requests.post(pk_raw, data={"external_likes":json.dumps({"urls":post_external_like['urls']})})
+            response = requests.post(pk_raw,
+                data={"external_likes":json.dumps({"urls":post_external_like['urls']})})
             print("like response",response)
 
         else:
@@ -515,7 +517,6 @@ def like_view(request):
         
     else:
         # Pass in primary key, this post is on our system.
-
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
         post.like.add(request.user)
         post.like_count = post.count_like()
@@ -714,6 +715,7 @@ def getAllPublicPostsCurrentUser():
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
     allPosts = []
+    full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
             full_url = host_url + "posts"
@@ -721,12 +723,26 @@ def getAllExternalPublicPosts():
             full_url = host_url + "/posts"
         print("url",full_url)
         temp = requests.get(full_url)
-
         posts = temp.json()
         allPosts += posts
-    print("all",allPosts)
     return allPosts
 
+# by Shway Wang, to get all remote authors from all connected servers:
+def getAllExternalAuthors():
+    externalHosts = getAllConnectedServerHosts()
+    allAuthors = []
+    full_url = ''
+    for host_url in externalHosts:
+        if host_url[-1] == "/":
+            full_url = host_url + "author"
+        else:
+            full_url = host_url + "/author"
+        print("url",full_url)
+        temp = requests.get(full_url)
+        authors = temp.json()
+        allAuthors += authors
+    print("all",allAuthors)
+    return allAuthors
 
 class AllAuthors(APIView):
     def get(self, request):
@@ -847,8 +863,6 @@ class Posts(APIView):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
-
-
 class PostById(APIView):
     def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
@@ -952,7 +966,7 @@ class AddCommentView(CreateView):
     model = Comment
     template = "Iconicity/comment_form.html"
 
-    def post(self, request):   
+    def post(self, request):
         print("posting...")
         currentUserProfile = UserProfile.objects.get(user=request.user)
         pk_raw = request.POST.get('pk')
@@ -969,7 +983,6 @@ class AddCommentView(CreateView):
                     'post':post,
                 }
                 post_id = pk_raw
-                template = "Iconicity/comment_form.html"
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
                     form = form.save(commit=False)
@@ -977,10 +990,11 @@ class AddCommentView(CreateView):
                     form.author = currentUserProfile.url
                     form.save()
                     if pk_raw[-1] == "/":
-                        response = requests.post(pk_raw+"comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                        response = requests.post(pk_raw+"comments",
+                            data={"comment":form.comment,"author":currentUserProfile.url})
                     else:
-                        
-                        response = requests.post(pk_raw+"/comments", data={"comment":form.comment,"author":currentUserProfile.url})
+                        response = requests.post(pk_raw+"/comments",
+                            data={"comment":form.comment,"author":currentUserProfile.url})
                     return redirect('public')
                     
                 else:
@@ -1021,7 +1035,6 @@ class AddCommentView(CreateView):
                 return render(request, template, context)
 
         #return render(request, 'Iconicity/comment_form.html', context)
-
 
     def get(self, request):
         pk_url = request.GET.get('pk')
