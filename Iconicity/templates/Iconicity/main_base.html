@@ -39,7 +39,7 @@
 
    <!-- Notification Button -->
    <div class="w3-dropdown-hover w3-hide-small">
-     <button class="w3-button w3-padding-large" title="Notifications"><i class="fa fa-bell"></i><span class="w3-badge w3-right w3-small w3-pink"><!--3--></span></button>
+     <button class="w3-button w3-padding-large"><i class="fa fa-bell"></i><span class="w3-badge w3-right w3-small w3-pink"><!--3--></span></button>
      <div class="w3-dropdown-content w3-card-4 w3-bar-block" style="width:300px">
        <a href="friend_requests" class="w3-bar-item w3-button">Inbox</a>
        <!--<a href="#" class="w3-bar-item w3-button">John Doe posted on your wall</a>-->
@@ -56,7 +56,7 @@
 
    <!-- Sign out Bottom -->
    <div class="w3-dropdown-hover w3-hide-small w3-right">
-     <button class="w3-button w3-padding-large" title="My Account"><i class="fa fa-user-circle"></i></button>
+     <button class="w3-button w3-padding-large"><i class="fa fa-user-circle"></i></button>
      <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
       <form id="logoutform" action="{% url 'logout' %}" method='POST'>
         {% csrf_token %}
@@ -80,11 +80,12 @@
 
 <!-- Footer -->
 <footer class="w3-container w3-theme-d3 w3-padding-16">
-  <h5>Footer</h5>
-</footer>
-
-<footer class="w3-container w3-theme-d5">
-  <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+  <div class="center">
+    <p><a style="text-decoration:none" href="https://www.w3schools.com/w3css/default.asp">Terms of Service</a>
+       - <a style="text-decoration:none" href="https://www.w3schools.com/w3css/default.asp">Privacy Policy</a>
+        - <a style="text-decoration:none" href="https://www.w3schools.com/w3css/default.asp">Cookie Policy</a> </p>
+    <p>© 2021 Iconicity, Inc.</p>
+  </div>
 </footer>
 
 <script>
