@@ -44,7 +44,7 @@
 
         </div>
       </div>
-
+      
       <!-- This is the beginning of a post -->
       <!-- Shway Wang added the for loop here -->
       {% for post in posts %}
@@ -53,9 +53,17 @@
         <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
         <!-- <span class="w3-right w3-opacity">1 min</span> -->
         <h5>By: {{ post.author_display_name}}</h5><br>
-        <hr class="w3-clear">
-        <p>{{ post.content }}</p>
 
+        <hr class="w3-clear">
+
+        {% if post.contentType == "text/plain" %}
+          <p>{{ post.content }}</p>
+        {% endif %}
+
+        {% if post.contentType == "text/markdown" %}
+          <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+        {% endif %}
+        
         <!-- Below are images -->
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
@@ -114,6 +122,8 @@
         <br>
       </div>
       {% endfor %}
+      
+      <script>showInMarkdown();</script>
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
@@ -156,8 +166,24 @@
   <!-- End Grid -->
   </div>
 <!-- End Page Container -->
+
+  <!-- <script src="https://cdn.rawgit.com/showdownjs/showdown/1.0.1/dist/showdown.min.js">
+    function showInMarkdown(){
+      var markdowns = document.getElementsByClassName("toMarkdown");
+      for (let i of markdowns){
+        console.log("5555")
+        text = i.innerHTML;
+        converter = new showdown.Converter();
+        html = converter.makeHtml(text);
+        i.innerHTML = html;
+      }
+    }
+    showInMarkdown();
+  </script> -->
 </div>
 <br>
 
 
+
 {% endblock %}
+
