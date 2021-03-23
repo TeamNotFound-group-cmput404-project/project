@@ -57,65 +57,54 @@
         <hr class="w3-clear">
 
         <!-- Below are the like, comment and repost buttons -->
-        <form action="{% url 'like_post_public' %}" method="POST">
+        <form action="{% url 'like_post_following' %}" method="POST">
           {% csrf_token %}
-          {% if post.source != '' and post.source != None %}
-            <button class="button", 
+
+          {% if post.source != ''%}
+            <button class="button w3-margin-bottom", 
             style = "float:left;",type="submit", name="pk", value={{post.source}}>
           {% else %}
-            <button class="button", 
+            <button class="button w3-margin-bottom", 
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
           {% endif%}
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+          <p>{{post.like_count}}</p></button>
+        
+
+        </form>
+        <form action="{% url 'repost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", 
+            style = "float:left;",
+            type="submit", name="pk", value={{post.pk}}>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
           </button>
         </form>
+        <form action="{% url 'repost_to_friend' %}" method="POST">
+          {% csrf_token %}
+          <button class="button w3-margin-bottom", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+        </form>
+
+        <br><br><br>
 
         <form action="{% url 'comment_form' %}" method="GET">
           {% csrf_token %}
           {% if post.source != '' and post.source != None %}
-            <button class="button", 
-            type="submit", name="pk", style="float:left;", value={{post.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+            <button class="button w3-margin-bottom w3-theme", 
+            type="submit", name="pk", value={{post.source}}><p>Add Comment</p></button>
           {% else %}
-            <button class="button", 
-            type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+            <button class="button w3-margin-bottom w3-theme", 
+            type="submit", name="pk", value={{post.origin}}><p>Add Comment</p></button>
           {% endif%}
         </form>
 
-        <form action="{% url 'repost' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-            style = "float:left;",
-            type="submit", name="pk", value={{post.pk}}>
-            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
-          </button>
-        </form>
-
-        <form action="{% url 'repost_to_friend' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-        </form>
-        <br>
-        <p>{{post.like_count}} liked this post.</p>
-        <!-- {% for comment in post.comments %}  
+        <h3>Comments...</h3>
+        {% for comment in post.comments %}  
           {{ comment.comment_author_name }}:
           {{ comment.comment }}
           <br>
-        {% endfor %} -->
-        {% for comment in post.comments %}
-          {% if post.visibility != 'PUBLIC' %}
-            {% if myself == comment.author %}
-              {{ comment.comment_author_name }}:
-              {{ comment.comment }}
-              <br>
-            {% endif %}
-          {% else %}
-            {{ comment.comment_author_name }}:
-            {{ comment.comment }}
-            <br>
-          {% endif %}
-
         {% endfor %}
-        <br>
+        <br/><br/>
       </div>
       {% endfor %}
       <!-- This is the end of a post -->
