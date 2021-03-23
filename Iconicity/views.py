@@ -381,7 +381,8 @@ class UserProfileListView(ListView):
         # get all profiles except for current user from both local host and remote hosts:
         local = UserProfile.objects.get_all_profiles(exception = self.request.user)
         remote = getAllExternalAuthors()
-        return local.append(remote)
+        total = local | remote
+        return total
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
