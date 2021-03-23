@@ -170,14 +170,11 @@ class Post(models.Model):
 
     host = models.URLField(default="")
     def count_like(self):
-        # TODO: external like field
-        print("external like",self.external_likes)
         if self.external_likes != {}:
             return self.like.count() + len(self.external_likes['urls'])
         return self.like.count()
 
     def add_external_like(self, url):
-        print("self.external_likes",self.external_likes)
         if self.external_likes == {}:
             self.external_likes['urls'] = []
         if url in self.external_likes['urls']:

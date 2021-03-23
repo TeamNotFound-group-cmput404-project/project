@@ -1,27 +1,23 @@
-from django.shortcuts import render, resolve_url, reverse, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, resolve_url, reverse, get_object_or_404,redirect
+from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.core import serializers as core_serializers
 import json
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.shortcuts import render, redirect
 from .forms import *
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.views.generic import ListView, DeleteView
-from django.contrib.auth import logout
+from django.views.generic import ListView, DeleteView, CreateView
 from django.http.request import HttpRequest
-from django.views.generic import CreateView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.http import QueryDict
 from .serializers import *
 from urllib.request import urlopen
 import requests
@@ -42,8 +38,6 @@ def logout_view(request):
 class LoginView(View):
     def get(self, request):
         if not request.user.is_anonymous:
-            print("go to main")
-            print(request.user)
             return redirect(reverse('public'))
 
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
@@ -131,7 +125,6 @@ def getAllFollowAuthorPosts(currentUser):
         otherUserProfile = UserProfile.objects.filter(user=user).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
-                print("they are friends")
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
                 post_list += temp
             else:
@@ -139,8 +132,6 @@ def getAllFollowAuthorPosts(currentUser):
                 # only public
                 post_list += getPosts(user, visibility="PUBLIC")# join the post_list
 
-    print("current post_List")
-    print(post_list)
     return post_list
 
 
@@ -482,8 +473,7 @@ def like_view(request):
     # 1. if this post is on our server, then pk works
     # 2. if this post is not on our server, then url works
     pk_raw = request.POST.get('pk')
-    print(request.POST)
-    print(pk_raw)
+
     post = None
     #print(request.POST.data)
     if '/' in pk_raw:
@@ -675,7 +665,6 @@ def mypost(request):
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = PostSerializer(postList, many=True).data
-    #new_list, comments = createJsonFromProfile(postList)
 
     context = {
         'posts': new_list,
@@ -761,7 +750,6 @@ def following(request):
     # get all the posts posted by the current user
     postList = getAllFollowAuthorPosts(request.user)
     new_list = PostSerializer(postList, many=True).data
-    #new_list, comments = createJsonFromProfile(postList)
 
     new_list += getAllFollowExternalAuthorPosts(request.user)
 
@@ -817,13 +805,10 @@ def friends(request):
     postList = []
     friends_test = getUserFriend(request.user)
     tmp_list = []
-    #print("friend list",friends_test)
     for friend_id in friends_test:
         tmp_list += getPosts(friend_id, visibility="FRIENDS")
 
-    #new_list, comments = createJsonFromProfile(tmp_list)
     new_list = PostSerializer(tmp_list, many=True).data
-    #print("new list",new_list)
     externalFriends = getExternalUserFriends(request.user)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
@@ -959,12 +944,9 @@ class ExternalFollowersByAuthor(APIView):
 
 class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
-
         authorProfile = UserProfile.objects.get(pk=author_id)
         friendPosts = Post.objects.filter(author=authorProfile.user)
         return Response(PostSerializer(friendPosts, many=True).data)
-        #posts = Post.objects.filter(author=authorProfile.user).all()
-        #return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class AddCommentView(CreateView):
     model = Comment
@@ -1026,7 +1008,7 @@ class AddCommentView(CreateView):
                     #form.author_id = request.user.id
                     newform.save()
                     form.save_m2m()
-                    print("saved")
+
                     return redirect('public')
                     
                 else:
@@ -1042,9 +1024,8 @@ class AddCommentView(CreateView):
 
 
     def get(self, request):
-        print("getting")
         pk_url = request.GET.get('pk')
-        print(pk_url)
+
         return render(request, 'Iconicity/comment_form.html', {'form': CommentsCreateForm, "url": pk_url})
 
 
