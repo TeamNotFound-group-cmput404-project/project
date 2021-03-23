@@ -36,7 +36,6 @@
 
             <div class="w3-card w3-round w3-white">
 
-              <!-- What's Good-->
               <div class="w3-container w3-padding">
                 <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
               </div>
@@ -107,7 +106,6 @@
         </form>
         <br>
         <p>{{post.like_count}} liked this post.</p>
-        <br>
         {% for comment in post.comments %}  
           {{ comment.comment_author_name }}:
           {{ comment.comment }}
