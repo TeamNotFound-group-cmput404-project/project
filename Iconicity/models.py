@@ -188,6 +188,12 @@ class Post(models.Model):
     def __str__(self):
         return '%s' % (self.title)
 
+# By Shway:
+STATUS_CHOICES = (
+    ('sent', 'sent'),
+    ('accepted', 'accepted'),
+)
+
 class FriendRequestManager(models.Manager):
     def friendRequests_received(self, receiver):
         return FriendRequest.objects.filter(object_author=receiver, status='sent')
@@ -205,7 +211,11 @@ class FriendRequest(models.Model):
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
 
     # Reciever of this friend request:
-    object = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object")
+    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
+
+    # By: Shway
+    # For the receiver to choose to accept or reject:
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
 
     objects = FriendRequestManager()
 

@@ -154,22 +154,16 @@ class InboxSerializer(rest_serializers.ModelSerializer):
         fields = ('items','author','type')
 
 
-# By: Shway Wang, the serializer for FriendRequest
+# By: Shway Wang
+'''
 class FriendRequestSerializer(rest_serializers.ModelSerializer):
     type = models.CharField(max_length=10, default="Follow")
     summary = models.TextField(default="")
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
-    object = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object")
-
+    object_author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object_author")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     class Meta:
         model = FriendRequest
-        fields = ('summary', 'actor', 'object')
+        fields = ('actor', 'object_author', 'status')
+'''
     
-    def get_summary(self, obj):
-        return obj.summary
-
-    def get_actor(self, obj):
-        return obj.actor
-
-    def get_object(self, obj):
-        return obj.object

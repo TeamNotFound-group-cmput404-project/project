@@ -1,0 +1,48 @@
+<!--This file is by Shway-->
+{% extends 'Iconicity/main_base.html'%}
+
+{% load static %}
+
+{% block content %}
+
+<!-- Page Container -->
+<!-- By: Zhiqi Zhou-->
+<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">    
+  <!-- The Grid -->
+  <div class="w3-row">
+    <!-- Middle Column -->
+    <!-- By: Zhiqi Zhou-->
+    <div class="w3-col m7">
+
+      <!-- This is the beginning of a post -->
+      <!-- Shway Wang added the for loop here -->
+      <h1 class="w3-center w3-margin-top">Who would you like to follow?</h1>
+      {% for profile in profiles %}
+      <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+        <li><h4>{{ profile.display_name }}</h4><br></li>
+      {% endfor %}
+      <!-- This is the end of a post -->
+      
+      <!-- Pagination-->
+      <br><br>
+      <div class="center">
+        <div class="pagination">
+        <a href="#">&laquo;</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">4</a>
+        <a href="#">5</a>
+        <a href="#">6</a>
+        <a href="#">&raquo;</a>
+        </div>
+      </div>
+      <!-- End of Pagination-->
+
+    <!-- End Middle Column -->
+    </div>
+  <!-- End Grid -->
+  </div>
+<!-- End Page Container -->
+
+{% endblock %}
