@@ -252,7 +252,7 @@ def follow_someone(request):
             # post the friend request to the external server's inbox
             print(full_followee_url)
             post_data = requests.post(full_followee_url, data=frd_request_context)
-            print("data posted: ", post_data)
+            print("data responded: ", post_data)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
             curProfile.externalFollows['urls'].append(followee_uid)
@@ -797,7 +797,7 @@ class Inboxs(APIView):
 
     def post(self, request, author_id):
         data_json = request.data
-        print("data received at inbox: "data_json)
+        print("data received at inbox: ", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         print(local_author_profile.url)
         try:
