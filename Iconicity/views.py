@@ -234,6 +234,11 @@ def follow_someone(request):
         except Exception as e: # external
             # cannot get the profile with followee_uid locally
             print("Not local")
+            # First, add the uid into local database:
+            if curProfile.externalFollows == {}:
+                curProfile.externalFollows['urls'] = []
+            curProfile.externalFollows['urls'].append(followee_uid)
+            # Second, send the remote post request:
             # create a new friend request with the receiver the (external) followee_uid
             summary = curProfile.display_name + " wants to follow " + followee_display_name
             # serialized current profile
@@ -253,9 +258,6 @@ def follow_someone(request):
             print(full_followee_url)
             post_data = requests.post(full_followee_url, data=frd_request_context)
             print("data responded: ", post_data)
-            if curProfile.externalFollows == {}:
-                curProfile.externalFollows['urls'] = []
-            curProfile.externalFollows['urls'].append(followee_uid)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
