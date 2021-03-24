@@ -135,6 +135,19 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
             return str(obj['host']) + '/author/' + str(obj['uid'])
         return str(obj.host) + '/author/' + str(obj.uid)
 
+class LikeSerializer(rest_serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Like
+        fields = ('context','summary','author','object','type')
+
+class InboxSerializer(rest_serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Inbox
+        fields = ('items','author','type')
 
 
 # By: Shway Wang, the serializer for FriendRequest
