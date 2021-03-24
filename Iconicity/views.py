@@ -221,14 +221,17 @@ def follow_someone(request):
         try:
             followee_profile = UserProfile.objects.get(uid = followee_uid)
         except Exception as e:
-            print("Not local")
             # cannot get the profile with followee_uid locally
-            serialized_frdReq = FriendRequestSerializer(newFrdRequest).data # serialize the new friend request
-            full_followee_url = followee_uid # here followee_uid should start with the remote server name
+            print("Not local")
+            # here followee_uid should start with the remote server name
+            full_followee_url = followee_uid
+            # serialize the new friend request
+            serialized_frdReq = FriendRequestSerializer(newFrdRequest).data
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
             requests.get(full_followee_url).json()
+
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
             curProfile.externalFollows['urls'].append(followee_uid)
@@ -372,12 +375,11 @@ class UserProfileListView(ListView):
         # my profile
         my_profile = UserProfile.objects.filter(user = user)[0] # a query set!
         # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
+        pending_requests = FriendRequest.objects.filter(actor = my_profile)
         # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(Q(object = my_profile) & Q(status = 'sent'))
+        inbox_requests = FriendRequest.objects.filter(object = my_profile)
         # friend relations requests
-        accepted_requests = FriendRequest.objects.filter(
-            (Q(object = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
+        accepted_requests = FriendRequest.objects.filter(Q(object = my_profile) | Q(actor = my_profile))
         # listify and setify the above two results:
         follow_list = set()
         pending_requests_list = set()
@@ -716,7 +718,7 @@ def getAllExternalPublicPosts():
         allPosts += posts
     return allPosts
 
-# by Shway Wang, to get all remote authors from all connected servers:
+# by Shway, to get all remote authors from all connected servers:
 def getAllExternalAuthors():
     externalHosts = getAllConnectedServerHosts()
     allAuthors = []
