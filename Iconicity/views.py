@@ -251,7 +251,7 @@ def follow_someone(request):
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
             print(full_followee_url)
-            post_data = requests.post(full_followee_url, data=json.dumps(frd_request_context))
+            post_data = requests.post(full_followee_url, data=frd_request_context)
             print("data responded: ", post_data)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
