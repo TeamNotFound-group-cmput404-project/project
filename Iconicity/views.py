@@ -224,12 +224,14 @@ def follow_someone(request):
         print("display_name ", followee_display_name)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
-        # save the new uid into current user's follow:
-        try:
+        # save the new uid into current user's follow attribute:
+        try: # local
             followee_profile = UserProfile.objects.get(uid = followee_uid)
             summary = curProfile.display_name + " wants to follow " + followee_display_name
+            # create a new friend request locally
             newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
-        except Exception as e:
+            curProfile.follow.add(followee_profile.user)
+        except Exception as e: # external
             # cannot get the profile with followee_uid locally
             print("Not local")
             # create a new friend request with the receiver the (external) followee_uid
@@ -239,19 +241,17 @@ def follow_someone(request):
             # form the freind request data stream
             object = {"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
                 "url":followee_uid, "github": followee_github}
-            context = {"type": "Follow", "summary":summary, "actor":serialized_actor, "object":object}
+            frd_request_context = {"type": "Follow", "summary":summary, "actor":serialized_actor, "object":object}
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
-            # post to the external server's inbox
-            requests.post(full_followee_url, context)
+            # post the friend request to the external server's inbox
+            post_data = requests.post(full_followee_url, data=frd_request_context)
+            print("data posted: ", post_data)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
             curProfile.externalFollows['urls'].append(followee_uid)
-        else:
-            # if local:
-            curProfile.follow.add(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
