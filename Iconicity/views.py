@@ -246,7 +246,11 @@ def follow_someone(request):
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
+            # should send to inbox:
+            if full_followee_url[-1] == '/': full_followee_url += "inbox"
+            else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
+            print(full_followee_url)
             post_data = requests.post(full_followee_url, data=frd_request_context)
             print("data posted: ", post_data)
             if curProfile.externalFollows == {}:
