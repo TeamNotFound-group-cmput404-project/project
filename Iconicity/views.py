@@ -777,7 +777,12 @@ class Inboxs(APIView):
         data_json = request.data
         print("data received at inbox: ", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
-        print(local_author_profile.url)
+        print("local author url: ", local_author_profile.url)
+        # rid of the starting "https://"
+        scheme = str(request.scheme)
+        if local_author_profile.url.startswith(scheme):
+            local_author_profile.url = local_author_profile.url[len(scheme):]
+            local_author_profile.save()
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             if data_json['type'] == "Like":
