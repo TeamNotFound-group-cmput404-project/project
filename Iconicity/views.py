@@ -239,9 +239,9 @@ def follow_someone(request):
             # serialized current profile
             serialized_actor = GETProfileSerializer(curProfile)
             # form the freind request data stream
-            object = {"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
-                "url":followee_uid, "github": followee_github}
-            frd_request_context = {"type": "Follow", "summary":summary, "actor":serialized_actor, "object":object}
+            object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
+                "url":followee_uid, "github": followee_github})
+            frd_request_context = {"type": "Follow", "summary": summary, "actor": serialized_actor, "object": object}
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
@@ -251,7 +251,7 @@ def follow_someone(request):
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
             print(full_followee_url)
-            post_data = requests.post(full_followee_url, data=frd_request_context)
+            post_data = requests.post(full_followee_url, data=json.dumps(frd_request_context))
             print("data responded: ", post_data)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
@@ -274,11 +274,8 @@ def unfollow_someone(request):
                 curProfile.follow.remove(followee_profile.user)
         except Exception as e: # external
             print("Not local")
-            full_followee_url = followee_profile.host
-            if not followee_profile.host.startswith(str(request.scheme)):
-                full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
-            if full_followee_url in curProfile.externalFollows['urls']:
-                curProfile.externalFollows['urls'].remove(full_followee_url)
+            if followee_uid in curProfile.externalFollows['urls']:
+                curProfile.externalFollows['urls'].remove(followee_uid)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -313,35 +310,14 @@ class UserProfileListView(ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # my profile
-        my_profile = UserProfile.objects.get(user = user) # a query set!
-        # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(actor = my_profile)
-        # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(object = my_profile)
-        # friend relations requests
-        accepted_requests = FriendRequest.objects.filter(Q(object = my_profile) | Q(actor = my_profile))
-        # listify and setify the above two results:
-        follow_list = set()
-        pending_requests_list = set()
-        inbox_requests_list = set()
-        accepted_list = set()
+        my_profile = UserProfile.objects.get(user = user) # type is a query set!
         # whom I am following locally
         follow_list = my_profile.get_followers()
         # whom I am following externally
         external_follows_list = my_profile.get_external_follows()
-        print(external_follows_list)
-        for i in pending_requests:
-            pending_requests_list.add(i.object_author.user)
-        for i in inbox_requests:
-            inbox_requests_list.add(i.actor.user)
-        for i in accepted_requests:
-            accepted_list.add(i.actor.user)
-            accepted_list.add(i.object_author.user)
+        print("whom I am following: ", external_follows_list)
         context['follows'] = follow_list
         context['external_follows'] = external_follows_list
-        context['pending_requests'] = pending_requests_list
-        context['inbox_requests'] = inbox_requests_list
-        context['accepted_requests'] = accepted_list
         # if there are no profiles other than the current user:
         context['is_empty'] = False # initially not empty
         if len(self.get_queryset()) == 0:
