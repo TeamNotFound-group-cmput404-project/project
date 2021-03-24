@@ -190,7 +190,7 @@ class Post(models.Model):
 
 class FriendRequestManager(models.Manager):
     def friendRequests_received(self, receiver):
-        return FriendRequest.objects.filter(object_author=receiver, status='sent')
+        return FriendRequest.objects.filter(object=receiver)
 
     #FriendRequest.objects.friendRequests_received(curUserProfile)
 
