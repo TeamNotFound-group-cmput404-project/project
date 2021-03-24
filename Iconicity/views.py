@@ -908,9 +908,7 @@ class PostById(APIView):
 class Inboxs(APIView):
     def get(self, request, author_id):
         currentUser = UserProfile.objects.get(user=request.user)
-
         inbox = Inbox.objects.get(author=currentUser.url)
-        
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
@@ -923,19 +921,14 @@ class Inboxs(APIView):
             post_obj = Post.objects.get(pk=post_id)
             print("post_url",post_url)
             print("host",request.META['HTTP_HOST'])
-
-
             if request.META['HTTP_HOST'] in data_json['author']['url']:
                 # means it's local like author
-                
-
                 if local_author_profile.user in post_obj.like:
                     # means this man liked the post before
                     # we should make him unlike this post
                     post_obj.like.remove(local_author_profile.user)
                     post_obj.save()
                     return Response(InboxSerializer(inbox_obj).data,status=204)
-
                 else:
                     # means add this man's id to the like list.
                     post_obj.like.append(local_author_profile.user)
@@ -946,19 +939,16 @@ class Inboxs(APIView):
                     like_obj.author = data_json["author"]
                     like_obj.save()
                     post_obj.save()
-                   
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items['Like'].append(like_json)
                     inbox_obj.save()
-
                     return Response(InboxSerializer(inbox_obj).data,status=201)
-
-                
             else:
                 # means it's a external author
                 external_author_url = data_json["author"]["url"]
                 print("external likes",post_obj.external_likes)
-                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or
+                data_json["author"]["url"] not in post_obj.external_likes['urls']:
                     # means add this man's id to the external like list.
                     post_obj.external_likes['urls'] = []
                     post_obj.external_likes['urls'].append(external_author_url)
@@ -970,12 +960,8 @@ class Inboxs(APIView):
                     like_obj.save()
                     post_obj.save()
                     like_json = LikeSerializer(like_obj).data
-                    
                     inbox_obj.items['Like'].append(like_json)
-
-
                     inbox_obj.save()
-
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means this man liked the post before
@@ -1013,7 +999,6 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-
 
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):
