@@ -213,26 +213,39 @@ class AddPostView(CreateView):
 # by Shway, the follow function, to add someone to your follow list:
 def follow_someone(request):
     if request.method == 'POST':
-        followee_uid = request.POST.get('followee_uid')
+        # receive data from front-end
+        followee_host = request.POST.get('followee_host')
+        followee_github = request.POST.get('followee_github')
         followee_display_name = request.POST.get('followee_display_name')
+        followee_uid = request.POST.get('followee_uid')
+        print("uid ", followee_uid)
+        print("host ", followee_host)
+        print("gihtub ", followee_github)
+        print("display_name ", followee_display_name)
+        # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
-        # create a new friend request with the receiver the (external) followee_uid
-        summary = curProfile.user.display_name + " wants to follow " + followee_display_name
-        newFrdRequest = FriendRequest.objects.create(actor=curProfile.uid, object=followee_uid, summary = summary)
         # save the new uid into current user's follow:
-        # for external uses:
-        followee_profile = None
         try:
             followee_profile = UserProfile.objects.get(uid = followee_uid)
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
         except Exception as e:
-            print("Not local")
             # cannot get the profile with followee_uid locally
-            serialized_frdReq = FriendRequestSerializer(newFrdRequest).data # serialize the new friend request
-            full_followee_url = followee_uid # here followee_uid should start with the remote server name
+            print("Not local")
+            # create a new friend request with the receiver the (external) followee_uid
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            # serialized current profile
+            serialized_actor = GETProfileSerializer(curProfile)
+            # form the freind request data stream
+            object = {"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
+                "url":followee_uid, "github": followee_github}
+            context = {"type": "Follow", "summary":summary, "actor":serialized_actor, "object":object}
+            full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
-            requests.get(full_followee_url).json()
+            # post to the external server's inbox
+            requests.post(full_followee_url, context)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
             curProfile.externalFollows['urls'].append(followee_uid)
@@ -367,21 +380,19 @@ class UserProfileListView(ListView):
         # get all profiles except for current user from both local host and remote hosts:
         local = UserProfile.objects.get_all_profiles(exception = self.request.user)
         remote = getAllExternalAuthors()
-        print(remote)
         return remote + list(local)
     # override:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # my profile
-        my_profile = UserProfile.objects.filter(user = user)[0] # a query set!
+        my_profile = UserProfile.objects.get(user = user) # a query set!
         # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
+        pending_requests = FriendRequest.objects.filter(actor = my_profile)
         # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(Q(object = my_profile) & Q(status = 'sent'))
+        inbox_requests = FriendRequest.objects.filter(object = my_profile)
         # friend relations requests
-        accepted_requests = FriendRequest.objects.filter(
-            (Q(object = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
+        accepted_requests = FriendRequest.objects.filter(Q(object = my_profile) | Q(actor = my_profile))
         # listify and setify the above two results:
         follow_list = set()
         pending_requests_list = set()
@@ -720,7 +731,7 @@ def getAllExternalPublicPosts():
         allPosts += posts
     return allPosts
 
-# by Shway Wang, to get all remote authors from all connected servers:
+# by Shway, to get all remote authors from all connected servers:
 def getAllExternalAuthors():
     externalHosts = getAllConnectedServerHosts()
     allAuthors = []
@@ -897,9 +908,7 @@ class PostById(APIView):
 class Inboxs(APIView):
     def get(self, request, author_id):
         currentUser = UserProfile.objects.get(user=request.user)
-
         inbox = Inbox.objects.get(author=currentUser.url)
-        
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
@@ -912,19 +921,14 @@ class Inboxs(APIView):
             post_obj = Post.objects.get(pk=post_id)
             print("post_url",post_url)
             print("host",request.META['HTTP_HOST'])
-
-
             if request.META['HTTP_HOST'] in data_json['author']['url']:
                 # means it's local like author
-                
-
                 if local_author_profile.user in post_obj.like:
                     # means this man liked the post before
                     # we should make him unlike this post
                     post_obj.like.remove(local_author_profile.user)
                     post_obj.save()
                     return Response(InboxSerializer(inbox_obj).data,status=204)
-
                 else:
                     # means add this man's id to the like list.
                     post_obj.like.append(local_author_profile.user)
@@ -935,19 +939,16 @@ class Inboxs(APIView):
                     like_obj.author = data_json["author"]
                     like_obj.save()
                     post_obj.save()
-                   
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items['Like'].append(like_json)
                     inbox_obj.save()
-
                     return Response(InboxSerializer(inbox_obj).data,status=201)
-
-                
             else:
                 # means it's a external author
                 external_author_url = data_json["author"]["url"]
                 print("external likes",post_obj.external_likes)
-                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or
+                data_json["author"]["url"] not in post_obj.external_likes['urls']:
                     # means add this man's id to the external like list.
                     post_obj.external_likes['urls'] = []
                     post_obj.external_likes['urls'].append(external_author_url)
@@ -959,12 +960,8 @@ class Inboxs(APIView):
                     like_obj.save()
                     post_obj.save()
                     like_json = LikeSerializer(like_obj).data
-                    
                     inbox_obj.items['Like'].append(like_json)
-
-
                     inbox_obj.save()
-
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means this man liked the post before
@@ -1002,7 +999,6 @@ class AllPostsByAuthor(APIView):
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-
 
 class ExternalFollowersByAuthor(APIView):
     def get(self, request, author_id):

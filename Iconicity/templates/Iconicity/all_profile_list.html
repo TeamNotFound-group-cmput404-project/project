@@ -43,6 +43,8 @@
           {% if profile.user not in follows and profile.user not in follows%}
             <form action="{% url 'follow_someone' %}" method='POST'>
               {% csrf_token %}
+              <input type="hidden" name="followee_host" value="{{ profile.host }}">
+              <input type="hidden" name="followee_github" value="{{ profile.github }}">
               <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='followee_uid' value="{{ profile.uid }}">Follow</button>
