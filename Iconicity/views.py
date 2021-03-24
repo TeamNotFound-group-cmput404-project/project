@@ -74,7 +74,7 @@ def signup(request):
             Github = form.cleaned_data.get('github')
             host = request.get_host()
             scheme = request.scheme
-            createUserProfile(scheme, username, User, Github, host)
+            createUserProfileAndInbox(scheme, username, User, Github, host)
 
             login(request, User)
             return redirect('public')
@@ -100,7 +100,7 @@ def mainPagePublic(request):
     return render(request, 'Iconicity/main_page.html', context)
 
 
-def createUserProfile(scheme, Display_name, User, Github, host):
+def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
     profile = UserProfile(user=User,
                           display_name=Display_name,
                           github=Github,
@@ -108,8 +108,12 @@ def createUserProfile(scheme, Display_name, User, Github, host):
 
 
     profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.uid)
+    
+    inbox_obj = Inbox()
+    inbox_obj.author = profile.url
+    inbox_obj.items = {"Like":[], "Post":[], "Follow":[]}
     profile.save()
-
+    inbox_obj.save()
 
 
 def getAllFollowAuthorPosts(currentUser):
@@ -187,7 +191,7 @@ class AddPostView(CreateView):
                                                + str(userProfile.pk)
                                                + '/posts/'
                                                + str(form.post_id))
-
+            form.source = form.origin
             form.save()
             return redirect('public')
 
@@ -890,7 +894,7 @@ class PostById(APIView):
     def put(self, request, post_id, author_id):
         pass
 
-class Inbox(APIView):
+class Inboxs(APIView):
     def get(self, request, author_id):
         currentUser = UserProfile.objects.get(user=request.user)
 
@@ -1109,7 +1113,7 @@ class Comments(APIView):
         comment.comment = request.data['comment']
         comment.author = request.data['author']
         comment.save()
-        return Response([],status_code=201)
+        return Response([],status=201)
 
 
         
@@ -1124,4 +1128,16 @@ class Comments(APIView):
                                     + str(post_id))
         comments = list(Comment.objects.filter(post=post))
         serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+class Likes(APIView):
+    def get(self, request, post_id, author_id):
+        post = (str(request.scheme) + "://"
+                            + str(request.get_host())
+                            + '/author/'
+                            + str(author_id)
+                            + '/posts/'
+                            + str(post_id))
+        likes = list(Like.objects.filter(object=post))
+        serializer = LikeSerializer(likes,many=True)
         return Response(serializer.data)
