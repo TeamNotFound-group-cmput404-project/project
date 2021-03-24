@@ -284,7 +284,7 @@ def unfollow_someone(request):
     return redirect('public')
 
 # by Shway, this view below shows the list of received friend requests:
-def friend_requests_received_view(request):
+def inbox_view(request):
     profile = getUserProfile(request.user)
     frdRequests = FriendRequest.objects.friendRequests_received(profile)
     is_empty = False
@@ -947,8 +947,7 @@ class Inboxs(APIView):
                 # means it's a external author
                 external_author_url = data_json["author"]["url"]
                 print("external likes",post_obj.external_likes)
-                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or
-                data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
                     # means add this man's id to the external like list.
                     post_obj.external_likes['urls'] = []
                     post_obj.external_likes['urls'].append(external_author_url)
