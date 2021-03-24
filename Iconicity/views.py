@@ -779,9 +779,13 @@ class Inboxs(APIView):
         local_author_profile = UserProfile.objects.get(pk=author_id)
         print("local author url: ", local_author_profile.url)
         # rid of the starting "https://"
-        scheme = str(request.scheme)
-        if local_author_profile.url.startswith(scheme):
-            local_author_profile.url = local_author_profile.url[len(scheme):]
+        scheme1 = "http://"
+        scheme2 = "https://"
+        if local_author_profile.url.startswith(scheme1):
+            local_author_profile.url = local_author_profile.url[len(scheme1):]
+            local_author_profile.save()
+        elif local_author_profile.url.startswith(scheme2):
+            local_author_profile.url = local_author_profile.url[len(scheme2):]
             local_author_profile.save()
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
