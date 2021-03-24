@@ -263,21 +263,18 @@ def unfollow_someone(request):
         followee_uid = request.POST.get('followee_uid')
         curProfile = UserProfile.objects.get(user = request.user)
         followee_profile = None
-        try:
+        try: # local
             followee_profile = UserProfile.objects.get(uid = followee_uid)
-        except Exception as e:
+            # remove the uid from current user's follow:
+            if followee_profile.user in curProfile.follow.all():
+                curProfile.follow.remove(followee_profile.user)
+        except Exception as e: # external
             print("Not local")
-            # for external uses:
             full_followee_url = followee_profile.host
             if not followee_profile.host.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(followee_profile.host)
             if full_followee_url in curProfile.externalFollows['urls']:
                 curProfile.externalFollows['urls'].remove(full_followee_url)
-        else:
-            # local user
-            # remove the uid from current user's follow:
-            if followee_profile.user in curProfile.follow.all():
-                curProfile.follow.remove(followee_profile.user)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -294,81 +291,7 @@ def inbox_view(request):
     context = {
         'senders': senders,
         'is_empty': is_empty}
-    return render(request, 'Iconicity/frdRequests.html', context)
-
-# by Shway, accept friend request function view:
-def accept_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('accept_uid')
-        sender = UserProfile.objects.get(uid = uid)
-        receiver = UserProfile.objects.get(user = request.user)
-        # save the new friend's uid into current user's follow and vice versa:
-        sender.follow.add(receiver.user)
-        #sender.externalFollows.append(receiver.host) # external connectivity
-        receiver.follow.add(sender.user)
-        # if sender.externalFollows like {}, we should add key value pair
-
-        # assume all local:
-
-
-        '''
-
-        if sender.externalFollows == {}:
-            sender.externalFollows['urls'] = []
-
-        # if sender.externalFollows like {"urls":[]}, we can append
-        full_recv_url = receiver.host
-        if not receiver.host.startswith(str(request.scheme)):
-            full_recv_url = str(request.scheme) + "://"  + str(receiver.host)
-
-        if receiver.host[-1] == "/":
-            full_recv_url = full_recv_url + "author/" + str(receiver.pk)
-        else:
-            full_recv_url = full_recv_url + "/author/" + str(receiver.pk)
-
-        if not sender.host.startswith(str(request.scheme)):
-            full_sender_url = str(request.scheme) + "://" + str(sender.host)
-
-        if sender.host[-1] == "/":
-            full_sender_url = full_sender_url + "author/" + str(sender.pk)
-        else:
-            full_sender_url = full_sender_url + "/author/" + str(sender.pk)
-
-
-
-        sender.externalFollows['urls'].append(full_recv_url) # external connectivity
-
-        if receiver.externalFollows == {}:
-            receiver.externalFollows["urls"] = []
-
-
-        receiver.externalFollows['urls'].append(full_sender_url) # external connectivity
-        sender.save()
-        receiver.save()
-        print("reveiver",receiver.externalFollows["urls"])
-        print(sender.externalFollows['urls'])'''
-        # change the status of the friend request to accepted:
-        sender.save()
-        receiver.save()
-        friend_request = FriendRequest.objects.get(actor = sender, object = receiver)
-        if friend_request.status == 'sent':
-            friend_request.status = 'accepted'
-            friend_request.save()
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
-
-# by Shway, reject friend request function view:
-def reject_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('reject_uid')
-        sender = UserProfile.objects.get(uid = uid)
-        receiver = UserProfile.objects.get(user = request.user)
-        friend_request = FriendRequest.objects.get(actor = sender, object = receiver)
-        friend_request.delete()
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
+    return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
 class UserProfileListView(ListView):
@@ -420,49 +343,6 @@ class UserProfileListView(ListView):
         if len(self.get_queryset()) == 0:
             context['is_empty'] = True
         return context
-
-# by Shway, view function for sending friend requests
-def send_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('profile_uid')
-        sender = UserProfile.objects.get(user=request.user)
-        receiver = UserProfile.objects.get(uid=uid)
-        # create a new friend request
-        FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    # go to main page if the user did not use the "POST" method
-    return redirect('main')
-
-# by Shway, view function for removing a friend
-def remove_friend(request):
-    if request.method == 'POST':
-        uid = request.POST.get('profile_uid')
-        sender = UserProfile.objects.get(user=request.user)
-        receiver = UserProfile.objects.get(uid=uid)
-        # delete the friend request involving current user and the past in user with uid specified
-        friendRequest = FriendRequest.objects.get(
-            (Q(actor=sender) & Q(object=receiver)) | (Q(actor=receiver) & Q(object=sender)))
-        friendRequest.delete()
-        # want to also unfollow both, but it is done by the function beneath this one
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
-
-# by Shway, whenever a friend request is deleted, want to also delete
-# from follow lists of actor and object_author
-@receiver(pre_delete, sender=FriendRequest)
-def pre_delete_remove_from_follow(sender, instance, **kwargs):
-    sender = instance.actor
-    receiver = instance.object_author
-    sender.follow.remove(receiver.user)
-    if receiver.host in sender.externalFollows:
-        sender.externalFollows.remove(receiver.host) # external connectivity
-    receiver.follow.remove(sender.user)
-    if sender.host in receiver.externalFollows:
-        receiver.externalFollows.remove(sender.host) # external connectivity
-    sender.save()
-    receiver.save()
 
 def like_view(request):
     redirect_path = '/public'
