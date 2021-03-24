@@ -19,7 +19,7 @@
         <h1 class="w3-center w3-margin-top">
           Congrates! You are our first user!<br>There is no one here other than you!</h1>
       {% else %}
-        <h1 class="w3-center w3-margin-top">Here Is Everyone in This Site:</h1>
+        <h1 class="w3-center w3-margin-top">Here Is Everyone Reachable:</h1>
         {% for profile in profiles %}
         <div class="w3-container w3-card w3-white w3-round w3-margin">
           <div>
@@ -33,16 +33,17 @@
           <!-- Now for the two buttons for adding and removing friends, also the notification if -->
           <!-- this person already has sent you a friend request -->
           <!-- Case 0: Follow and unfollow buttons -->
-          {% if profile.user in follows %}
+          {% if profile.user in follows or profile.user in follows%}
             <form action="{% url 'unfollow_someone' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='followee_uid' value="{{ profile.uid }}">Unfollow</button>
             </form>
           {% endif %}
-          {% if profile.user not in follows %}
+          {% if profile.user not in follows and profile.user not in follows%}
             <form action="{% url 'follow_someone' %}" method='POST'>
               {% csrf_token %}
+              <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='followee_uid' value="{{ profile.uid }}">Follow</button>
             </form>
