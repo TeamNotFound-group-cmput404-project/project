@@ -31,7 +31,7 @@ urlpatterns = [
 	# Friend Requests functionalities by Shway Wang:
 	path('follow_someone', views.follow_someone, name='follow_someone'),
 	path('unfollow_someone', views.unfollow_someone, name='unfollow_someone'),
-	path('friend_requests', views.friend_requests_received_view, name='friend_requests'),
+	path('inbox', views.friend_requests_received_view, name='friend_requests'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
 	path('send_friendRequest', views.send_friend_request, name='send_friendRequest'),
 	path('remove_friend', views.remove_friend, name='remove_friend'),
