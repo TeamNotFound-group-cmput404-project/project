@@ -209,29 +209,39 @@ class AddPostView(CreateView):
 # by Shway, the follow function, to add someone to your follow list:
 def follow_someone(request):
     if request.method == 'POST':
-        followee_uid = request.POST.get('followee_uid')
+        # receive data from front-end
+        followee_host = request.POST.get('followee_host')
+        followee_github = request.POST.get('followee_github')
         followee_display_name = request.POST.get('followee_display_name')
+        followee_uid = request.POST.get('followee_uid')
+        print("uid ", followee_uid)
+        print("host ", followee_host)
+        print("gihtub ", followee_github)
+        print("display_name ", followee_display_name)
+        # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
-        # create a new friend request with the receiver the (external) followee_uid
-        summary = curProfile.user.display_name + " wants to follow " + followee_display_name
-        newFrdRequest = FriendRequest.objects.create(actor=curProfile.uid, object=followee_uid, summary = summary)
         # save the new uid into current user's follow:
-        # for external uses:
-        followee_profile = None
         try:
             followee_profile = UserProfile.objects.get(uid = followee_uid)
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
         except Exception as e:
             # cannot get the profile with followee_uid locally
             print("Not local")
-            # here followee_uid should start with the remote server name
+            # create a new friend request with the receiver the (external) followee_uid
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            # serialized current profile
+            serialized_actor = GETProfileSerializer(curProfile)
+            # form the freind request data stream
+            object = {"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
+                "url":followee_uid, "github": followee_github}
+            context = {"type": "Follow", "summary":summary, "actor":serialized_actor, "object":object}
             full_followee_url = followee_uid
-            # serialize the new friend request
-            serialized_frdReq = FriendRequestSerializer(newFrdRequest).data
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
-            requests.get(full_followee_url).json()
-
+            # post to the external server's inbox
+            requests.post(full_followee_url, context)
             if curProfile.externalFollows == {}:
                 curProfile.externalFollows['urls'] = []
             curProfile.externalFollows['urls'].append(followee_uid)
@@ -372,7 +382,7 @@ class UserProfileListView(ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # my profile
-        my_profile = UserProfile.objects.filter(user = user)[0] # a query set!
+        my_profile = UserProfile.objects.get(user = user) # a query set!
         # whom I want to follow
         pending_requests = FriendRequest.objects.filter(actor = my_profile)
         # whom wants to follow me
