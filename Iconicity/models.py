@@ -21,13 +21,12 @@ class UserProfileManager(models.Manager):
         profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
         my_profile = UserProfile.objects.get(user = sender) # my profile
         # below are requests that are related to the current user:
-        queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object_author=my_profile))
+        queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object=my_profile))
         #print(queryset)
         accepted = set()
         for frdReq in queryset:
-            if frdReq.status == 'accepted':
-                accepted.add(frdReq.receiver)
-                accepted.add(frdReq.sender)
+            accepted.add(frdReq.receiver)
+            accepted.add(frdReq.sender)
         #print(accepted)
         available = [p for p in profiles if profiles not in accepted]
         #print(available)
@@ -210,7 +209,7 @@ class FriendRequest(models.Model):
     objects = FriendRequestManager()
 
     def __str__(self):
-        return f"{self.actor}-->{self.object_author}: {self.summary}, status: {self.status}"
+        return f"{self.actor}-->{self.object}: {self.summary}"
 
 
 class Comment(models.Model):
