@@ -846,7 +846,7 @@ class Inboxs(APIView):
             else:
                 print("Inbox operation not handled")
         except Exception as e:
-            print(e)
+            print("Error happened: ", e)
 
     def delete(self, request, author_id):
         # clear the inbox
