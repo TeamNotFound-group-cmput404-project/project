@@ -127,6 +127,25 @@
       <!-- This is the end of a post -->
 
       <!-- Pagination-->
+      {% if posts.paginator.num_pages > 1 %}
+
+    {% if posts.has_previous %}
+
+        <a href="?page={{ posts.previous_page_number }}">previous</a>
+
+    {% endif %}
+
+    <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+
+    {% if posts.has_next %}
+
+        <a href="?page={{ posts.next_page_number }}">next</a>
+
+    {% endif %}
+    
+   
+
+{% endif %}
       <!-- <br><br>
       <div class="center">
         <div class="pagination">

@@ -21,6 +21,7 @@ urlpatterns = [
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'mypost'),
 	path('public',views.mainPagePublic,name = "public"),
+	# path('public',views.page,name = "public"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),
@@ -37,7 +38,7 @@ urlpatterns = [
 	path('remove_friend', views.remove_friend, name='remove_friend'),
 	path('accept_friend_request', views.accept_friend_request, name='accept_friend_request'),
 	path('reject_friend_request', views.reject_friend_request, name='reject_friend_request'),
-
+	
 	# APIs
     path(r'posts/', views.Posts().as_view()),
     path(r'posts', views.Posts().as_view()),

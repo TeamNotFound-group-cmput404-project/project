@@ -1,6 +1,8 @@
 from django.shortcuts import render, resolve_url, reverse, get_object_or_404,redirect
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
+from .models import Post
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -25,7 +27,13 @@ import collections
 from rest_framework.renderers import JSONRenderer
 
 #https://thecodinginterface.com/blog/django-auth-part1/
+def page(request):
+    posts_list = Post.objects.all()
+    paginator = Paginator(posts_list, 5)
+    page = request.GET.get('page')
+    posts = paginator.get_page(page)
 
+    return render(request,'Iconicity/main_page.html',{'posts':posts})
 
 def logout_view(request):
     # in use, support log out
@@ -92,6 +100,11 @@ def mainPagePublic(request):
     new_list = requests.get(string).json()
     externalPosts = getAllExternalPublicPosts()
     new_list += externalPosts
+    
+
+    
+    
+
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -618,6 +631,7 @@ def profile(request):
     return render(request,'Iconicity/profile.html', context)
 
 def public(request):
+    
     return render(request,'Iconicity/public.html')
 
 def createJsonFromProfile(postList):
@@ -845,7 +859,10 @@ class Posts(APIView):
             return HttpResponse('Unauthorized', status=401)
         '''
 
-        posts = Post.objects.filter(visibility = "PUBLIC").all()
+        posts = Post.objects.filter(visibility = "PUBLIC").all().order_by('-published')
+        paginator = Paginator(posts, 5)
+        page = request.GET.get('page')
+        posts = paginator.get_page(page)
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
