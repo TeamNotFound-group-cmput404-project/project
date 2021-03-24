@@ -842,7 +842,8 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "Follow": 
-                # if the type is “follow” then add that follow is added to the author’s inbox to approve later   
+                # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
+                print("type is Followwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww") 
                 inbox_obj.items['Follow'].append(data_json)
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
