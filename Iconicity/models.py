@@ -251,7 +251,22 @@ class Comment(models.Model):
     def get_absolute_url(self):
         return reverse("main_page")
 
-class Like(models.Model):
+class LikeSingle(models.Model):
+    """
+    looks like:
+    {
+        id: (primary key)
+        type:liked
+        context:...
+        summary:...
+        author: object
+        post_object:url
+    }
+    different from the spec
+    If you need to save a list of liked objs in other class
+    just query some liked objects, encode into json format
+    then the model can use this liked list. Same thing for comments.
+    """
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
@@ -260,8 +275,8 @@ class Like(models.Model):
     summary = models.TextField(default="")
 
     # foreign key to the author
-    author = models.JSONField(default=dict)
-    object = models.URLField(default="")
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    post_object = models.URLField(default="")
 
 class Inbox(models.Model):
     type = models.CharField(max_length=10, default="inbox")
@@ -276,4 +291,3 @@ class ExternalServer(models.Model):
 
     def get_host(self):
         return self.host
-
