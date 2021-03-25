@@ -34,11 +34,9 @@
               <!--<p>Github link: {{ follow.actor.github }}</p>
               <p>Host link: {{ follow.actor.host }}</p>
               <p>url: {{ follow.actor.url }}</p>-->
-              <!--<form action="{% url 'accept_friend_request' %}" method='POST'>
-                {% csrf_token %}-->
+                <!--{% csrf_token %}-->
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
                 name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
-              <!--</form>-->
             </div>
           {% endfor %}
         {% endif %}
