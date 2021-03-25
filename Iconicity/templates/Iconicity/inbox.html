@@ -18,7 +18,7 @@
       {% else %}
         <h1 class="w3-center w3-margin-top">You have the following messages:</h1>
         {% if not is_likes_empty %}
-          <h2 class="w3-center w3-margin-top">You have received likes:</h1>
+          <h2 class="w3-left w3-margin-top">You have received likes:</h2><hr>
           {% for like in likes %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ like.summary }}</h4>
@@ -40,7 +40,7 @@
           {% endfor %}
         {% endif %}
         {% if not is_posts_empty %}
-          <h2 class="w3-center w3-margin-top">There have been new posts:</h1>
+          <h2 class="w3-left w3-margin-top">There have been new posts:</h2><hr>
           {% for post in posts %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
             <h1>{{ post.title }}</h1><br>
