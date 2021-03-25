@@ -92,6 +92,7 @@ def mainPagePublic(request):
     new_list = requests.get(string).json()
     externalPosts = getAllExternalPublicPosts()
     new_list += externalPosts
+    print(new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
