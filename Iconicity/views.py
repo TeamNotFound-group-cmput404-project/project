@@ -286,13 +286,25 @@ def unfollow_someone(request):
 # by Shway, this view below shows the list of received friend requests:
 def inbox_view(request):
     profile = getUserProfile(request.user)
-    full_id = profile.host + '/author/' + profile.uid
-    cur_inbox = Inbox.objects.get(author=full_id)
+    # enumerate all possibilities of schemes
+    full_id = str(profile.host) + '/author/' + str(profile.uid)
+    cur_inbox = Inbox.objects.filter(author=full_id)
+    if len(cur_inbox) == 0:
+        temp = "https://" + full_id
+        cur_inbox = Inbox.objects.filter(author=temp)
+        if len(cur_inbox) == 0:
+            temp = "http://" + full_id
+            cur_inbox = Inbox.objects.filter(author=temp)
+            if len(cur_inbox) == 0:
+                return render(request, 'Iconicity/inbox.html', {'is_empty': True})
+    cur_inbox = cur_inbox[0] # to get from a query set...
+    # to see if the result is empty
     is_empty = False
     inbox_size = len(cur_inbox['Follow']) + len(cur_inbox['post']) + len(cur_inbox['Like'])
     if inbox_size == 0: is_empty = True
     # put information to the context
     context = {
+        'is_empty': is_empty,
         'likes': cur_inbox['Like'],
         'follows': cur_inbox['Follow'],
         'posts': cur_inbox['post'],}
