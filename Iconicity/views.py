@@ -871,11 +871,13 @@ class Inboxs(APIView):
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
                 inbox_obj.items['Post'].append(data_json)
+                inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "Follow": 
                 # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
                 inbox_obj.items['Follow'].append(data_json)
+                inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
                 print("Inbox operation not handled")
