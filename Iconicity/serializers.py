@@ -17,7 +17,6 @@ class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
 
 # https://www.django-rest-framework.org
 class PostSerializer(rest_serializers.ModelSerializer):
-
     post_id = rest_serializers.SerializerMethodField()
     author = rest_serializers.SerializerMethodField()
     count = rest_serializers.SerializerMethodField()
@@ -56,8 +55,6 @@ class PostSerializer(rest_serializers.ModelSerializer):
         else:
 
             return CommentSerializer(list(comments),many=True).data
-
-        
 
     def get_post_id(self, obj):
         return obj.post_id
@@ -105,7 +102,6 @@ class CommentSerializer(rest_serializers.ModelSerializer):
     def get_id(self, obj):
         if obj.post[-1] == "/":
             return str(obj.post) + "comments/" + str(obj.id)
-
         else:
             return str(obj.post) + "/comments/" + str(obj.id)
         
@@ -156,10 +152,10 @@ class InboxSerializer(rest_serializers.ModelSerializer):
 
 # By: Shway Wang, the serializer for FriendRequest
 class FriendRequestSerializer(rest_serializers.ModelSerializer):
-    type = models.CharField(max_length=10, default="Follow")
-    summary = models.TextField(default="")
-    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
-    object = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object")
+    type = rest_serializers.SerializerMethodField()
+    summary = rest_serializers.SerializerMethodField()
+    actor = rest_serializers.SerializerMethodField()
+    object = rest_serializers.SerializerMethodField()
 
     class Meta:
         model = FriendRequest
