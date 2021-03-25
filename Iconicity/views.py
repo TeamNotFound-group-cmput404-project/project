@@ -300,14 +300,14 @@ def inbox_view(request):
     cur_inbox = cur_inbox[0] # to get from a query set...
     # to see if the result is empty
     is_empty = False
-    inbox_size = len(cur_inbox.items['Follow']) + len(cur_inbox.items['post']) + len(cur_inbox.items['Like'])
+    inbox_size = len(cur_inbox.items['Follow']) + len(cur_inbox.items['Post']) + len(cur_inbox.items['Like'])
     if inbox_size == 0: is_empty = True
     # put information to the context
     context = {
         'is_empty': is_empty,
         'likes': cur_inbox.items['Like'],
         'follows': cur_inbox.items['Follow'],
-        'posts': cur_inbox.items['post'],}
+        'posts': cur_inbox.items['Post'],}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
