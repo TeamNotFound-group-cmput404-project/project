@@ -26,14 +26,13 @@
           {% endfor %}
         {% endif %}
         {% if not is_follows_empty %}
-          <h2 class="w3-center w3-margin-top">Your new followers:</h1>
+          <h2 class="w3-left w3-margin-top">Your new followers:</h1>
           {% for follow in follows %}
-          hello
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ follow.summary }}</h4>
-              <!--<p>Github link: {{ follow.actor.github }}</p>
+              <p>Github link: {{ follow.actor.github }}</p>
               <p>Host link: {{ follow.actor.host }}</p>
-              <p>url: {{ follow.actor.url }}</p>-->
+              <p>url: {{ follow.actor.url }}</p>
                 <!--{% csrf_token %}-->
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
                 name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
