@@ -286,14 +286,16 @@ def unfollow_someone(request):
 # by Shway, this view below shows the list of received friend requests:
 def inbox_view(request):
     profile = getUserProfile(request.user)
-    frdRequests = FriendRequest.objects.friendRequests_received(profile)
+    full_id = profile.host + '/author/' + profile.uid
+    cur_inbox = Inbox.objects.get(author=full_id)
     is_empty = False
-    if len(frdRequests) == 0: is_empty = True
-    # take actor(sender) of each request
-    senders = list(map(lambda x: x.actor, frdRequests))
+    inbox_size = len(cur_inbox['Follow']) + len(cur_inbox['post']) + len(cur_inbox['Like'])
+    if inbox_size == 0: is_empty = True
+    # put information to the context
     context = {
-        'senders': senders,
-        'is_empty': is_empty}
+        'likes': cur_inbox['Like'],
+        'follows': cur_inbox['Follow'],
+        'posts': cur_inbox['post'],}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
@@ -775,20 +777,7 @@ class Inboxs(APIView):
 
     def post(self, request, author_id):
         data_json = request.data
-        print("data received at inbox: ", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
-        print("local author url: ", local_author_profile.url)
-        '''
-        # rid of the starting "https://"
-        scheme1 = "http://"
-        scheme2 = "https://"
-        if local_author_profile.url.startswith(scheme1):
-            local_author_profile.url = local_author_profile.url[len(scheme1):]
-            local_author_profile.save()
-        elif local_author_profile.url.startswith(scheme2):
-            local_author_profile.url = local_author_profile.url[len(scheme2):]
-            local_author_profile.save()
-        '''
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             if data_json['type'] == "Like":
@@ -854,7 +843,6 @@ class Inboxs(APIView):
 
             elif data_json['type'] == "Follow": 
                 # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
-                print("type is Followwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww") 
                 inbox_obj.items['Follow'].append(data_json)
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
