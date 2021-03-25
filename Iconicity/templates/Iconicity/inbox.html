@@ -26,7 +26,7 @@
           {% endfor %}
         {% endif %}
         {% if not is_follows_empty %}
-          <h2 class="w3-left w3-margin-top">Your new followers:</h1>
+          <h2 class="w3-left w3-margin-top">Your new followers:</h2><hr>
           {% for follow in follows %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ follow.summary }}</h4>
