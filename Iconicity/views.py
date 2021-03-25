@@ -778,6 +778,7 @@ class Inboxs(APIView):
         print("data received at inbox: ", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         print("local author url: ", local_author_profile.url)
+        '''
         # rid of the starting "https://"
         scheme1 = "http://"
         scheme2 = "https://"
@@ -787,6 +788,7 @@ class Inboxs(APIView):
         elif local_author_profile.url.startswith(scheme2):
             local_author_profile.url = local_author_profile.url[len(scheme2):]
             local_author_profile.save()
+        '''
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             if data_json['type'] == "Like":
