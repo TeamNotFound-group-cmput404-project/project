@@ -33,6 +33,15 @@
     </div>
     <p class="help is-danger">{{ form.password.errors }}</p>
   </div>
+  {% for message in messages %}
+
+    <div class="alert alert-success">
+      <a class="close" href="#" data-dismiss="alert">×</a>
+
+      {{ message }}
+
+    </div>
+  {% endfor %}
   
  <div class = "signin">
   <a href="main">

@@ -36,6 +36,9 @@ class UserProfileManager(models.Manager):
         # curUser is of type User
         return UserProfile.objects.all().exclude(user = exception)
 
+class SignUpConfirm(models.Model):
+    boolean = models.BooleanField(default=False)
+    
 class UserProfile(models.Model):
     # max length for the user display name
     max_name_length = 30
@@ -155,9 +158,11 @@ class Post(models.Model):
     # publish time
     published = models.DateTimeField(default=timezone.now)
 
-    # visibility ["PUBLIC","FRIENDS"]
+    # visibility ["PUBLIC","FRIENDS","UNLISTED"]
     visibility = models.CharField(max_length=10,
-                                  choices=[("PUBLIC", "PUBLIC"),("FRIENDS","FRIENDS")],
+                                  choices=[("PUBLIC", "PUBLIC"),
+                                           ("FRIENDS","FRIENDS"),
+                                           ("UNLISTED","UNLISTED")],
                                   default="PUBLIC")
 
     # unlisted means it is public if you know the post name -- use this for
