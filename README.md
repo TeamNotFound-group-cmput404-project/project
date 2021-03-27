@@ -105,6 +105,53 @@ Comment sections in comment_form.html, main_page.html, friends.html, follow.html
 
 post_form.html is refer to https://www.youtube.com/watch?v=m3efqF9abyg. <br/>
 
+
+RestAPI
+========
+*** Post    
+    - URL:/author/{AUTHOR_ID}/posts/{POST_ID}
+      - GET get the public post
+      - POST update the post (must be authenticated)
+      - DELETE remove the post
+      - PUT create a post with that post_id
+    - Creation URL :/author/{AUTHOR_ID}/posts/
+      - GET get recent posts of author
+      - POST create a new post but generate a post_id
+    - Be aware that Posts can be images that need base64 decoding.
+      - posts can also hyperlink to images that are public
+    - Example:
+    {
+        "post_id": "f5aa6025-27a8-4c9f-aeb3-842ec8acc62e",
+        "title": "test",
+        "type": "post",
+        "source": "https://iconicity-test-a.herokuapp.com/author/6d46c8ee-1f6e-4da8-a905-e4fdc1f9a44c/posts/f5aa6025-27a8-4c9f-aeb3-842ec8acc62e",
+        "origin": "https://iconicity-test-a.herokuapp.com/author/6d46c8ee-1f6e-4da8-a905-e4fdc1f9a44c/posts/f5aa6025-27a8-4c9f-aeb3-842ec8acc62e",
+        "description": "test",
+        "contentType": "text/plain",
+        "author": {
+            "user_type": "author",
+            "uid": "iconicity-test-a.herokuapp.com/author/6d46c8ee-1f6e-4da8-a905-e4fdc1f9a44c",
+            "display_name": "meilin",
+            "host": "iconicity-test-a.herokuapp.com",
+            "github": "https://github.com/Meilin-Lyu",
+            "url": "iconicity-test-a.herokuapp.com/author/6d46c8ee-1f6e-4da8-a905-e4fdc1f9a44c"
+        },
+        "content": "test",
+        "visibility": "PUBLIC",
+        "categories": {},
+        "unlisted": false,
+        "image": null,
+        "like": [],
+        "external_likes": {},
+        "count": 0,
+        "size": 0,
+        "published": "2021-03-27T20:17:32.391882Z",
+        "host": "",
+        "like_count": 0,
+        "comments": [],
+        "author_display_name": "meilin"
+    }
+
 Contributors / Licensing
 ========================
 
