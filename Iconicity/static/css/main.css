@@ -59,7 +59,19 @@ article, aside, figure, footer, header, hgroup,
 }
 
 .pagination a:hover:not(.active) {background-color: rgb(255, 255, 255);}
-
+footer{
+  height:100px;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color:grey;
+  color: white;
+  text-align: center;
+}
+footer p{
+  color:white;
+}
 input{
   width: 100%;
   border-radius: 4px;
