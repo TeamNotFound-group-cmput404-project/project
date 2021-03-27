@@ -104,7 +104,7 @@ def mainPagePublic(request):
         'UserProfile': getUserProfile(request.user),
         'myself': str(request.user),
     }
-        
+    print(new_list)
     return render(request, 'Iconicity/main_page.html', context)
 
 
