@@ -23,6 +23,10 @@ from urllib.request import urlopen
 import requests
 import collections
 from rest_framework.renderers import JSONRenderer
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -92,7 +96,6 @@ def mainPagePublic(request):
     new_list = requests.get(string).json()
     externalPosts = getAllExternalPublicPosts()
     new_list += externalPosts
-    print(new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -568,7 +571,7 @@ def mypost(request):
 
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = PostSerializer(postList, many=True).data
-
+    # print("request:", request)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -1039,3 +1042,15 @@ class Likes(APIView):
         likes = list(Like.objects.filter(object=post))
         serializer = LikeSerializer(likes,many=True)
         return Response(serializer.data)
+
+class AuthView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        print("request:", request)
+        content = {
+            'user': str(request.user),  # `django.contrib.auth.User` instance.
+            'auth': str(request.auth),  # None
+        }
+        return Response(content)
