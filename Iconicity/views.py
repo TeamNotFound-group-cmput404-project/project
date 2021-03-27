@@ -90,9 +90,10 @@ def mainPagePublic(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = requests.get(string).json()
+    #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
     new_list += externalPosts
-    print(new_list)
+    #print("all",new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -598,8 +599,10 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
+        print("full_urls",full_url)
         temp = requests.get(full_url)
         posts = temp.json()
+        print(posts)
         allPosts += posts
     return allPosts
 
