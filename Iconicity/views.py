@@ -621,6 +621,8 @@ def getAllExternalAuthors():
     return allAuthors
 
 class AllAuthors(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         # Get all local authors
         userProfile = UserProfile.objects.all()
@@ -629,6 +631,8 @@ class AllAuthors(APIView):
 
 
 class AuthorById(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         userProfile = UserProfile.objects.get(pk=author_id)
         serializer = GETProfileSerializer(userProfile)
@@ -723,6 +727,8 @@ def friends(request):
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
         '''
@@ -740,6 +746,8 @@ class Posts(APIView):
         return Response(serializer.data)
 
 class PostById(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
         serializer = PostSerializer(posts, many=True)
@@ -781,6 +789,8 @@ class PostById(APIView):
         pass
 
 class Inboxs(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         User = UserProfile.objects.get(pk=author_id)
         inbox = Inbox.objects.get(author=User.url)
@@ -871,6 +881,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data,status=200)
 
 class AllPostsByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
@@ -878,11 +890,15 @@ class AllPostsByAuthor(APIView):
         return Response(serializer.data)
 
 class ExternalFollowersByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         friendPosts = Post.objects.filter(author=authorProfile.user)
@@ -969,7 +985,8 @@ class AddCommentView(CreateView):
 
 
 class Comments(APIView):
-
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, post_id, author_id):
         # POST if you post an object of “type”:”comment”, 
         # it will add your comment to the post
@@ -1004,6 +1021,8 @@ class Comments(APIView):
         return Response(serializer.data)
 
 class Likes(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, post_id, author_id):
         post = (str(request.scheme) + "://"
                             + str(request.get_host())
