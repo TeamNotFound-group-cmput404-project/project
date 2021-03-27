@@ -117,9 +117,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
         fields = ('user_type', 'uid','display_name','host','github','url')
 
     def get_uid(self, obj):
-        if type(obj) == dict:
-            return str(obj['host']) + '/author/' + str(obj['uid'])
-        return str(obj.host) + '/author/' + str(obj.uid)
+        return obj.url
 
     def get_name(self, obj):
         return obj.display_name
