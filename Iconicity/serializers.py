@@ -131,9 +131,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
         return obj.github
 
     def get_url(self,obj):
-        if type(obj) == dict:
-            return str(obj['host']) + '/author/' + str(obj['uid'])
-        return str(obj.host) + '/author/' + str(obj.uid)
+        return obj.url
 
 class LikeSerializer(rest_serializers.ModelSerializer):
 

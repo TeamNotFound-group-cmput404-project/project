@@ -89,9 +89,12 @@ def mainPagePublic(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+    print(str(request.scheme))
+    print(str(request.get_host()))
     new_list = requests.get(string).json()
     #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
+    print(externalPosts)
     new_list += externalPosts
     #print("all",new_list)
     context = {
@@ -599,10 +602,11 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
-        print("full_urls",full_url)
+        #print(full_url)
         temp = requests.get(full_url)
+        
         posts = temp.json()
-        print(posts)
+
         allPosts += posts
     return allPosts
 
@@ -898,6 +902,7 @@ class AddCommentView(CreateView):
         pk_raw = request.POST.get('pk')
         post = None
         pk_new = None
+        print("pk_raw",pk_raw)
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
@@ -921,6 +926,7 @@ class AddCommentView(CreateView):
                     else:
                         response = requests.post(pk_raw+"/comments",
                             data={"comment":form.comment,"author":currentUserProfile.url})
+                    print("response",response)
                     return redirect('public')
                     
                 else:
