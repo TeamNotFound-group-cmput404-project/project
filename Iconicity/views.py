@@ -166,14 +166,9 @@ def getComments():
 
 def delete_post(request):
     pk_raw = request.POST.get('pk')
-    print("----------------")
-    print(pk_raw)
     try:
         post = requests.get(pk_raw).json()
-        print("=========")
-        print(post)
         post_id = post[0]["post_id"]
-        print(post_id)
         if post_id:
             post = get_object_or_404(Post,pk=post_id)
             print(post_id)
