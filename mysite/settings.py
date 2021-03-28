@@ -132,3 +132,9 @@ STATICFILES_DIRS = (
     )
 
 django_on_heroku.settings(locals()) # bottom of the file
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+    ]
+}
