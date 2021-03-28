@@ -313,9 +313,11 @@ def inbox_view(request):
     # to see if the result is empty
     follows_size = len(cur_inbox.items['Follow'])
     # jsonify the actors and objects:
+    '''
     for request in cur_inbox.items['Follow']:
     	request['actor'] = json.loads(request['actor'])
     	request['object'] = json.loads(request['object'])
+    '''
     posts_size = len(cur_inbox.items['Post'])
     likes_size = len(cur_inbox.items['Like'])
     print("here are the sizes: ", follows_size, posts_size, likes_size)
