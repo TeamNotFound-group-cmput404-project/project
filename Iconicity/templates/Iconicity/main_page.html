@@ -68,7 +68,7 @@
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
             {% if post.image != '' and post.image != None %}
-              <img src="/media/{{ post.image }}">
+              <img src="{{post.image}}">
             {% endif %}
           </div>
         </div>
@@ -103,14 +103,14 @@
           {% csrf_token %}
           <button class="button", 
             style = "float:left;",
-            type="submit", name="pk", value={{post.pk}}>
+            type="submit", name="pk", value={{post.source}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
         </form>
 
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", style="float:left;", type="submit", name="pk", value={{post.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
         <br>
         <p>{{post.like_count}} liked this post.</p>
