@@ -916,10 +916,10 @@ class AddCommentView(CreateView):
                 post_id = pk_raw
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
-                    form = form.save(commit=False)
-                    form.post = post_id
-                    form.author = currentUserProfile.url
-                    form.save()
+                    #form = form.save(commit=False)
+                    #form.post = post_id
+                    #form.author = currentUserProfile.url
+                    #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
                             data={"comment":form.comment,"author":currentUserProfile.url})
