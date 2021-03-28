@@ -338,9 +338,9 @@ def inbox_view(request):
         'is_posts_empty': is_posts_empty,
         'is_likes_empty': is_likes_empty,
         'is_all_empty': is_all_empty,
-        'likes': cur_inbox.items['Like'],
-        'follows': cur_inbox.items['Follow'],
-        'posts': cur_inbox.items['Post'],}
+        'likes': cur_inbox.items['Like'].json(),
+        'follows': cur_inbox.items['Follow'].json(),
+        'posts': cur_inbox.items['Post'].json(),}
     return render(request, 'Iconicity/inbox.html', context)
 
 '''
