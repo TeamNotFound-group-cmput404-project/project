@@ -96,9 +96,10 @@ def mainPagePublic(request):
     new_list += externalPosts
     #print("all",new_list)
     for post in new_list:
-        abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-        post['image'] = abs_imgpath
-    print(new_list)
+        if post['image'] is not None:
+            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
+            post['image'] = abs_imgpath
+    # print(new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -449,19 +450,26 @@ def repost(request):
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
     img_path = post['image']
-    img_path_dict = img_path.split("/")
-    new_path = ""
-    for i in range(2, len(img_path_dict)):
-        new_path = new_path + "/" + img_path_dict[i]
+    if img_path is not None:
+        img_path_dict = img_path.split("/")
+        new_path = ""
+        for i in range(2, len(img_path_dict)):
+            new_path = new_path + "/" + img_path_dict[i]
     
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
         post_form.origin = post['origin']
-        post_form.image = new_path
-        post_form.source = (str(post['author']['uid'])
-                                           + '/posts/'
-                                           + str(post['post_id']))
         post_form.author = request.user
+        if img_path is not None:
+            post_form.image = new_path
+        post_form.origin = post['origin']
+        userProfile = UserProfile.objects.get(user=request.user)
+        post_form.source = (str(request.scheme) + "://"
+                                            + str(request.get_host())
+                                            + '/author/'
+                                            + str(userProfile.pk)
+                                            + '/posts/'
+                                            + str(post_form.post_id))
         post_form.save()
         print("post_form image", post_form.image)
 
@@ -476,25 +484,30 @@ def repost_to_friend(request):
     get_json_response = requests.get(pk_raw)
     print(json.loads(get_json_response.text))
     post = json.loads(get_json_response.text)[0]
-    print("response_dict",post)
 
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'FRIENDS', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
     img_path = post['image']
-    img_path_dict = img_path.split("/")
-    new_path = ""
-    for i in range(2, len(img_path_dict)):
-        new_path = new_path + "/" + img_path_dict[i]
+    if img_path is not None:
+        img_path_dict = img_path.split("/")
+        new_path = ""
+        for i in range(2, len(img_path_dict)):
+            new_path = new_path + "/" + img_path_dict[i]
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
-        post_form.image = new_path
-        post_form.origin = post['origin']
-        post_form.source = (str(post['author']['uid'])
-                                           + '/posts/'
-                                           + str(post['post_id']))
         post_form.author = request.user
+        if img_path is not None:
+            post_form.image = new_path
+        post_form.origin = post['origin']
+        userProfile = UserProfile.objects.get(user=request.user)
+        post_form.source = (str(request.scheme) + "://"
+                                            + str(request.get_host())
+                                            + '/author/'
+                                            + str(userProfile.pk)
+                                            + '/posts/'
+                                            + str(post_form.post_id))
         post_form.save()
     else:
         print(post_form.errors)
