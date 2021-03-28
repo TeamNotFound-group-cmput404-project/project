@@ -243,11 +243,14 @@ def follow_someone(request):
             # create a new friend request with the receiver the (external) followee_uid
             summary = curProfile.display_name + " wants to follow " + followee_display_name
             # serialized current profile
-            serialized_actor = GETProfileSerializer(curProfile)
+            actor = json.dumps({"type":"author", "id":curProfile.uid, "host":curProfile.host,
+            	"displayName":curProfile.display_name,
+                "url":curProfile.url, "github": curProfile.github})
             # form the freind request data stream
-            object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
+            object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host,
+            	"displayName":followee_display_name,
                 "url":followee_uid, "github": followee_github})
-            frd_request_context = {"type": "Follow", "summary": summary, "actor": serialized_actor, "object": object}
+            frd_request_context = {"type": "Follow", "summary": summary, "actor": actor, "object": object}
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
