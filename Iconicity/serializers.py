@@ -105,7 +105,9 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         # print("cache",CommentSerializer.author_cache)
         # temp = CommentSerializer.author_cache.json()['display_name']
         # print("display_name",temp)
-        return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()['display_name']
+        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        print('reponse_author_name!!!!', response)
+        return response['display_name']
  
     def get_author(self, obj):
         print("author!!!!!",obj.author)
@@ -115,7 +117,9 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         #     CommentSerializer.author_cache = None
         #     return temp
         # else:
-        return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        print('reponse!!!!', response)
+        return response
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
