@@ -1007,7 +1007,7 @@ class AddCommentView(CreateView):
                     #form.author_id = request.user.id
                     newform.save()
 
-                    return redirect('mypost')
+                    return redirect('public')
                     
                 else:
                     print(form.errors)
