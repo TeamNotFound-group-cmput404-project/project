@@ -250,7 +250,8 @@ def follow_someone(request):
             object = {"type":"author", "id":followee_uid, "host":followee_host,
             	"displayName":followee_display_name,
                 "url":followee_uid, "github": followee_github}
-            frd_request_context = {"type": "Follow", "summary": summary, "actor": actor, "object": object}
+            frd_request_context = {"type": "Follow", "summary": summary,
+            						"actor": json.dumps(actor), "object": json.dumps(object)}
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
