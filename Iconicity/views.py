@@ -161,13 +161,18 @@ def getComments():
     return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
-    template = "/Iconicity/my_post.html"
-    post_id = request.POST.get('pk')
-    if post_id:
-        post = get_object_or_404(Post,pk=request.POST.get('pk'))
-        print(post_id)
-        post.delete()
-
+    pk_raw = request.POST.get('pk')
+    try:
+        post = requests.get(pk_raw).json()
+        post_id = post[0]["post_id"]
+        if post_id:
+            post = get_object_or_404(Post,pk=post_id)
+            print(post_id)
+            post.delete()
+    except Exception as e:
+        post = requests.get(pk_raw)
+        print(e)
+        print('post:', post)
     return redirect("mypost")
 
 
@@ -180,7 +185,7 @@ class AddPostView(CreateView):
         print("posting")
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
-        print(form['image'])
+        print(form['image']) 
         # print(request.FILES)
         if form.is_valid():
             print("posting...")
@@ -197,6 +202,7 @@ class AddPostView(CreateView):
                                                + str(form.post_id))
             form.source = form.origin
             form.save()
+            print(form.image)
             return redirect('public')
 
         else:
@@ -431,47 +437,57 @@ def like_view(request):
 
 def repost(request):
     # should pass back the post from the frontend
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'PUBLIC'}
+    pk_raw = request.POST.get('pk')
+    get_json_response = requests.get(pk_raw)
+    post = json.loads(get_json_response.text)[0]
+    print("response_dict",post)
+    ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'PUBLIC', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
+    img_path = post['image']
+    img_path_dict = img_path.split("/")
+    print("dict: ", img_path_dict)
+    new_path = ""
+    for i in range(2, len(img_path_dict)):
+        new_path = new_path + "/" + img_path_dict[i]
+    
     if post_form.is_valid():
-        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
-        post_form.image = post.image
-        post_form.origin = post.origin
-        post_form.source = (str(request.scheme) + "://"
-                                           + str(request.get_host())
-                                           + '/author/'
-                                           + str(userProfile.pk)
+        post_form.origin = post['origin']
+        post_form.image = new_path
+        post_form.source = (str(request.scheme) + "://" 
+                                           + str(post['author']['uid'])
                                            + '/posts/'
-                                           + str(post.post_id))
+                                           + str(post['post_id']))
         post_form.author = request.user
         post_form.save()
+        print("post_form image", post_form.image)
+
     else:
         print(post_form.errors)
     return redirect('public')
 
 def repost_to_friend(request):
     # should pass back the post from the frontend
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'FRIENDS'}
+    pk_raw = request.POST.get('pk')
+    get_json_response = requests.get(pk_raw)
+    post = json.loads(get_json_response.text)[0]
+    print("response_dict",post)
+
+    ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'FRIENDS', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
-    print(query_dict)
     post_form = PostsCreateForm(query_dict)
+    print(post_form)
     if post_form.is_valid():
-        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
-        post_form.image = post.image
-        post_form.origin = post.origin
-        post_form.source = (str(request.scheme) + "://"
-                                           + str(request.get_host())
-                                           + '/author/'
-                                           + str(userProfile.pk)
+        post_form.image = post['image']
+        post_form.origin = post['origin']
+        post_form.source = (str(request.scheme) + "://" 
+                                           + str(post['author']['uid'])
                                            + '/posts/'
-                                           + str(post.post_id))
+                                           + str(post['post_id']))
         post_form.author = request.user
         post_form.save()
     else:
