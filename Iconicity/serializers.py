@@ -102,9 +102,12 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
+        print("author",obj.author)
         return requests.get(obj.author).json()['display_name']
 
     def get_author(self, obj):
+        print("author",obj.author)
+        
         return requests.get(obj.author).json()
          
     def get_id(self, obj):
