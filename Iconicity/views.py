@@ -450,7 +450,22 @@ def like_view(request):
     like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
     like_obj.author = GETProfileSerializer(current_user_profile).data
 
-    like_obj.object = requests.get()
+    like_obj.object = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]['author']
+    print("like object",like_obj.object)
+    inbox_url = (str(request.scheme) + "://"
+                                    + str(request.get_host())
+                                    + '/author/'
+                                    + str(current_user_profile.pk)
+                                    + '/inbox')
+    like_serializer = LikeSerializer(like_obj).data
+    print("serializer",like_serializer)
+    print("inbox url",inbox_url)
+    print(like_obj.summary)
+    response = requests.post(inbox_url,
+                             data=json.dumps(like_serializer), 
+                             auth=HTTPBasicAuth(auth_user, auth_pass))
+    print("like inbox response",response)
+
 
     return redirect(redirect_path)
 
@@ -869,7 +884,9 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
+        print("inbox posting.....")
         data_json = request.data
+        print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
@@ -984,6 +1001,8 @@ class AddCommentView(CreateView):
         print("posting...")
         currentUserProfile = UserProfile.objects.get(user=request.user)
         pk_raw = request.POST.get('pk')
+        author_json = requests.get(currentUserProfile.url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+
         post = None
         pk_new = None
         print("pk_raw",pk_raw)
@@ -1007,11 +1026,11 @@ class AddCommentView(CreateView):
                     #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
-                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url}, 
+                            data={"comment":form.cleaned_data['comment'],"author":author_json}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     else:
                         response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url}, 
+                            data={"comment":form.cleaned_data['comment'],"author":author_json}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1037,7 +1056,7 @@ class AddCommentView(CreateView):
                 if form.is_valid():
                     newform = form.save(commit=False)
                     newform.post = pk_raw
-                    newform.author = currentUserProfile.url
+                    newform.author = author_json
                     #form.author_id = request.user.id
                     newform.save()
                     return redirect('public')
@@ -1066,6 +1085,7 @@ class Comments(APIView):
     def post(self, request, post_id, author_id):
         # POST if you post an object of “type”:”comment”, 
         # it will add your comment to the post
+        
         comment = Comment()
 
         comment.post = (str(request.scheme) + "://"
@@ -1086,6 +1106,7 @@ class Comments(APIView):
 
     def get(self, request, post_id, author_id):
         # GET get comments of the post
+        print("in comments")
         post = (str(request.scheme) + "://"
                                     + str(request.get_host())
                                     + '/author/'
