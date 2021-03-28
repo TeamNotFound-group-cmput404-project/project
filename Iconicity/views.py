@@ -89,8 +89,7 @@ def mainPagePublic(request):
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
-    print(str(request.scheme))
-    print(str(request.get_host()))
+
     new_list = requests.get(string).json()
     #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
@@ -595,6 +594,7 @@ def getAllPublicPostsCurrentUser():
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
+    print("connected",externalHosts)
     allPosts = []
     full_url = ''
     for host_url in externalHosts:
