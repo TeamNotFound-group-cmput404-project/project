@@ -25,8 +25,9 @@ class UserProfileManager(models.Manager):
         #print(queryset)
         accepted = set()
         for frdReq in queryset:
-            accepted.add(frdReq.receiver)
-            accepted.add(frdReq.sender)
+            if frdReq.status == 'accepted':
+                accepted.add(frdReq.receiver)
+                accepted.add(frdReq.sender)
         #print(accepted)
         available = [p for p in profiles if profiles not in accepted]
         #print(available)
@@ -187,9 +188,15 @@ class Post(models.Model):
     def __str__(self):
         return '%s' % (self.title)
 
+# By Shway:
+STATUS_CHOICES = (
+    ('sent', 'sent'),
+    ('accepted', 'accepted'),
+)
+
 class FriendRequestManager(models.Manager):
     def friendRequests_received(self, receiver):
-        return FriendRequest.objects.filter(object=receiver)
+        return FriendRequest.objects.filter(object=receiver, status='sent')
 
     #FriendRequest.objects.friendRequests_received(curUserProfile)
 
@@ -203,13 +210,17 @@ class FriendRequest(models.Model):
     # Sender of this friend request:
     actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
 
+    # By: Shway
+    # For the receiver to choose to accept or reject:
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
     # Reciever of this friend request:
     object = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object")
 
     objects = FriendRequestManager()
 
     def __str__(self):
-        return f"{self.actor}-->{self.object}: {self.summary}"
+        return f"{self.actor}-->{self.object}: {self.summary}, status: {self.status}"
 
 
 class Comment(models.Model):
