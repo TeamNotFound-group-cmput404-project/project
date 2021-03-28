@@ -389,8 +389,10 @@ def like_view(request):
     # 1. if this post is on our server, then pk works
     # 2. if this post is not on our server, then url works
     pk_raw = request.POST.get('pk')
-
+    current_user_profile = UserProfile.objects.get(user=request.user)
+    current_url = current_user_profile.url
     post = None
+
     #print(request.POST.data)
     if '/' in pk_raw:
         try:
@@ -399,8 +401,7 @@ def like_view(request):
             post = Post.objects.get(pk=pk_new)
         except Exception as e:
             # means that this is not on our server
-            current_user_profile = UserProfile.objects.get(user=request.user)
-            current_url = current_user_profile.url
+            
             print(e)
             get_json_response = requests.get(pk_raw)
             response_dict = json.loads(get_json_response.text)[0]
@@ -436,6 +437,14 @@ def like_view(request):
         post.like.add(request.user)
         post.like_count = post.count_like()
         post.save()
+
+    # Send something to its inbox
+    like_obj = Like()
+    like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
+    like_obj.author = GETProfileSerializer(current_user_profile).data
+
+    like_obj.object = requests.get()
+
     return redirect(redirect_path)
 
 def repost(request):
