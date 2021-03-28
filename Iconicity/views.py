@@ -88,11 +88,14 @@ def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
-    new_list = requests.get(string).json()
+    #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+    new_list = PostSerializer(list(Post.objects.all()),many=True).data
+    #new_list = requests.get(string).json()
+    #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
+    print(externalPosts)
     new_list += externalPosts
-    print(new_list)
+    #print("all",new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -591,6 +594,7 @@ def getAllPublicPostsCurrentUser():
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
+    print("connected",externalHosts)
     allPosts = []
     full_url = ''
     for host_url in externalHosts:
@@ -598,8 +602,11 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
+        print(full_url)
         temp = requests.get(full_url)
+        print("temp",temp)
         posts = temp.json()
+
         allPosts += posts
     return allPosts
 
@@ -895,6 +902,7 @@ class AddCommentView(CreateView):
         pk_raw = request.POST.get('pk')
         post = None
         pk_new = None
+        print("pk_raw",pk_raw)
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
@@ -908,16 +916,17 @@ class AddCommentView(CreateView):
                 post_id = pk_raw
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
-                    form = form.save(commit=False)
-                    form.post = post_id
-                    form.author = currentUserProfile.url
-                    form.save()
+                    #form = form.save(commit=False)
+                    #form.post = post_id
+                    #form.author = currentUserProfile.url
+                    #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
-                            data={"comment":form.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
                     else:
                         response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
+                    print("response",response)
                     return redirect('public')
                     
                 else:
@@ -944,9 +953,8 @@ class AddCommentView(CreateView):
                     newform.author = currentUserProfile.url
                     #form.author_id = request.user.id
                     newform.save()
-                    form.save_m2m()
 
-                    return redirect('public')
+                    return redirect('mypost')
                     
                 else:
                     print(form.errors)
