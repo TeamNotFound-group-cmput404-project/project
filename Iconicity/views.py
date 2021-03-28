@@ -993,28 +993,31 @@ class FriendPostsByAuthor(APIView):
         friendPosts = Post.objects.filter(author=authorProfile.user)
         return Response(PostSerializer(friendPosts, many=True).data)
 
-class AddCommentView(CreateView):
-    model = Comment
-    template = "Iconicity/comment_form.html"
+def post_comments(request):
+    ppid = request.POST.get('ppid')
+    if ppid:
+        
+        context = {'form123': CommentsCreateForm(), "url": ppid}
+        return render(request, 'Iconicity/comment_form.html', context)
 
-    def post(self, request):
-        print("posting...")
-        currentUserProfile = UserProfile.objects.get(user=request.user)
-        pk_raw = request.POST.get('pk')
-        author_json = requests.get(currentUserProfile.url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
 
-        post = None
-        pk_new = None
-        print("pk_raw",pk_raw)
+    pk_raw = request.POST.get('pk')
+    currentUserProfile = UserProfile.objects.get(user=request.user)
+    author_json = requests.get(currentUserProfile.url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
 
+    post = None
+    pk_new = None
+    print("pk_raw",pk_raw)
+    if pk_raw:
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
                 post = Post.objects.get(pk=pk_new)
             except Exception as e:
                 # means that this is not on our server
+                print("not on server")
                 context = {
-                    'form':CommentsCreateForm,
+                    'form123':CommentsCreateForm,
                     'post':post,
                 }
                 post_id = pk_raw
@@ -1040,7 +1043,7 @@ class AddCommentView(CreateView):
                     form = CommentsCreateForm(request.POST)
                 
                 context = {
-                    'form': form,
+                    'form123': form,
                 }
                 
                 return render(request, template, context)
@@ -1048,7 +1051,7 @@ class AddCommentView(CreateView):
                 print("on our server")
                 # means that this post is on our server
                 context = {
-                    'form':  CommentsCreateForm,
+                    'form123':  CommentsCreateForm(request.POST),
                     'post':post,
                 }
                 template = "Iconicity/comment_form.html"
@@ -1066,16 +1069,9 @@ class AddCommentView(CreateView):
                     form = CommentsCreateForm(request.POST)
                 
                 context = {
-                    'form': form,
+                    'form123': form,
                 }
                 return render(request, template, context)
-
-        #return render(request, 'Iconicity/comment_form.html', context)
-
-    def get(self, request):
-        pk_url = request.GET.get('pk')
-
-        return render(request, 'Iconicity/comment_form.html', {'form': CommentsCreateForm, "url": pk_url})
 
 
 class Comments(APIView):
