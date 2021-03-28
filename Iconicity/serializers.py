@@ -59,7 +59,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         else:
             print(list(comments))
-            serializer_data = CommentSerializer(list(comments),many=True).data
+            serializer_data = CommentSerializer(list(comments),many=True).data.json()
             print("serializer_data",serializer_data)
             return serializer_data
 
