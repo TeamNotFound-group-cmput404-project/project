@@ -953,7 +953,6 @@ class AddCommentView(CreateView):
                     newform.author = currentUserProfile.url
                     #form.author_id = request.user.id
                     newform.save()
-                    form.save_m2m()
 
                     return redirect('public')
                     
