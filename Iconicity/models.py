@@ -208,14 +208,14 @@ class FriendRequest(models.Model):
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    actor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="actor")
+    actor = models.URLField(default="")
 
     # By: Shway
     # For the receiver to choose to accept or reject:
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
 
     # Reciever of this friend request:
-    object = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="object")
+    object = models.URLField(default="")
 
     objects = FriendRequestManager()
 
