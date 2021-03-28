@@ -1,10 +1,13 @@
 from .models import *
+from .config import *
 from rest_framework import serializers as rest_serializers
 from django.contrib.auth.models import User
 import datetime
 from urllib import request
 import json
 import requests
+from requests.auth import HTTPBasicAuth
+
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
     externalFollows = rest_serializers.SerializerMethodField('get_externalFollows')
@@ -49,12 +52,6 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         except Exception as e:
             print("Exception in post comments")
-            # no comments or 
-            '''
-            if url[-1] != '/':
-                url += '/'
-
-            return requests.get(url+'comments').json()'''
             return []
 
         else:
@@ -104,7 +101,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
 
     def get_comment_author_name(self, obj):
         print("author",obj.author)
-        CommentSerializer.author_cache = requests.get(obj.author)
+        CommentSerializer.author_cache = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass))
         print("cache",CommentSerializer.author_cache)
         temp = CommentSerializer.author_cache.json()['display_name']
         print("display_name",temp)
@@ -116,7 +113,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
             print("cached")
             return CommentSerializer.author_cache.json()
         else:
-            return requests.get(obj.author).json()
+            return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
