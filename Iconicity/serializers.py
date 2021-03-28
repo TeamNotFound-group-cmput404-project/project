@@ -111,7 +111,9 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         print("author",obj.author)
         if CommentSerializer.author_cache:
             print("cached")
-            return CommentSerializer.author_cache.json()
+            temp = CommentSerializer.author_cache.json()
+            CommentSerializer.author_cache = None
+            return temp
         else:
             return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
          
