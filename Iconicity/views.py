@@ -922,10 +922,10 @@ class AddCommentView(CreateView):
                     #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
-                            data={"comment":form.cleaned_data.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
                     else:
                         response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.cleaned_data.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
                     print("response",response)
                     return redirect('public')
                     
