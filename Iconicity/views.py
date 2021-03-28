@@ -604,7 +604,7 @@ def getAllExternalPublicPosts():
             full_url = host_url + "/posts"
         #print(full_url)
         temp = requests.get(full_url)
-        
+        print("temp content",temp.content)
         posts = temp.json()
 
         allPosts += posts
