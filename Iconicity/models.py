@@ -216,7 +216,7 @@ class Comment(models.Model):
     #post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
     #author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
-    author = models.URLField(default="") # author is the creator of this comment, not post author
+    author = models.JSONField(default=dict) # author is the creator of this comment, not post author
     post = models.URLField(default="")
     # ISO 8601 TIMESTAMP
     # publish time
@@ -250,7 +250,7 @@ class Like(models.Model):
 
     # foreign key to the author
     author = models.JSONField(default=dict)
-    object = models.URLField(default="")
+    object = models.JSONField(default=dict)
 
 class Inbox(models.Model):
     type = models.CharField(max_length=10, default="inbox")

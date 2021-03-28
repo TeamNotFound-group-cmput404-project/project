@@ -5,8 +5,7 @@ from django.contrib.auth.models import User
 import datetime
 from urllib import request
 import json
-import requests
-from requests.auth import HTTPBasicAuth
+
 
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
@@ -45,19 +44,18 @@ class PostSerializer(rest_serializers.ModelSerializer):
         url = obj.origin
         if obj.source != "" and obj.source != None:
             url = obj.source
-
+        comments = []
+        print(url)
         try:
             comments = Comment.objects.filter(post=url)
-            print("comments",comments)
 
         except Exception as e:
             print("Exception in post comments")
             return []
 
         else:
-            print(list(comments))
+            print("comments",comments)
             serializer_data = CommentSerializer(list(comments),many=True).data
-            print("serializer_data",serializer_data)
             return serializer_data
 
     def get_post_id(self, obj):
@@ -100,26 +98,13 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        print("author name!!!!!",obj.author)
-        # CommentSerializer.author_cache = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass))
-        # print("cache",CommentSerializer.author_cache)
-        # temp = CommentSerializer.author_cache.json()['display_name']
-        # print("display_name",temp)
-        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
-        print('reponse_author_name!!!!', response)
-        return response['display_name']
+        print("comment obj",obj)
+        temp = obj.author
+        print("temp in comment serializer",temp)
+        return temp['display_name']
  
     def get_author(self, obj):
-        print("author!!!!!",obj.author)
-        # if CommentSerializer.author_cache:
-        #     print("cached")
-        #     temp = CommentSerializer.author_cache.json()
-        #     CommentSerializer.author_cache = None
-        #     return temp
-        # else:
-        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
-        print('reponse!!!!', response)
-        return response
+        return obj.author
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
@@ -154,11 +139,30 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
         return obj.url
 
 class LikeSerializer(rest_serializers.ModelSerializer):
-
+    context = rest_serializers.SerializerMethodField()
+    summary = rest_serializers.SerializerMethodField()
+    author = rest_serializers.SerializerMethodField()
+    object = rest_serializers.SerializerMethodField()
+    type = rest_serializers.SerializerMethodField()
 
     class Meta:
         model = Like
         fields = ('context','summary','author','object','type')
+
+    def get_context(self,obj):
+        return obj.context
+    
+    def get_summary(self, obj):
+        return obj.summary
+
+    def get_object(self,obj):
+        return obj.object
+
+    def get_author(self,obj):
+        return obj.author
+
+    def get_type(self,obj):
+        return obj.type
 
 class InboxSerializer(rest_serializers.ModelSerializer):
 
