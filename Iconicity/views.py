@@ -447,17 +447,21 @@ class UserProfileListView(ListView):
 
 # by Shway, view function for sending friend requests
 def send_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('profile_uid')
-        sender = UserProfile.objects.get(user=request.user)
-        receiver = UserProfile.objects.get(uid=uid)
-        friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
-        # create a new friend request
-        FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    # go to main page if the user did not use the "POST" method
-    return redirect('main')
+	if request.method == 'POST':
+		uid = request.POST.get('profile_uid')
+		sender = UserProfile.objects.get(user=request.user)
+		try:
+			receiver = UserProfile.objects.get(uid=uid)
+			friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
+			# create a new friend request
+			FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
+		except Exception as e: # external friend request
+			print(e)
+			
+		# stay on the same page
+		return redirect(request.META.get('HTTP_REFERER'))
+	# go to main page if the user did not use the "POST" method
+	return redirect('main')
 # by Shway, view function for removing a friend
 def remove_friend(request):
     if request.method == 'POST':
