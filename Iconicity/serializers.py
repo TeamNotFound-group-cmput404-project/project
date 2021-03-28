@@ -44,7 +44,8 @@ class PostSerializer(rest_serializers.ModelSerializer):
         url = obj.origin
         if obj.source != "" and obj.source != None:
             url = obj.source
-
+        comments = []
+        print(url)
         try:
             comments = Comment.objects.filter(post=url)
 
@@ -53,6 +54,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
             return []
 
         else:
+            print("comments",comments)
             serializer_data = CommentSerializer(list(comments),many=True).data
             return serializer_data
 
@@ -96,6 +98,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
+        print("comment obj",obj)
         temp = obj.author
         print("temp in comment serializer",temp)
         return temp['display_name']

@@ -1085,7 +1085,7 @@ class Comments(APIView):
     def post(self, request, post_id, author_id):
         # POST if you post an object of “type”:”comment”, 
         # it will add your comment to the post
-        
+        print("inpost")
         comment = Comment()
 
         comment.post = (str(request.scheme) + "://"
