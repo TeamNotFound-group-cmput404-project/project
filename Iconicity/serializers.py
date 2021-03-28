@@ -114,7 +114,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
     url = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ('user_type', 'uid','display_name','host','github','url')
+        fields = ('type', 'uid','display_name','host','github','url')
 
     def get_uid(self, obj):
         if type(obj) == dict:

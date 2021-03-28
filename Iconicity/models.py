@@ -42,7 +42,7 @@ class UserProfile(models.Model):
     max_name_length = 30
 
     # user type
-    user_type = models.CharField(max_length=10, default="author")
+    type = models.CharField(max_length=10, default="author")
 
     # user id field
     uid = models.UUIDField(primary_key=True,

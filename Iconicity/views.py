@@ -242,16 +242,25 @@ def follow_someone(request):
             # Second, send the remote post request:
             # create a new friend request with the receiver the (external) followee_uid
             summary = curProfile.display_name + " wants to follow " + followee_display_name
+
             # serialized current profile
+            '''
             actor = {"type":"author", "id":str(curProfile.uid), "host":str(curProfile.host),
             	"displayName":str(curProfile.display_name),
                 "url":str(curProfile.url), "github": str(curProfile.github)}
+            '''
+            actor = GETProfileSerializer(curProfile).data
             # form the freind request data stream
+            '''
             object = {"type":"author", "id":followee_uid, "host":followee_host,
             	"displayName":followee_display_name,
                 "url":followee_uid, "github": followee_github}
+            print("this is followee_uid:  ", followee_uid)
+            '''
+            object = requests.get(str(request.scheme) + "://" + followee_uid) # API from the other server
             frd_request_context = {"type": "Follow", "summary": summary,
             						"actor": json.dumps(actor), "object": json.dumps(object)}
+
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
@@ -313,9 +322,11 @@ def inbox_view(request):
     # to see if the result is empty
     follows_size = len(cur_inbox.items['Follow'])
     # jsonify the actors and objects:
+    '''
     for request in cur_inbox.items['Follow']:
     	request['actor'] = json.loads(request['actor'])
     	request['object'] = json.loads(request['object'])
+    '''
     posts_size = len(cur_inbox.items['Post'])
     likes_size = len(cur_inbox.items['Like'])
     print("here are the sizes: ", follows_size, posts_size, likes_size)
