@@ -54,7 +54,7 @@
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
             {% if post.image != '' and post.image != None %}
-              <img src="/media/{{ post.image }}">
+              <img src="{{ post.image }}">
             {% endif %}
           </div>
 
@@ -82,7 +82,7 @@
         </form>
         <form action="{% url 'delete' %}" method="POST">
           {% csrf_token %}
-          <button class="button", type="submit", name="pk",  value={{post.pk}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+          <button class="button", type="submit", name="pk",  value={{post.source}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
         </form>
 
         <p>{{post.like_count}} liked this post.</p>

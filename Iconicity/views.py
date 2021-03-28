@@ -23,6 +23,8 @@ from urllib.request import urlopen
 import requests
 import collections
 from rest_framework.renderers import JSONRenderer
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -90,8 +92,13 @@ def mainPagePublic(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     new_list = PostSerializer(list(Post.objects.all()),many=True).data
     externalPosts = getAllExternalPublicPosts()
-
     new_list += externalPosts
+    #print("all",new_list)
+    for post in new_list:
+        if post['image'] is not None:
+            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
+            post['image'] = abs_imgpath
+    # print(new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -157,13 +164,18 @@ def getComments():
     return json.loads(core_serializers.serialize("json", list(Comment.objects.filter())))
 
 def delete_post(request):
-    template = "/Iconicity/my_post.html"
-    post_id = request.POST.get('pk')
-    if post_id:
-        post = get_object_or_404(Post,pk=request.POST.get('pk'))
-        print(post_id)
-        post.delete()
-
+    pk_raw = request.POST.get('pk')
+    try:
+        post = requests.get(pk_raw).json()
+        post_id = post[0]["post_id"]
+        if post_id:
+            post = get_object_or_404(Post,pk=post_id)
+            print(post_id)
+            post.delete()
+    except Exception as e:
+        post = requests.get(pk_raw)
+        print(e)
+        print('post:', post)
     return redirect("mypost")
 
 
@@ -176,7 +188,7 @@ class AddPostView(CreateView):
         print("posting")
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
-        print(form['image'])
+        print(form['image']) 
         # print(request.FILES)
         if form.is_valid():
             print("posting...")
@@ -193,6 +205,7 @@ class AddPostView(CreateView):
                                                + str(form.post_id))
             form.source = form.origin
             form.save()
+            print(form.image)
             return redirect('public')
 
         else:
@@ -427,48 +440,73 @@ def like_view(request):
 
 def repost(request):
     # should pass back the post from the frontend
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'PUBLIC'}
+    pk_raw = request.POST.get('pk')
+    get_json_response = requests.get(pk_raw)
+    post = json.loads(get_json_response.text)[0]
+    print("response_dict",post)
+    ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'PUBLIC', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
+    img_path = post['image']
+    if img_path is not None:
+        img_path_dict = img_path.split("/")
+        new_path = ""
+        for i in range(2, len(img_path_dict)):
+            new_path = new_path + "/" + img_path_dict[i]
+    
     if post_form.is_valid():
-        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
-        post_form.image = post.image
-        post_form.origin = post.origin
-        post_form.source = (str(request.scheme) + "://"
-                                           + str(request.get_host())
-                                           + '/author/'
-                                           + str(userProfile.pk)
-                                           + '/posts/'
-                                           + str(post.post_id))
+        post_form.origin = post['origin']
         post_form.author = request.user
+        if img_path is not None:
+            post_form.image = new_path
+        post_form.origin = post['origin']
+        userProfile = UserProfile.objects.get(user=request.user)
+        post_form.source = (str(request.scheme) + "://"
+                                            + str(request.get_host())
+                                            + '/author/'
+                                            + str(userProfile.pk)
+                                            + '/posts/'
+                                            + str(post_form.post_id))
         post_form.save()
+        print("post_form image", post_form.image)
+
     else:
         print(post_form.errors)
     return redirect('public')
 
 def repost_to_friend(request):
     # should pass back the post from the frontend
-    post = get_object_or_404(Post, pk=request.POST.get('pk'))
-    ordinary_dict = {'title': post.title, 'content': post.content, 'visibility':'FRIENDS'}
+    pk_raw = request.POST.get('pk')
+    print(pk_raw)
+    get_json_response = requests.get(pk_raw)
+    print(json.loads(get_json_response.text))
+    post = json.loads(get_json_response.text)[0]
+
+    ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'FRIENDS', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
-    print(query_dict)
     post_form = PostsCreateForm(query_dict)
+    img_path = post['image']
+    if img_path is not None:
+        img_path_dict = img_path.split("/")
+        new_path = ""
+        for i in range(2, len(img_path_dict)):
+            new_path = new_path + "/" + img_path_dict[i]
     if post_form.is_valid():
-        userProfile = UserProfile.objects.get(user=post.author)
         post_form = post_form.save(commit=False)
-        post_form.image = post.image
-        post_form.origin = post.origin
-        post_form.source = (str(request.scheme) + "://"
-                                           + str(request.get_host())
-                                           + '/author/'
-                                           + str(userProfile.pk)
-                                           + '/posts/'
-                                           + str(post.post_id))
         post_form.author = request.user
+        if img_path is not None:
+            post_form.image = new_path
+        post_form.origin = post['origin']
+        userProfile = UserProfile.objects.get(user=request.user)
+        post_form.source = (str(request.scheme) + "://"
+                                            + str(request.get_host())
+                                            + '/author/'
+                                            + str(userProfile.pk)
+                                            + '/posts/'
+                                            + str(post_form.post_id))
         post_form.save()
     else:
         print(post_form.errors)
@@ -621,6 +659,8 @@ def getAllExternalAuthors():
     return allAuthors
 
 class AllAuthors(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         # Get all local authors
         userProfile = UserProfile.objects.all()
@@ -629,6 +669,8 @@ class AllAuthors(APIView):
 
 
 class AuthorById(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         userProfile = UserProfile.objects.get(pk=author_id)
         serializer = GETProfileSerializer(userProfile)
@@ -723,6 +765,8 @@ def friends(request):
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
         '''
@@ -740,6 +784,8 @@ class Posts(APIView):
         return Response(serializer.data)
 
 class PostById(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, post_id, author_id):
         posts = Post.objects.filter(pk=post_id).all()
         serializer = PostSerializer(posts, many=True)
@@ -781,6 +827,8 @@ class PostById(APIView):
         pass
 
 class Inboxs(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         User = UserProfile.objects.get(pk=author_id)
         inbox = Inbox.objects.get(author=User.url)
@@ -871,6 +919,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data,status=200)
 
 class AllPostsByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
@@ -878,11 +928,15 @@ class AllPostsByAuthor(APIView):
         return Response(serializer.data)
 
 class ExternalFollowersByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(ExternalFollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
         friendPosts = Post.objects.filter(author=authorProfile.user)
@@ -970,6 +1024,8 @@ class AddCommentView(CreateView):
 
 
 class Comments(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id, author_id):
         # POST if you post an object of “type”:”comment”, 
@@ -1005,6 +1061,8 @@ class Comments(APIView):
         return Response(serializer.data)
 
 class Likes(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, post_id, author_id):
         post = (str(request.scheme) + "://"
                             + str(request.get_host())
