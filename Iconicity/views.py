@@ -88,11 +88,14 @@ def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
-    new_list = requests.get(string).json()
+    #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+    new_list = PostSerializer(list(Post.objects.all()),many=True).data
+    #new_list = requests.get(string).json()
+    #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
+    print(externalPosts)
     new_list += externalPosts
-    print(new_list)
+    #print("all",new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
@@ -299,6 +302,7 @@ def inbox_view(request):
         full_id = full_id[len('https://'):]
     elif full_id.startswith('http://'):
         full_id = full_id[len('http://'):]
+    print("full_id",full_id)
     cur_inbox = Inbox.objects.filter(author=full_id)
     if len(cur_inbox) == 0:
         temp = "https://" + full_id
@@ -548,32 +552,6 @@ def profile(request):
 def public(request):
     return render(request,'Iconicity/public.html')
 
-def createJsonFromProfile(postList):
-    # return (posts and comments) in json format
-    new_list = []
-    comments = getComments()
-
-    if postList !=[]:
-        obj = core_serializers.serialize("json", postList)
-        post_json = json.loads(obj)
-        for i in range(len(post_json)):
-            fields = post_json[i]['fields']
-            fields['pk'] = post_json[i]['pk']
-            fields['like_count'] = postList[i].count_like
-            author_name = User.objects.filter(id=fields['author']).first().username
-
-            # print(User.objects.filter(id=fields['author']).first())
-            fields['display_name'] = author_name
-
-            fields['comments'] = {}
-            for comment in comments:
-                if comment['fields']["post"] == fields["pk"]:
-                    fields['comments'][comment['pk']] = (comment['fields']['comment'])
-                    comment['comment_author_name'] = Comment.objects.filter(author=comment["fields"]["author"]).first()
-                    comment['comment_author_name_str'] = str(Comment.objects.filter(author=comment["fields"]["author"]).first())
-            new_list.append(fields)
-    return new_list, comments
-
 def mypost(request):
 
     if request.user.is_anonymous:
@@ -632,6 +610,7 @@ def getAllPublicPostsCurrentUser():
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
+    print("connected",externalHosts)
     allPosts = []
     full_url = ''
     for host_url in externalHosts:
@@ -639,8 +618,11 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
+        print(full_url)
         temp = requests.get(full_url)
+        print("temp",temp)
         posts = temp.json()
+
         allPosts += posts
     return allPosts
 
@@ -820,8 +802,8 @@ class PostById(APIView):
 
 class Inboxs(APIView):
     def get(self, request, author_id):
-        currentUser = UserProfile.objects.get(user=request.user)
-        inbox = Inbox.objects.get(author=currentUser.url)
+        User = UserProfile.objects.get(pk=author_id)
+        inbox = Inbox.objects.get(author=User.url)
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
@@ -834,8 +816,6 @@ class Inboxs(APIView):
                 post_url = data_json["object"]
                 post_id = [i for i in post_url.split('/') if i][-1]
                 post_obj = Post.objects.get(pk=post_id)
-                print("post_url",post_url)
-                print("host",request.META['HTTP_HOST'])
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
                     # means it's local like author
                     if local_author_profile.user in post_obj.like:
@@ -861,7 +841,6 @@ class Inboxs(APIView):
                 else:
                     # means it's a external author
                     external_author_url = data_json["author"]["url"]
-                    print("external likes",post_obj.external_likes)
                     if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
                         # means add this man's id to the external like list.
                         post_obj.external_likes['urls'] = []
@@ -904,7 +883,7 @@ class Inboxs(APIView):
     def delete(self, request, author_id):
         # clear the inbox
         # i.e. clear three lists inside the inbox object
-        currentUser = UserProfile.objects.get(user=request.user)
+        currentUser = UserProfile.objects.get(pk=author_id)
 
         inbox = Inbox.objects.get(author=currentUser.url)
         inbox.items = {"Like":[], "Post":[], "Follow":[]}
@@ -939,6 +918,7 @@ class AddCommentView(CreateView):
         pk_raw = request.POST.get('pk')
         post = None
         pk_new = None
+        print("pk_raw",pk_raw)
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
@@ -952,16 +932,17 @@ class AddCommentView(CreateView):
                 post_id = pk_raw
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
-                    form = form.save(commit=False)
-                    form.post = post_id
-                    form.author = currentUserProfile.url
-                    form.save()
+                    #form = form.save(commit=False)
+                    #form.post = post_id
+                    #form.author = currentUserProfile.url
+                    #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
-                            data={"comment":form.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
                     else:
                         response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.comment,"author":currentUserProfile.url})
+                            data={"comment":form.cleaned_data['comment'],"author":currentUserProfile.url})
+                    print("response",response)
                     return redirect('public')
                     
                 else:
@@ -988,9 +969,8 @@ class AddCommentView(CreateView):
                     newform.author = currentUserProfile.url
                     #form.author_id = request.user.id
                     newform.save()
-                    form.save_m2m()
 
-                    return redirect('public')
+                    return redirect('mypost')
                     
                 else:
                     print(form.errors)

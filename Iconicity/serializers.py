@@ -45,16 +45,23 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         try:
             comments = Comment.objects.filter(post=url)
+            print("comments",comments)
 
         except Exception as e:
+            print("Exception in post comments")
+            # no comments or 
+            '''
             if url[-1] != '/':
                 url += '/'
 
-            return requests.get(url+'comments').json()
+            return requests.get(url+'comments').json()'''
+            return []
 
         else:
-
-            return CommentSerializer(list(comments),many=True).data
+            print(list(comments))
+            serializer_data = CommentSerializer(list(comments),many=True).data
+            print("serializer_data",serializer_data)
+            return serializer_data
 
     def get_post_id(self, obj):
         return obj.post_id
@@ -89,15 +96,27 @@ class PostSerializer(rest_serializers.ModelSerializer):
 class CommentSerializer(rest_serializers.ModelSerializer):
     id = rest_serializers.SerializerMethodField()
     comment_author_name = rest_serializers.SerializerMethodField()
+    author = rest_serializers.SerializerMethodField()
+    author_cache = None
     class Meta:
         model = Comment
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        return requests.get(obj.author).json()['display_name']
-
+        print("author",obj.author)
+        CommentSerializer.author_cache = requests.get(obj.author)
+        print("cache",CommentSerializer.author_cache)
+        temp = CommentSerializer.author_cache.json()['display_name']
+        print("display_name",temp)
+        return temp
+ 
     def get_author(self, obj):
-        return GETProfileSerializer(UserProfile.objects.filter(url=obj.author).first()).data
+        print("author",obj.author)
+        if CommentSerializer.author_cache:
+            print("cached")
+            return CommentSerializer.author_cache.json()
+        else:
+            return requests.get(obj.author).json()
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
@@ -117,9 +136,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
         fields = ('user_type', 'uid','display_name','host','github','url')
 
     def get_uid(self, obj):
-        if type(obj) == dict:
-            return str(obj['host']) + '/author/' + str(obj['uid'])
-        return str(obj.host) + '/author/' + str(obj.uid)
+        return obj.url
 
     def get_name(self, obj):
         return obj.display_name
@@ -131,9 +148,7 @@ class GETProfileSerializer(rest_serializers.ModelSerializer):
         return obj.github
 
     def get_url(self,obj):
-        if type(obj) == dict:
-            return str(obj['host']) + '/author/' + str(obj['uid'])
-        return str(obj.host) + '/author/' + str(obj.uid)
+        return obj.url
 
 class LikeSerializer(rest_serializers.ModelSerializer):
 
