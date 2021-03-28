@@ -243,9 +243,9 @@ def follow_someone(request):
             # create a new friend request with the receiver the (external) followee_uid
             summary = curProfile.display_name + " wants to follow " + followee_display_name
             # serialized current profile
-            actor = json.dumps({"type":"author", "id":curProfile.uid, "host":curProfile.host,
-            	"displayName":curProfile.display_name,
-                "url":curProfile.url, "github": curProfile.github})
+            actor = json.dumps({"type":"author", "id":str(curProfile.uid), "host":str(curProfile.host),
+            	"displayName":str(curProfile.display_name),
+                "url":str(curProfile.url), "github": str(curProfile.github)})
             # form the freind request data stream
             object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host,
             	"displayName":followee_display_name,

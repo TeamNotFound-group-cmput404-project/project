@@ -30,9 +30,9 @@
           {% for follow in follows %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ follow.summary }}</h4>
-              <p>Github link: {{ follow.actor.github }}</p>
-              <p>Host link: {{ follow.actor.host }}</p>
-              <p>url: {{ follow.actor.url }}</p>
+              <p>Github link: {{ json.loads(follow.actor).github }}</p>
+              <p>Host link: {{ json.loads(follow.actor).host }}</p>
+              <p>url: {{ json.loads(follow.actor).url }}</p>
               <!--{% csrf_token %}-->
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
@@ -40,11 +40,11 @@
               <!--For to follow this user back-->
               <form action="{% url 'follow_someone' %}" method='POST'>
                 {% csrf_token %}
-                <input type="hidden" name="followee_host" value="{{ profile.host }}">
-                <input type="hidden" name="followee_github" value="{{ profile.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
+                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
+                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-                name='followee_uid' value="{{ profile.uid }}">Follow back(or accept friend request to be friends)</button>
+                name='followee_uid' value="{{ follow.actor.uid }}">Follow back(or accept friend request to be friends)</button>
               </form>
 
               <!--For to remove this message-->
