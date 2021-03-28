@@ -409,7 +409,7 @@ class UserProfileListView(ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # my profile
-        my_profile = UserProfile.objects.get(user = user) # type is a query set!
+        my_profile = UserProfile.objects.filter(user = user)[0] # type is a query set!
         # whom I want to follow
         pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
         # whom wants to follow me
