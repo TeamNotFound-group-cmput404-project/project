@@ -30,9 +30,9 @@
           {% for follow in follows %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ follow.summary }}</h4>
-              <p>Github link: {{ follow.actor["github"] }}</p>
-              <p>Host link: {{ follow.actor["host"] }}</p>
-              <p>url: {{ follow.actor["url"] }}</p>
+              <p>Github link: {{ follow.actor }}</p>
+              <p>Host link: {{ follow.actor }}</p>
+              <p>url: {{ follow.actor }}</p>
               <!--{% csrf_token %}-->
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
               name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
