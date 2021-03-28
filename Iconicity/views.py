@@ -311,6 +311,7 @@ def inbox_view(request):
     posts_size = len(cur_inbox.items['Post'])
     likes_size = len(cur_inbox.items['Like'])
     print("here are the sizes: ", follows_size, posts_size, likes_size)
+    print('here are the contents: ', cur_inbox.items['Follow'], cur_inbox.items['Post'], cur_inbox.items['Like'])
     inbox_size = follows_size + posts_size + likes_size
     is_all_empty = False
     is_follows_empty = False
@@ -332,6 +333,7 @@ def inbox_view(request):
         'posts': cur_inbox.items['Post'],}
     return render(request, 'Iconicity/inbox.html', context)
 
+'''
 # by Shway, accept friend request function view:
 def accept_friend_request(request):
     if request.method == 'POST':
@@ -344,7 +346,6 @@ def accept_friend_request(request):
         receiver.follow.add(sender.user)
         # if sender.externalFollows like {}, we should add key value pair
         # assume all local:
-        '''
         if sender.externalFollows == {}:
             sender.externalFollows['urls'] = []
         # if sender.externalFollows like {"urls":[]}, we can append
@@ -368,7 +369,7 @@ def accept_friend_request(request):
         sender.save()
         receiver.save()
         print("reveiver",receiver.externalFollows["urls"])
-        print(sender.externalFollows['urls'])'''
+        print(sender.externalFollows['urls'])
         # change the status of the friend request to accepted:
         sender.save()
         receiver.save()
@@ -379,8 +380,10 @@ def accept_friend_request(request):
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('main')
+'''
 
 # by Shway, reject friend request function view:
+'''
 def reject_friend_request(request):
     if request.method == 'POST':
         uid = request.POST.get('reject_uid')
@@ -392,6 +395,7 @@ def reject_friend_request(request):
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('main')
+'''
 
 # by Shway, this view below shows the list of all profiles except for the current user
 class UserProfileListView(ListView):
@@ -418,15 +422,17 @@ class UserProfileListView(ListView):
         accepted_requests = FriendRequest.objects.filter(
             (Q(object = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
         # listify and setify the above two results:
-        follow_list = set()
+        '''
         pending_requests_list = set()
         inbox_requests_list = set()
         accepted_list = set()
+        '''
         # whom I am following locally
         follow_list = my_profile.get_followers()
         # whom I am following externally
         external_follows_list = my_profile.get_external_follows()
         print("whom I am following: ", external_follows_list)
+        '''
         for i in pending_requests:
             pending_requests_list.add(i.object_author.user)
         for i in inbox_requests:
@@ -434,11 +440,14 @@ class UserProfileListView(ListView):
         for i in accepted_requests:
             accepted_list.add(i.actor.user)
             accepted_list.add(i.object_author.user)
+        '''
         context['follows'] = follow_list
         context['external_follows'] = external_follows_list
+        '''
         context['pending_requests'] = pending_requests_list
         context['inbox_requests'] = inbox_requests_list
         context['accepted_requests'] = accepted_list
+        '''
         # if there are no profiles other than the current user:
         context['is_empty'] = False # initially not empty
         if len(self.get_queryset()) == 0:
@@ -446,22 +455,57 @@ class UserProfileListView(ListView):
         return context
 
 # by Shway, view function for sending friend requests
+'''
 def send_friend_request(request):
 	if request.method == 'POST':
 		uid = request.POST.get('profile_uid')
-		sender = UserProfile.objects.get(user=request.user)
+		sender = UserProfile.objects.get(user=request.user) # current user is the sender
 		try:
 			receiver = UserProfile.objects.get(uid=uid)
-			friendRequest = FriendRequest.objects.create(actor=sender, object_author=receiver, status='sent')
 			# create a new friend request
 			FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
 		except Exception as e: # external friend request
 			print(e)
-			
+			# First, add the uid into local database:
+            if curProfile.externalFollows == {}:
+                curProfile.externalFollows['urls'] = []
+            curProfile.externalFollows['urls'].append(followee_uid)
+            # Second create a new UserPfile and a new friend request:
+            receiver = UserProfile(user=User,
+                          display_name=Display_name,
+                          github=Github,
+                          host=host)
+    		receiver.url = str(scheme) + "://" + str(host) + '/author/' + str(receiver.uid)
+
+            FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
+            # Third, send the remote post request:
+            # create a new friend request with the receiver the (external) followee_uid
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            # serialized current profile
+            serialized_actor = GETProfileSerializer(curProfile)
+            # form the freind request data stream
+            object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
+                "url":followee_uid, "github": followee_github})
+            frd_request_context = {"type": "Friend", "summary": summary, "actor": serialized_actor, "object": object}
+            full_followee_url = followee_uid
+            # add the request scheme if there isn't any
+            if not full_followee_url.startswith(str(request.scheme)):
+                full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
+            # should send to inbox:
+            if full_followee_url[-1] == '/': full_followee_url += "inbox"
+            else: full_followee_url += '/inbox'
+            # post the friend request to the external server's inbox
+            print(full_followee_url)
+            post_data = requests.post(full_followee_url, data=frd_request_context)
+            print("data responded: ", post_data)
+		curProfile.save()
 		# stay on the same page
 		return redirect(request.META.get('HTTP_REFERER'))
 	# go to main page if the user did not use the "POST" method
 	return redirect('main')
+'''
+
+'''
 # by Shway, view function for removing a friend
 def remove_friend(request):
     if request.method == 'POST':
@@ -491,6 +535,7 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
         receiver.externalFollows.remove(sender.host) # external connectivity
     sender.save()
     receiver.save()
+'''
 
 def like_view(request):
     redirect_path = '/public'

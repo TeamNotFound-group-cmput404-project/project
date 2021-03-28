@@ -33,10 +33,10 @@ urlpatterns = [
 	path('unfollow_someone', views.unfollow_someone, name='unfollow_someone'),
 	path('inbox', views.inbox_view, name='inbox'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
-	path('send_friendRequest', views.send_friend_request, name='send_friendRequest'),
-	path('remove_friend', views.remove_friend, name='remove_friend'),
-	path('accept_friend_request', views.accept_friend_request, name='accept_friend_request'),
-	path('reject_friend_request', views.reject_friend_request, name='reject_friend_request'),
+	#path('send_friendRequest', views.send_friend_request, name='send_friendRequest'),
+	#path('remove_friend', views.remove_friend, name='remove_friend'),
+	#path('accept_friend_request', views.accept_friend_request, name='accept_friend_request'),
+	#path('reject_friend_request', views.reject_friend_request, name='reject_friend_request'),
 
 	# APIs
     path(r'posts/', views.Posts().as_view()),
