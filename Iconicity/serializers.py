@@ -45,8 +45,10 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         try:
             comments = Comment.objects.filter(post=url)
+            print("comments",comments)
 
         except Exception as e:
+            print("Exception in post comments")
             # no comments or 
             '''
             if url[-1] != '/':
@@ -56,8 +58,9 @@ class PostSerializer(rest_serializers.ModelSerializer):
             return []
 
         else:
-
-            return CommentSerializer(list(comments),many=True).data
+            serializer_data = CommentSerializer(list(comments),many=True).data
+            print("serializer_data",serializer_data)
+            return serializer_data
 
     def get_post_id(self, obj):
         return obj.post_id
