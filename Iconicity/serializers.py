@@ -58,6 +58,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
             return []
 
         else:
+            print(list(comments))
             serializer_data = CommentSerializer(list(comments),many=True).data
             print("serializer_data",serializer_data)
             return serializer_data
@@ -100,10 +101,11 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        return requests.get(obj.author).json()['display_name']
+        print(requests.get(obj.author))
+        return requests.get(obj.author)['display_name']
 
     def get_author(self, obj):
-        return requests.get(obj.author).json()
+        return requests.get(obj.author)
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
