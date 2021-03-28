@@ -47,10 +47,13 @@ class PostSerializer(rest_serializers.ModelSerializer):
             comments = Comment.objects.filter(post=url)
 
         except Exception as e:
+            # no comments or 
+            '''
             if url[-1] != '/':
                 url += '/'
 
-            return requests.get(url+'comments').json()
+            return requests.get(url+'comments').json()'''
+            return []
 
         else:
 
@@ -97,7 +100,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         return requests.get(obj.author).json()['display_name']
 
     def get_author(self, obj):
-        return GETProfileSerializer(UserProfile.objects.filter(url=obj.author).first()).data
+        return requests.get(obj.author).json()
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
