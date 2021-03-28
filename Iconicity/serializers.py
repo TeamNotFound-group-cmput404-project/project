@@ -96,12 +96,12 @@ class PostSerializer(rest_serializers.ModelSerializer):
 class CommentSerializer(rest_serializers.ModelSerializer):
     id = rest_serializers.SerializerMethodField()
     comment_author_name = rest_serializers.SerializerMethodField()
+    author = rest_serializers.SerializerMethodField()
     class Meta:
         model = Comment
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        print(requests.get(obj.author))
         return requests.get(obj.author).json()['display_name']
 
     def get_author(self, obj):
