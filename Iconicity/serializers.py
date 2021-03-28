@@ -1,10 +1,13 @@
 from .models import *
+from .config import *
 from rest_framework import serializers as rest_serializers
 from django.contrib.auth.models import User
 import datetime
 from urllib import request
 import json
 import requests
+from requests.auth import HTTPBasicAuth
+
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
     externalFollows = rest_serializers.SerializerMethodField('get_externalFollows')
@@ -48,7 +51,6 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         except Exception as e:
             print("Exception in post comments")
-            # no comments or 
             return []
 
         else:
@@ -97,15 +99,26 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        CommentSerializer.author_cache = requests.get(obj.author)
-        temp = CommentSerializer.author_cache.json()['display_name']
-        return temp
+        print("author name!!!!!",obj.author)
+        # CommentSerializer.author_cache = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass))
+        # print("cache",CommentSerializer.author_cache)
+        # temp = CommentSerializer.author_cache.json()['display_name']
+        # print("display_name",temp)
+        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        print('reponse_author_name!!!!', response)
+        return response['display_name']
  
     def get_author(self, obj):
-        if CommentSerializer.author_cache:
-            return CommentSerializer.author_cache.json()
-        else:
-            return requests.get(obj.author).json()
+        print("author!!!!!",obj.author)
+        # if CommentSerializer.author_cache:
+        #     print("cached")
+        #     temp = CommentSerializer.author_cache.json()
+        #     CommentSerializer.author_cache = None
+        #     return temp
+        # else:
+        response = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        print('reponse!!!!', response)
+        return response
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
