@@ -88,14 +88,10 @@ def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = PostSerializer(list(Post.objects.all()),many=True).data
-    #new_list = requests.get(string).json()
-    #print("internal",new_list)
     externalPosts = getAllExternalPublicPosts()
-    print(externalPosts)
+
     new_list += externalPosts
-    #print("all",new_list)
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),

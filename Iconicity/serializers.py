@@ -45,16 +45,10 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
         try:
             comments = Comment.objects.filter(post=url)
-            print("comments",comments)
 
         except Exception as e:
             print("Exception in post comments")
             # no comments or 
-            '''
-            if url[-1] != '/':
-                url += '/'
-
-            return requests.get(url+'comments').json()'''
             return []
 
         else:
@@ -103,17 +97,12 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        print("author",obj.author)
         CommentSerializer.author_cache = requests.get(obj.author)
-        print("cache",CommentSerializer.author_cache)
         temp = CommentSerializer.author_cache.json()['display_name']
-        print("display_name",temp)
         return temp
  
     def get_author(self, obj):
-        print("author",obj.author)
         if CommentSerializer.author_cache:
-            print("cached")
             return CommentSerializer.author_cache.json()
         else:
             return requests.get(obj.author).json()
