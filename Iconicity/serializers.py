@@ -100,22 +100,22 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
 
     def get_comment_author_name(self, obj):
-        print("author",obj.author)
-        CommentSerializer.author_cache = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass))
-        print("cache",CommentSerializer.author_cache)
-        temp = CommentSerializer.author_cache.json()['display_name']
-        print("display_name",temp)
-        return temp
+        print("author name!!!!!",obj.author)
+        # CommentSerializer.author_cache = requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass))
+        # print("cache",CommentSerializer.author_cache)
+        # temp = CommentSerializer.author_cache.json()['display_name']
+        # print("display_name",temp)
+        return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()['display_name']
  
     def get_author(self, obj):
-        print("author",obj.author)
-        if CommentSerializer.author_cache:
-            print("cached")
-            temp = CommentSerializer.author_cache.json()
-            CommentSerializer.author_cache = None
-            return temp
-        else:
-            return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        print("author!!!!!",obj.author)
+        # if CommentSerializer.author_cache:
+        #     print("cached")
+        #     temp = CommentSerializer.author_cache.json()
+        #     CommentSerializer.author_cache = None
+        #     return temp
+        # else:
+        return requests.get(obj.author, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
          
     def get_id(self, obj):
         if obj.post[-1] == "/":
