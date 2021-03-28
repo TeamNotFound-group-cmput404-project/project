@@ -105,13 +105,15 @@ class CommentSerializer(rest_serializers.ModelSerializer):
     def get_comment_author_name(self, obj):
         print("author",obj.author)
         CommentSerializer.author_cache = requests.get(obj.author)
+        print("cache",CommentSerializer.author_cache)
         temp = CommentSerializer.author_cache.json()['display_name']
         print("display_name",temp)
         return temp
-
+ 
     def get_author(self, obj):
         print("author",obj.author)
         if CommentSerializer.author_cache:
+            print("cached")
             return CommentSerializer.author_cache.json()
         else:
             return requests.get(obj.author).json()
