@@ -170,17 +170,24 @@ class FriendRequestSerializer(rest_serializers.ModelSerializer):
     type = rest_serializers.SerializerMethodField()
     summary = rest_serializers.SerializerMethodField()
     actor = rest_serializers.SerializerMethodField()
+    status = rest_serializers.SerializerMethodField()
     object = rest_serializers.SerializerMethodField()
 
     class Meta:
         model = FriendRequest
-        fields = ('type', 'summary', 'actor', 'object')
+        fields = ('type', 'summary', 'actor', 'status', 'object')
     
+    def get_type(self, obj):
+        return obj.type
+
     def get_summary(self, obj):
         return obj.summary
 
     def get_actor(self, obj):
         return obj.actor
+
+    def get_status(self, obj):
+        return obj.status
 
     def get_object(self, obj):
         return obj.object
