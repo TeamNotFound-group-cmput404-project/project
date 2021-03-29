@@ -570,9 +570,12 @@ class UserProfileListView(ListView):
         external_follows_list = my_profile.get_external_follows()
         print("whom I am following: ", external_follows_list)
 
+        '''
         for i in follow_list:
             if not(i.github == '' or i.github == None):
                 follow_list_processed.add(i)
+        '''
+
         '''
         for i in pending_requests:
             pending_requests_list.add(i.object.user)
