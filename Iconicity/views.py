@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.core import serializers as core_serializers
-import json
+import json, os
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .forms import *
@@ -27,7 +27,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from requests.auth import HTTPBasicAuth
-
+import base64
+import uuid
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 
@@ -97,13 +98,55 @@ def mainPagePublic(request):
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
     #new_list = requests.get(string).json()
     #print("internal",new_list)
+    print(type(new_list))
+    print(type(new_list[0]))
     externalPosts = getAllExternalPublicPosts()
-    new_list += externalPosts
+    print(type(externalPosts[0]))
+    #print(externalPosts)
+    
     #print("all",new_list)
-    for post in new_list:
-        if post['image'] is not None:
-            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-            post['image'] = abs_imgpath
+    counter = 0
+    for post in externalPosts:
+        # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+        if post["contentType"] == "text/plain":
+            # means the content part is all plain text, not image
+            try:
+                image_field = post['image']
+
+            except Exception:
+                # means this post has no image field, set image field to None.
+                post['image'] = ""
+
+            else:
+                pass
+
+        elif post["contentType"] =="image/png;base64":
+            # means it's a image in the content
+            # means this post has no image field, probably this is from external server.
+            # in this case, we will save the image to local and use the absolute
+            # path to set a new image field.
+            
+            post_id = [i for i in post['id'].split('/') if i][-1]
+            file_name = post_id+".png"
+            folder_path = "/media/images/"
+            path = folder_path+file_name
+            # first, check this image exists.
+            
+            if os.path.exists("Iconicity"+path):
+                post['image'] = path
+            else:
+                print("create new file")
+                # then write the dump file to an image file.
+                with open("Iconicity"+path, "wb") as fh:
+                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                post['image'] = path
+
+        post['author_display_name'] = post['author']['displayName']
+        counter +=1
+    new_list += externalPosts
+
+        
     new_list.reverse()
     context = {
         'posts': new_list,
@@ -407,7 +450,7 @@ def like_view(request):
             post = Post.objects.get(pk=pk_new)
         except Exception as e:
             # means that this is not on our server
-            
+            print("pk_raw")
             print(e)
             get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass))
             response_dict = json.loads(get_json_response.text)[0]
@@ -667,7 +710,6 @@ def getAllPublicPostsCurrentUser():
 
 def getAllExternalPublicPosts():
     externalHosts = getAllConnectedServerHosts()
-    print("connected",externalHosts)
     allPosts = []
     full_url = ''
     for host_url in externalHosts:
@@ -675,10 +717,17 @@ def getAllExternalPublicPosts():
             full_url = host_url + "posts"
         else:
             full_url = host_url + "/posts"
-        print(full_url)
-        temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-        print("temp",temp)
-        posts = temp.json()
+        the_user_name = auth_user
+        the_user_pass = auth_pass
+        if host_url == team10_host_url:
+            the_user_name = team10_name
+            the_user_pass = team10_pass
+        
+        temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+        if host_url == team10_host_url:
+            posts = temp.json()['posts']
+        else:
+            posts = temp.json()
 
         allPosts += posts
     return allPosts
