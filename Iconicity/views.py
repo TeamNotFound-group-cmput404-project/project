@@ -144,9 +144,26 @@ def mainPagePublic(request):
 
         
     new_list.reverse()
+
+    # by Shway:
+
+    curProfile = getUserProfile(request.user)
+    externalFollowNames = []
+    the_user_name = auth_user
+    the_user_pass = auth_pass
+    '''
+    if host_url == team10_host_url:
+        the_user_name = team10_name
+        the_user_pass = team10_pass
+        full_url += "s"
+    '''
+    for i in curProfile.get_external_follows():
+        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json().display_name
+        
     context = {
         'posts': new_list,
-        'UserProfile': getUserProfile(request.user),
+        'UserProfile': curProfile,
+        'externalFollowNames': externalFollowNames,
         'myself': str(request.user),
     }
     return render(request, 'Iconicity/main_page.html', context)
