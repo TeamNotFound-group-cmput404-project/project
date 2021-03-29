@@ -280,24 +280,25 @@ def follow_someone(request):
             full_followee_url = ''
             if followee_uid.startswith('http'): full_followee_url = followee_uid
             else: full_followee_url = str(request.scheme) + "://" + followee_uid
+            # request the user profile with the full followee_url:
             object_profile = requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text
+            # construct the new friend request:
             new_frdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, 
                 status = 'sent', object = object_profile)
+            # serialize the new friend request:
             frd_request_serialized = json.dumps(FriendRequestSerializer(new_frdRequest).data)
 
             '''
             frd_request_context = {"type": "Follow", "summary": summary,
             						"actor": json.dumps(actor), "object": json.dumps(object)}
             '''
-
-            # add the request scheme if there isn't any
-            if not full_followee_url.startswith(str(request.scheme)):
-                full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
             # should send to inbox:
             if full_followee_url[-1] == '/': full_followee_url += "inbox"
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
-            post_data = requests.post(full_followee_url, data=frd_request_serialized, auth=HTTPBasicAuth(auth_user, auth_pass))
+            print("this is the full followee_url: ", full_followee_url)
+            post_data = requests.post(full_followee_url, data=frd_request_serialized,
+                auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page
@@ -898,6 +899,7 @@ def getAllExternalAuthors():
             full_url = host_url + "author"
         else:
             full_url = host_url + "/author"
+        print("getAllExternalAuthors full url: ", full_url)
         authors= requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
         allAuthors += authors
     return allAuthors
