@@ -365,6 +365,65 @@ def unfollow_someone(request):
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
 
+# by Shway, to follow some one back and delete the follow from inbox:
+def follow_back(request):
+    if request.method == 'POST':
+        # receive data from front-end
+        followee_host = request.POST.get('followee_host')
+        followee_github = request.POST.get('followee_github')
+        followee_display_name = request.POST.get('followee_display_name')
+        followee_uid = request.POST.get('followee_uid')
+        print("uid ", followee_uid)
+        print("host ", followee_host)
+        print("gihtub ", followee_github)
+        print("display_name ", followee_display_name)
+        # get current user profile
+        curProfile = UserProfile.objects.get(user = request.user)
+        # save the new uid into current user's follow attribute:
+        try: # local
+            followee_profile = UserProfile.objects.get(uid = followee_uid)
+            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            # create a new friend request locally
+            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
+            curProfile.follow.add(followee_profile.user)
+        except Exception as e: # external
+            # cannot get the profile with followee_uid locally
+            print("Not local")
+            # First, add the uid into local database:
+            if curProfile.externalFollows == {}:
+                curProfile.externalFollows['urls'] = []
+            curProfile.externalFollows['urls'].append(followee_uid)
+            # Second, delete from inbox:
+            # save the new uid into current user's follow attribute:
+            profile = getUserProfile(request.user)
+            print("inbox_view current profile: ", profile)
+            # enumerate all possibilities of schemes
+            full_id = str(profile.host) + '/author/' + str(profile.uid)
+            if full_id.startswith('https://'):
+                full_id = full_id[len('https://'):]
+            elif full_id.startswith('http://'):
+                full_id = full_id[len('http://'):]
+            print("full_id",full_id)
+            cur_inbox = Inbox.objects.filter(author=full_id)
+            if len(cur_inbox) == 0:
+                temp = "https://" + full_id
+                cur_inbox = Inbox.objects.filter(author=temp)
+                if len(cur_inbox) == 0:
+                    temp = "http://" + full_id
+                    cur_inbox = Inbox.objects.filter(author=temp)
+                    if len(cur_inbox) == 0:
+                        print("did not find any inbox with id: ", full_id)
+                        return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
+            cur_inbox = cur_inbox[0] # to get from a query set...
+            for i in cur_inbox.items['Follow']:
+                if followee_uid == json.loads(i['actor'])['uid']:
+                    cur_inbox.items['Follow'].remove(i)
+            cur_inbox.save()
+            curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('public')
+
 # by Shway, this view below shows the list of received friend requests:
 def inbox_view(request):
     profile = getUserProfile(request.user)
