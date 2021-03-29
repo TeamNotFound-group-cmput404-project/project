@@ -275,7 +275,8 @@ def follow_someone(request):
             print("this is followee_uid:  ", followee_uid)
             '''
 
-            actor = GETProfileSerializer(curProfile).data
+            actor = json.dumps(GETProfileSerializer(curProfile).data)
+            print("follow someone's actor serialized: ", actor)
             # API from the other server
             full_followee_url = ''
             if followee_uid.startswith('http'): full_followee_url = followee_uid
@@ -352,9 +353,9 @@ def inbox_view(request):
     follows_size = len(cur_inbox.items['Follow'])
     # jsonify the actors and objects:
     
-    for request in cur_inbox.items['Follow']:
-    	#request['actor'] = json.loads(request['actor'])
-    	request['object'] = json.loads(request['object'])
+    for attribute in cur_inbox.items['Follow']:
+    	attribute['actor'] = json.loads(attribute['actor'])
+    	attribute['object'] = json.loads(attribute['object'])
     
     print("inbox_view cur_inbox: ", cur_inbox.items['Follow'])
 
