@@ -276,7 +276,9 @@ def follow_someone(request):
             print("this is followee_uid:  ", followee_uid)
             '''
             # API from the other server
-            url = str(request.scheme) + "://" + followee_uid
+            url = ''
+            if followee_uid.startswith('http'): url = followee_uid
+            else: url = str(request.scheme) + "://" + followee_uid
             object = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             frd_request_context = {"type": "Follow", "summary": summary,
             						"actor": json.dumps(actor), "object": json.dumps(object)}
