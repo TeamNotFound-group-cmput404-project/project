@@ -148,7 +148,7 @@ def mainPagePublic(request):
     # by Shway:
 
     curProfile = getUserProfile(request.user)
-    '''
+    
     externalFollowNames = []
     the_user_name = auth_user
     the_user_pass = auth_pass
@@ -156,11 +156,11 @@ def mainPagePublic(request):
         the_user_name = team10_name
         the_user_pass = team10_pass
         full_url += "s"
-    '''
-    '''
+    
+    
     for i in curProfile.get_external_follows():
-        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['display_name']
-    '''
+        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['displayName']
+    
     context = {
         'posts': new_list,
         'UserProfile': curProfile,
@@ -303,7 +303,7 @@ def follow_someone(request):
         # save the new uid into current user's follow attribute:
         try: # local
             followee_profile = UserProfile.objects.get(uid = followee_uid)
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            summary = curProfile.displayName + " wants to follow " + followee_display_name
             # create a new friend request locally
             newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
             curProfile.follow.add(followee_profile.user)
@@ -316,7 +316,7 @@ def follow_someone(request):
             curProfile.externalFollows['urls'].append(followee_uid)
             # Second, send the remote post request:
             # create a new friend request with the receiver the (external) followee_uid
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            summary = curProfile.displayName + " wants to follow " + followee_display_name
 
             # serialized current profile
             '''
@@ -400,7 +400,7 @@ def follow_back(request):
         # save the new uid into current user's follow attribute:
         try: # local
             followee_profile = UserProfile.objects.get(uid = followee_uid)
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            summary = curProfile.displayName + " wants to follow " + followee_display_name
             # create a new friend request locally
             newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
             curProfile.follow.add(followee_profile.user)
@@ -825,7 +825,7 @@ def like_view(request):
 
     # Send something to its inbox
     like_obj = Like()
-    like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
+    like_obj.summary = "%s liked your post."%(current_user_profile.displayName)
     like_obj.author = GETProfileSerializer(current_user_profile).data
 
     like_obj.object = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]['author']

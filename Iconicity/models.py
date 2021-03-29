@@ -52,7 +52,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # user name field
-    display_name = models.CharField(max_length=max_name_length, default="")
+    displayName = models.CharField(max_length=max_name_length, default="")
 
     # user github link
     github = models.URLField(default="")
