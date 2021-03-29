@@ -1136,7 +1136,7 @@ class Comments(APIView):
         # only two things need to be pass through request are the comment content
         # and the url of the author that write the comment on your post. 
         comment.comment = request.data['comment']
-        comment.author = request.data['author']
+        comment.author = json.loads(request.data['author'])
         comment.save()
         return Response([],status=201)
 
