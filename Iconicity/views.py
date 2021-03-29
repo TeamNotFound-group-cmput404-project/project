@@ -96,15 +96,10 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-    #new_list = requests.get(string).json()
-    #print("internal",new_list)
-    print(type(new_list))
-    print(type(new_list[0]))
+
+
     externalPosts = getAllExternalPublicPosts()
-    print(type(externalPosts[0]))
-    #print(externalPosts)
-    
-    #print("all",new_list)
+
     counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
