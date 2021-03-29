@@ -100,7 +100,7 @@ def mainPagePublic(request):
 
     externalPosts = getAllExternalPublicPosts()
 
-    counter = 0
+
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -136,9 +136,10 @@ def mainPagePublic(request):
                 with open("Iconicity"+path, "wb") as fh:
                     fh.write(base64.decodebytes(str.encode(post['content'])))
                 post['image'] = path
+        if post['author']['host'] in team10_host_url:
 
-        post['author_display_name'] = post['author']['displayName']
-        counter +=1
+            post['author_display_name'] = post['author']['displayName']
+
     new_list += externalPosts
 
         
