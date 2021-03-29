@@ -420,6 +420,7 @@ def remove_inbox_follow(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for i in cur_inbox.items['Follow']:
+            print("remove follow uid: %s, followee uid: %s", json.loads(i['actor']), followee_uid)
             if followee_uid == json.loads(i['actor']).uid:
                 cur_inbox.remove(i)
         cur_inbox.save()
