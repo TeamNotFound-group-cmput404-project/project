@@ -460,13 +460,15 @@ class UserProfileListView(ListView):
         user = self.request.user
         # my profile
         my_profile = UserProfile.objects.filter(user = user)[0] # type is a query set!
+        '''
         # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile) & Q(status = 'sent'))
+        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile.user) & Q(status = 'sent'))
         # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(Q(object = my_profile) & Q(status = 'sent'))
+        inbox_requests = FriendRequest.objects.filter(Q(object = my_profile.user) & Q(status = 'sent'))
         # friend relations requests
         accepted_requests = FriendRequest.objects.filter(
-            (Q(object = my_profile) | Q(actor = my_profile)) & Q(status = 'accepted'))
+            (Q(object = my_profile.user) | Q(actor = my_profile.user)) & Q(status = 'accepted'))
+        '''
         # listify and setify the above two results:
         '''
         pending_requests_list = set()
