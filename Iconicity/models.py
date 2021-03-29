@@ -213,7 +213,7 @@ class FriendRequest(models.Model):
 
     # By: Shway
     # For the receiver to choose to accept or reject:
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    status = models.CharField(default="sent", max_length=10, choices=STATUS_CHOICES)
 
     # Reciever of this friend request:
     object = models.URLField(default="",max_length=500)
