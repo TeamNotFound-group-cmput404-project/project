@@ -281,12 +281,12 @@ def follow_someone(request):
             if followee_uid.startswith('http'): full_followee_url = followee_uid
             else: full_followee_url = str(request.scheme) + "://" + followee_uid
             # request the user profile with the full followee_url:
-            object_profile = requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text
+            object_profile = json.loads(requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text)
             # construct the new friend request:
             new_frdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, 
-                status = 'sent', object = object_profile)
+                status = 'sent', object = json.dumps(object_profile))
             # serialize the new friend request:
-            frd_request_serialized = json.dumps(FriendRequestSerializer(new_frdRequest).data)
+            frd_request_serialized = FriendRequestSerializer(new_frdRequest).data
 
             '''
             frd_request_context = {"type": "Follow", "summary": summary,
@@ -328,6 +328,7 @@ def unfollow_someone(request):
 # by Shway, this view below shows the list of received friend requests:
 def inbox_view(request):
     profile = getUserProfile(request.user)
+    print("inbox_view current profile: ", profile)
     # enumerate all possibilities of schemes
     full_id = str(profile.host) + '/author/' + str(profile.uid)
     if full_id.startswith('https://'):
@@ -350,11 +351,9 @@ def inbox_view(request):
     # to see if the result is empty
     follows_size = len(cur_inbox.items['Follow'])
     # jsonify the actors and objects:
-    '''
     for request in cur_inbox.items['Follow']:
     	request['actor'] = json.loads(request['actor'])
     	request['object'] = json.loads(request['object'])
-    '''
     posts_size = len(cur_inbox.items['Post'])
     likes_size = len(cur_inbox.items['Like'])
     print("here are the sizes: ", follows_size, posts_size, likes_size)
