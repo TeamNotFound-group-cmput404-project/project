@@ -158,7 +158,7 @@ def mainPagePublic(request):
         full_url += "s"
     '''
     for i in curProfile.get_external_follows():
-        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json().display_name
+        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['display_name']
         
     context = {
         'posts': new_list,
