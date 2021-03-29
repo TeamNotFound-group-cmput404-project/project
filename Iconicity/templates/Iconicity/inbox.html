@@ -33,9 +33,29 @@
               <p>Github link: {{ follow.actor.github }}</p>
               <p>Host link: {{ follow.actor.host }}</p>
               <p>url: {{ follow.actor.url }}</p>
-                <!--{% csrf_token %}-->
+              <!--{% csrf_token %}-->
+              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+              name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
+
+              <!--For to follow this user back-->
+              <form action="{% url 'follow_someone' %}" method='POST'>
+                {% csrf_token %}
+                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
+                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-                name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
+                name='followee_uid' value="{{ follow.actor.uid }}">Follow back(or accept friend request to be friends)</button>
+              </form>
+
+              <!--For to remove this message-->
+              <form action="{% url 'remove_inbox_follow' %}" method='POST'>
+                {% csrf_token %}
+                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
+                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
+                <button type='submit' class="w3-button w3-theme-r1 w3-margin-bottom"
+                name='followee_uid' value="{{ follow.actor.uid }}">Remove Message</button>
+              </form>
             </div>
           {% endfor %}
         {% endif %}

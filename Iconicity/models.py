@@ -25,8 +25,9 @@ class UserProfileManager(models.Manager):
         #print(queryset)
         accepted = set()
         for frdReq in queryset:
-            accepted.add(frdReq.receiver)
-            accepted.add(frdReq.sender)
+            if frdReq.status == 'accepted':
+                accepted.add(frdReq.receiver)
+                accepted.add(frdReq.sender)
         #print(accepted)
         available = [p for p in profiles if profiles not in accepted]
         #print(available)
@@ -41,7 +42,7 @@ class UserProfile(models.Model):
     max_name_length = 30
 
     # user type
-    user_type = models.CharField(max_length=10, default="author")
+    type = models.CharField(max_length=10, default="author")
 
     # user id field
     uid = models.UUIDField(primary_key=True,
@@ -187,9 +188,16 @@ class Post(models.Model):
     def __str__(self):
         return '%s' % (self.title)
 
+# By Shway:
+STATUS_CHOICES = (
+    ('sent', 'sent'),
+    ('accepted', 'accepted'),
+)
+
+
 class FriendRequestManager(models.Manager):
     def friendRequests_received(self, receiver):
-        return FriendRequest.objects.filter(object=receiver)
+        return FriendRequest.objects.filter(object=receiver, status='sent')
 
     #FriendRequest.objects.friendRequests_received(curUserProfile)
 
@@ -203,13 +211,17 @@ class FriendRequest(models.Model):
     # Sender of this friend request:
     actor = models.URLField(default="",max_length=500)
 
+    # By: Shway
+    # For the receiver to choose to accept or reject:
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
     # Reciever of this friend request:
     object = models.URLField(default="",max_length=500)
 
     objects = FriendRequestManager()
 
     def __str__(self):
-        return f"{self.actor}-->{self.object}: {self.summary}"
+        return f"{self.actor}-->{self.object}: {self.summary}, status: {self.status}"
 
 
 class Comment(models.Model):

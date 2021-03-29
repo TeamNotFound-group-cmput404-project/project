@@ -50,6 +50,31 @@
               name='followee_uid' value="{{ profile.uid }}">Follow</button>
             </form>
           {% endif %}
+          <p style="color:blue;">If this user follows you back, you are automatically friends with each other!</p>
+          
+          <!-- Case 1: Send friend request -->
+          <!--
+          {% if profile.user not in pending_requests and profile.user not in inbox_requests and profile.user not in accepted_requests%}
+            <form action="{% url 'send_friendRequest' %}" method='POST'>
+              {% csrf_token %}
+              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+              name='profile_uid' value="{{ profile.uid }}">Add to friends</button>
+            </form>
+          {% endif %}-->
+          <!-- Case 2: This person has sent you a friend request already -->
+          <!--
+          {% if profile.user in pending_requests and request.user not in accepted_requests %}
+            <button class="w3-button w3-theme-d1 w3-margin-bottom">Waiting for your acceptance...</button>
+          {% endif %}-->
+          <!-- Case 3: You can delete this friend if you already have this friend -->
+          <!--
+          {% if request.user in accepted_requests %}
+            <form action="{% url 'remove_friend' %}" method='POST'>
+              {% csrf_token %}
+              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+              name='profile_uid' value='{{ profile.uid }}'>Remove from friends</button>
+            </form>
+          {% endif %}-->
         </div>
         {% endfor %}
       {% endif %}
