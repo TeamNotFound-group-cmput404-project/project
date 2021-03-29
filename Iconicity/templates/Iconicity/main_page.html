@@ -145,6 +145,7 @@
           <hr>
           {% for friend in UserProfile.get_followers %}
           <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
+          {% endfor %}
           {% for friend in UserProfile.get_external_follows %}
           <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
           {% endfor %}
