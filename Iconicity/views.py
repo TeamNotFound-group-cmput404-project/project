@@ -563,21 +563,29 @@ class UserProfileListView(ListView):
         inbox_requests_list = set()
         accepted_list = set()
         '''
+        follow_list_processed = set()
         # whom I am following locally
         follow_list = my_profile.get_followers()
         # whom I am following externally
         external_follows_list = my_profile.get_external_follows()
         print("whom I am following: ", external_follows_list)
+
+        '''
+        for i in follow_list:
+            if not(i.github == '' or i.github == None):
+                follow_list_processed.add(i)
+        '''
+
         '''
         for i in pending_requests:
-            pending_requests_list.add(i.object_author.user)
+            pending_requests_list.add(i.object.user)
         for i in inbox_requests:
             inbox_requests_list.add(i.actor.user)
         for i in accepted_requests:
             accepted_list.add(i.actor.user)
             accepted_list.add(i.object_author.user)
         '''
-        context['follows'] = follow_list
+        context['follows'] = follow_list_processed
         context['external_follows'] = external_follows_list
         '''
         context['pending_requests'] = pending_requests_list
@@ -992,8 +1000,15 @@ def getAllExternalAuthors():
             full_url = host_url + "author"
         else:
             full_url = host_url + "/author"
+        # for connecting to other teams:
+        the_user_name = auth_user
+        the_user_pass = auth_pass
+        if host_url == team10_host_url:
+            the_user_name = team10_name
+            the_user_pass = team10_pass
+            full_url += "s"
         print("getAllExternalAuthors full url: ", full_url)
-        authors= requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        authors= requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()
         allAuthors += authors
     return allAuthors
 
