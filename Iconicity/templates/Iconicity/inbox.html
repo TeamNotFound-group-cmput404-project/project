@@ -38,7 +38,7 @@
               name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
 
               <!--For to follow this user back-->
-              <form action="{% url 'follow_someone' %}" method='POST'>
+              <form action="{% url 'follow_back' %}" method='POST'>
                 {% csrf_token %}
                 <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
                 <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
