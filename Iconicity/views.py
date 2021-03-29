@@ -999,7 +999,7 @@ def getAllExternalAuthors():
             the_user_name = team10_name
             the_user_pass = team10_pass
         print("getAllExternalAuthors full url: ", full_url)
-        authors= requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+        authors= requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()
         allAuthors += authors
     return allAuthors
 
