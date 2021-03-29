@@ -421,7 +421,7 @@ def remove_inbox_follow(request):
         cur_inbox = cur_inbox[0] # to get from a query set...
         for i in cur_inbox.items['Follow']:
             if followee_uid == json.loads(i['actor'])['uid']:
-                i.delete()
+                cur.items['Follow'].remove(i)
         cur_inbox.save()
         curProfile.save()
         # stay on the same page
