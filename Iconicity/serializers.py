@@ -161,12 +161,9 @@ class LikeSerializer(rest_serializers.ModelSerializer):
         return obj.type
 
 class InboxSerializer(rest_serializers.ModelSerializer):
-
-
     class Meta:
         model = Inbox
         fields = ('items','author','type')
-
 
 # By: Shway Wang, the serializer for FriendRequest
 class FriendRequestSerializer(rest_serializers.ModelSerializer):
@@ -177,7 +174,7 @@ class FriendRequestSerializer(rest_serializers.ModelSerializer):
 
     class Meta:
         model = FriendRequest
-        fields = ('summary', 'actor', 'object')
+        fields = ('type', 'summary', 'actor', 'object')
     
     def get_summary(self, obj):
         return obj.summary

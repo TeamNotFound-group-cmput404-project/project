@@ -267,7 +267,6 @@ def follow_someone(request):
             	"displayName":str(curProfile.display_name),
                 "url":str(curProfile.url), "github": str(curProfile.github)}
             '''
-            actor = GETProfileSerializer(curProfile).data
             # form the freind request data stream
             '''
             object = {"type":"author", "id":followee_uid, "host":followee_host,
@@ -276,13 +275,20 @@ def follow_someone(request):
             print("this is followee_uid:  ", followee_uid)
             '''
             # API from the other server
-            url = ''
-            if followee_uid.startswith('http'): url = followee_uid
-            else: url = str(request.scheme) + "://" + followee_uid
-            object = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+            full_followee_url = ''
+            if followee_uid.startswith('http'): full_followee_url = followee_uid
+            else: full_followee_url = str(request.scheme) + "://" + followee_uid
+            object_profile = requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+
+            new_frdRequest = FriendRequest(type = "Follow", summary = summary, author = curProfile.user, 
+                status = 'sent', object = object_profile.user)
+
+            frd_request_serialized = FriendRequestSerializer(new_frdRequest)
+
+            '''
             frd_request_context = {"type": "Follow", "summary": summary,
             						"actor": json.dumps(actor), "object": json.dumps(object)}
-            full_followee_url = followee_uid
+            '''
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
                 full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
@@ -291,7 +297,7 @@ def follow_someone(request):
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
             print(full_followee_url)
-            post_data = requests.post(full_followee_url, data=frd_request_context, auth=HTTPBasicAuth(auth_user, auth_pass))
+            post_data = requests.post(full_followee_url, data=frd_request_serialized, auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page

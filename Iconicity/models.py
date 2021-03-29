@@ -194,6 +194,7 @@ STATUS_CHOICES = (
     ('accepted', 'accepted'),
 )
 
+
 class FriendRequestManager(models.Manager):
     def friendRequests_received(self, receiver):
         return FriendRequest.objects.filter(object=receiver, status='sent')
@@ -208,14 +209,14 @@ class FriendRequest(models.Model):
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    actor = models.URLField(default="",max_length=500)
+    author = models.OneToOneField(User, on_delete=models.CASCADE, related_name='sender', default=User)
 
     # By: Shway
     # For the receiver to choose to accept or reject:
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
 
     # Reciever of this friend request:
-    object = models.URLField(default="",max_length=500)
+    object = models.OneToOneField(User, on_delete=models.CASCADE, related_name='receiver', default=User)
 
     objects = FriendRequestManager()
 
