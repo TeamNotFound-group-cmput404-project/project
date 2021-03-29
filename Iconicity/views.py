@@ -1094,8 +1094,11 @@ class Inboxs(APIView):
         data_json = request.data
         print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
+        print("class Inboxs post local profile: ", local_author_profile)
+        print("class Inboxs post local profile's url: ", local_author_profile.url)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
+            print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "Like":
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
