@@ -356,7 +356,8 @@ def inbox_view(request):
     	request['actor'] = json.loads(request['actor'])
     	request['object'] = json.loads(request['object'])
     '''
-    print("inbox_view cur_inbox: ", cur_inbox)
+    print("inbox_view cur_inbox: ", cur_inbox.items['Follow'])
+
     posts_size = len(cur_inbox.items['Post'])
     likes_size = len(cur_inbox.items['Like'])
     print("here are the sizes: ", follows_size, posts_size, likes_size)
