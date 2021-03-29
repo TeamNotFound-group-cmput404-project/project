@@ -275,10 +275,11 @@ def follow_someone(request):
                 "url":followee_uid, "github": followee_github}
             print("this is followee_uid:  ", followee_uid)
             '''
-            object = requests.get(str(request.scheme) + "://" + followee_uid) # API from the other server
+            # API from the other server
+            url = str(request.scheme) + "://" + followee_uid
+            object = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             frd_request_context = {"type": "Follow", "summary": summary,
             						"actor": json.dumps(actor), "object": json.dumps(object)}
-
             full_followee_url = followee_uid
             # add the request scheme if there isn't any
             if not full_followee_url.startswith(str(request.scheme)):
