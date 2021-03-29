@@ -48,13 +48,13 @@
               </form>
 
               <!--For to remove this message-->
-              <form action="{% url 'follow_someone' %}" method='POST'>
+              <form action="{% url 'remove_inbox_follow' %}" method='POST'>
                 {% csrf_token %}
-                <input type="hidden" name="followee_host" value="{{ profile.host }}">
-                <input type="hidden" name="followee_github" value="{{ profile.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
+                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
+                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
                 <button type='submit' class="w3-button w3-theme-r1 w3-margin-bottom"
-                name='followee_uid' value="{{ profile.uid }}">Remove Message</button>
+                name='followee_uid' value="{{ follow.actor.uid }}">Remove Message</button>
               </form>
             </div>
           {% endfor %}
