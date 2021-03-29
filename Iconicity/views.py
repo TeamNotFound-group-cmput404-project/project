@@ -384,6 +384,50 @@ def inbox_view(request):
         'posts': cur_inbox.items['Post'],}
     return render(request, 'Iconicity/inbox.html', context)
 
+# by Shway, to remove a follow notification from the inbox
+def remove_inbox_follow(request):
+    if request.method == 'POST':
+        # receive data from front-end
+        followee_host = request.POST.get('followee_host')
+        followee_github = request.POST.get('followee_github')
+        followee_display_name = request.POST.get('followee_display_name')
+        followee_uid = request.POST.get('followee_uid')
+        print("uid ", followee_uid)
+        print("host ", followee_host)
+        print("gihtub ", followee_github)
+        print("display_name ", followee_display_name)
+        # get current user profile
+        curProfile = UserProfile.objects.get(user = request.user)
+        # save the new uid into current user's follow attribute:
+        profile = getUserProfile(request.user)
+        print("inbox_view current profile: ", profile)
+        # enumerate all possibilities of schemes
+        full_id = str(profile.host) + '/author/' + str(profile.uid)
+        if full_id.startswith('https://'):
+            full_id = full_id[len('https://'):]
+        elif full_id.startswith('http://'):
+            full_id = full_id[len('http://'):]
+        print("full_id",full_id)
+        cur_inbox = Inbox.objects.filter(author=full_id)
+        if len(cur_inbox) == 0:
+            temp = "https://" + full_id
+            cur_inbox = Inbox.objects.filter(author=temp)
+            if len(cur_inbox) == 0:
+                temp = "http://" + full_id
+                cur_inbox = Inbox.objects.filter(author=temp)
+                if len(cur_inbox) == 0:
+                    print("did not find any inbox with id: ", full_id)
+                    return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
+        cur_inbox = cur_inbox[0] # to get from a query set...
+        for i in cur_inbox.items['Follow']:
+            if followee_uid == i['actor'].uid:
+                cur_inbox.remove(i)
+        cur_inbox.save()
+        curProfile.save()
+        # stay on the same page
+        return redirect(request.META.get('HTTP_REFERER'))
+    return redirect('public')
+
 '''
 # by Shway, accept friend request function view:
 def accept_friend_request(request):
