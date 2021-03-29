@@ -1061,10 +1061,7 @@ def post_comments(request):
             except Exception as e:
                 # means that this is not on our server
                 print("not on server")
-                context = {
-                    'form123':CommentsCreateForm,
-                    'post':post,
-                }
+
                 post_id = pk_raw
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
@@ -1074,11 +1071,11 @@ def post_comments(request):
                     #form.save()
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
-                            data={"comment":form.cleaned_data['comment'],"author":author_json}, 
+                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     else:
                         response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.cleaned_data['comment'],"author":author_json}, 
+                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1089,6 +1086,7 @@ def post_comments(request):
                 
                 context = {
                     'form123': form,
+                    'post':post
                 }
                 
                 return render(request, template, context)
