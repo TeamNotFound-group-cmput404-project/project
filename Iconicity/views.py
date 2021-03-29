@@ -275,7 +275,7 @@ def follow_someone(request):
             print("this is followee_uid:  ", followee_uid)
             '''
 
-            actor = GETProfileSerializer(curProfile)
+            actor = GETProfileSerializer(curProfile).data
 
             # API from the other server
             full_followee_url = ''
