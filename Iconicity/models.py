@@ -209,7 +209,7 @@ class FriendRequest(models.Model):
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    author = models.OneToOneField(User, on_delete=models.CASCADE, related_name='sender', default=User)
+    actor = models.OneToOneField(User, on_delete=models.CASCADE, related_name='sender', default=User)
 
     # By: Shway
     # For the receiver to choose to accept or reject:

@@ -274,14 +274,17 @@ def follow_someone(request):
                 "url":followee_uid, "github": followee_github}
             print("this is followee_uid:  ", followee_uid)
             '''
+
+            actor = GETProfileSerializer(curProfile)
+
             # API from the other server
             full_followee_url = ''
             if followee_uid.startswith('http'): full_followee_url = followee_uid
             else: full_followee_url = str(request.scheme) + "://" + followee_uid
-            object_profile = requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-
-            new_frdRequest = FriendRequest(type = "Follow", summary = summary, author = curProfile.user, 
-                status = 'sent', object = object_profile.user)
+            object_profile = json.loads(requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text)
+            print(object_profile)
+            new_frdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, 
+                status = 'sent', object = object_profile)
 
             frd_request_serialized = FriendRequestSerializer(new_frdRequest)
 
