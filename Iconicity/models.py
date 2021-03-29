@@ -84,7 +84,10 @@ class UserProfile(models.Model):
         return self.follow.all()
 
     def get_number_of_followers(self):
-        return self.follow.all().count()
+        num = self.follow.all().count()
+        if not(self.externalFollows == {} or self.externalFollows == []):
+            num += len(self.externalFollows['urls'])
+        return num
 
     def __str__(self):
         return str(self.user)
