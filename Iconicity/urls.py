@@ -32,6 +32,7 @@ urlpatterns = [
 	path('follow_someone', views.follow_someone, name='follow_someone'),
 	path('remove_inbox_follow', views.remove_inbox_follow, name='remove_inbox_follow'),
 	path('unfollow_someone', views.unfollow_someone, name='unfollow_someone'),
+	path('follow_back', views.follow_back, name='follow_back'),
 	path('inbox', views.inbox_view, name='inbox'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
 	#path('send_friendRequest', views.send_friend_request, name='send_friendRequest'),
