@@ -992,6 +992,12 @@ def getAllExternalAuthors():
             full_url = host_url + "author"
         else:
             full_url = host_url + "/author"
+        # for connecting to other teams:
+        the_user_name = auth_user
+        the_user_pass = auth_pass
+        if host_url == team10_host_url:
+            the_user_name = team10_name
+            the_user_pass = team10_pass
         print("getAllExternalAuthors full url: ", full_url)
         authors= requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
         allAuthors += authors
