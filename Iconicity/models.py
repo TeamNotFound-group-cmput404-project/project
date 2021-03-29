@@ -68,7 +68,7 @@ class UserProfile(models.Model):
 
     # Who i'm following on other servers.
     # Should be a dict of urls
-    externalFollows = models.JSONField(default=dict)
+    externalFollows = models.JSONField(default=dict,max_length=5000)
 
     objects = UserProfileManager()
 
@@ -142,7 +142,7 @@ class Post(models.Model):
 
     like = models.ManyToManyField(User, related_name="blog_posts")
 
-    external_likes = models.JSONField(default=dict)
+    external_likes = models.JSONField(default=dict,max_length=5000)
 
     # return ~ 5 comments per post
     # should be sorted newest(first) to oldest(last)
@@ -208,14 +208,14 @@ class FriendRequest(models.Model):
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    actor = models.URLField(default="")
+    actor = models.URLField(default="",max_length=500)
 
     # By: Shway
     # For the receiver to choose to accept or reject:
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
 
     # Reciever of this friend request:
-    object = models.URLField(default="")
+    object = models.URLField(default="",max_length=500)
 
     objects = FriendRequestManager()
 
@@ -227,7 +227,7 @@ class Comment(models.Model):
     #post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     type = models.CharField(max_length=10, default="comment")
     #author = models.ForeignKey(User, on_delete=models.CASCADE, default=User)
-    author = models.URLField(default="") # author is the creator of this comment, not post author
+    author = models.JSONField(default=dict,max_length=500) # author is the creator of this comment, not post author
     post = models.URLField(default="")
     # ISO 8601 TIMESTAMP
     # publish time
@@ -260,8 +260,8 @@ class Like(models.Model):
     summary = models.TextField(default="")
 
     # foreign key to the author
-    author = models.JSONField(default=dict)
-    object = models.URLField(default="")
+    author = models.JSONField(default=dict,max_length=500)
+    object = models.JSONField(default=dict,max_length=500)
 
 class Inbox(models.Model):
     type = models.CharField(max_length=10, default="inbox")
@@ -269,7 +269,7 @@ class Inbox(models.Model):
     # stores a list of Post items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
-    items = models.JSONField(default=dict)
+    items = models.JSONField(default=dict,max_length=10000)
 
 class ExternalServer(models.Model):
     host = models.URLField(default="",primary_key=True,)

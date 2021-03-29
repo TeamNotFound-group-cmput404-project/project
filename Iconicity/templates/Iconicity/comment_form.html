@@ -13,14 +13,22 @@
         
         <h1>Add Comment...</h1>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_p}}
-            <!--<button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>-->
+            <fieldset class = "form-group">
+                {{form123|crispy}}
+            </fieldset>
+            
+            
 
-            <button class="button w3-margin-bottom",type="submit", name="pk", value={{url}}><p>Send</p></button>
+            <!--<button class="button w3-margin-bottom", type="submit", name="pid", value={{post.pk}}><p>Send</p></button>-->
+            <div class = "form-group">
+                <button class="button w3-margin-bottom",type="submit", name="pk", value="{{ url }}">Send</button>
+            </div>
+            
             
         </form>
+
         
 
         <br><br><br><br><br><br>
