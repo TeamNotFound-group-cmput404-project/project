@@ -147,7 +147,6 @@
           <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
           {% endfor %}
           {% for friend in UserProfile.get_external_follows %}
-          <!--{% for friend in externalFollowNames %}-->
           <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
           {% endfor %}
           <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} followers.</h5>
