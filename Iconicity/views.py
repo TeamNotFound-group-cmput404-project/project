@@ -1008,7 +1008,11 @@ def getAllExternalAuthors():
             the_user_pass = team10_pass
             full_url += "s"
         print("getAllExternalAuthors full url: ", full_url)
-        authors= requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()
+        authors= requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+        if host_url == team10_host_url:
+            posts = temp.json()['authors']
+        else:
+            posts = temp.json()
         allAuthors += authors
     return allAuthors
 
