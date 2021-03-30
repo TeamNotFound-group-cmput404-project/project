@@ -273,7 +273,7 @@ class Inbox(models.Model):
     # stores a list of Post items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
-    items = models.JSONField(default=dict,max_length=10000)
+    items = models.JSONField(default=list,max_length=10000)
 
 class ExternalServer(models.Model):
     host = models.URLField(default="",primary_key=True,)
