@@ -181,7 +181,7 @@ def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
     
     inbox_obj = Inbox()
     inbox_obj.author = profile.url
-    inbox_obj.items = {}
+    inbox_obj.items = []
     profile.save()
     inbox_obj.save()
 
