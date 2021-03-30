@@ -146,7 +146,6 @@ def mainPagePublic(request):
     new_list.reverse()
 
     # by Shway:
-
     curProfile = getUserProfile(request.user)
     
     externalFollowNames = []
@@ -177,7 +176,7 @@ def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
                           host=host)
 
 
-    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.uid)
+    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.id)
     
     inbox_obj = Inbox()
     inbox_obj.author = profile.url
@@ -246,7 +245,7 @@ class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
     # fields = "__all__"
-    # Post.author = UserProfile.objects.values()['uid']
+    # Post.author = UserProfile.objects.values()['id']
     def post(self, request):
         print("posting")
         template = "Iconicity/post_form.html"
@@ -416,7 +415,7 @@ def follow_back(request):
             profile = getUserProfile(request.user)
             print("inbox_view current profile: ", profile)
             # enumerate all possibilities of schemes
-            full_id = str(profile.host) + '/author/' + str(profile.uid)
+            full_id = str(profile.host) + '/author/' + str(profile.id)
             if full_id.startswith('https://'):
                 full_id = full_id[len('https://'):]
             elif full_id.startswith('http://'):
@@ -434,7 +433,7 @@ def follow_back(request):
                         return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
             cur_inbox = cur_inbox[0] # to get from a query set...
             for i in cur_inbox.items['Follow']:
-                if followee_uid == json.loads(i['actor'])['uid']:
+                if followee_uid == json.loads(i['actor'])['id']:
                     cur_inbox.items['Follow'].remove(i)
             cur_inbox.save()
             curProfile.save()
@@ -447,7 +446,7 @@ def inbox_view(request):
     profile = getUserProfile(request.user)
     print("inbox_view current profile: ", profile)
     # enumerate all possibilities of schemes
-    full_id = str(profile.host) + '/author/' + str(profile.uid)
+    full_id = str(profile.host) + '/author/' + str(profile.id)
     if full_id.startswith('https://'):
         full_id = full_id[len('https://'):]
     elif full_id.startswith('http://'):
@@ -518,7 +517,7 @@ def remove_inbox_follow(request):
         profile = getUserProfile(request.user)
         print("inbox_view current profile: ", profile)
         # enumerate all possibilities of schemes
-        full_id = str(profile.host) + '/author/' + str(profile.uid)
+        full_id = str(profile.host) + '/author/' + str(profile.id)
         if full_id.startswith('https://'):
             full_id = full_id[len('https://'):]
         elif full_id.startswith('http://'):
@@ -536,7 +535,7 @@ def remove_inbox_follow(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for i in cur_inbox.items['Follow']:
-            if followee_uid == json.loads(i['actor'])['uid']:
+            if followee_uid == json.loads(i['actor'])['id']:
                 cur_inbox.items['Follow'].remove(i)
         cur_inbox.save()
         curProfile.save()

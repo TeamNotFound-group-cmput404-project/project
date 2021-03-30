@@ -45,7 +45,7 @@ class UserProfile(models.Model):
     type = models.CharField(max_length=10, default="author")
 
     # user id field
-    uid = models.UUIDField(primary_key=True,
+    id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
 
