@@ -147,7 +147,7 @@ def mainPagePublic(request):
 
     # by Shway:
     curProfile = getUserProfile(request.user)
-    
+    '''
     externalFollowNames = []
     the_user_name = auth_user
     the_user_pass = auth_pass
@@ -155,11 +155,11 @@ def mainPagePublic(request):
         the_user_name = team10_name
         the_user_pass = team10_pass
         full_url += "s"
-    
-    
+    '''
+    '''
     for i in curProfile.get_external_follows():
         externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['displayName']
-    
+    '''
     context = {
         'posts': new_list,
         'UserProfile': curProfile,
