@@ -180,7 +180,7 @@ def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
     
     inbox_obj = Inbox()
     inbox_obj.author = profile.url
-    inbox_obj.items = {"Like":[], "Post":[], "Follow":[]}
+    inbox_obj.items = []
     profile.save()
     inbox_obj.save()
 
@@ -756,7 +756,7 @@ def pre_delete_remove_from_follow(sender, instance, **kwargs):
     sender.save()
     receiver.save()
 '''
-
+'''
 def like_view(request):
     redirect_path = '/public'
     if request.path == "/friends/like":
@@ -775,6 +775,7 @@ def like_view(request):
     current_user_profile = UserProfile.objects.get(user=request.user)
     current_url = current_user_profile.url
     post = None
+    changed = False
 
     #print(request.POST.data)
     if '/' in pk_raw:
@@ -810,41 +811,92 @@ def like_view(request):
 
         else:
             # means that this post is on our server
-            post.like.add(request.user)
-            post.like_count = post.count_like()
-            post.save()
+            if request.user in list(post.like.all()):
+                changed = False
+            else:
+                changed = True
+                post.like.add(request.user)
+                post.like_count = post.count_like()
+                post.save()
 
         
     else:
         # Pass in primary key, this post is on our system.
         post = get_object_or_404(Post, pk=request.POST.get('pk'))
-        post.like.add(request.user)
-        post.like_count = post.count_like()
-        post.save()
+        if request.user in list(post.like.all()):
+            changed = False
+        else:
+            changed = True
+            post.like.add(request.user)
+            post.like_count = post.count_like()
+            post.save()
 
     # Send something to its inbox
+
+    if changed:
+        like_obj = Like()
+        like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
+        like_obj.author = GETProfileSerializer(current_user_profile).data
+
+        like_obj.object = pk_raw
+        print("like object",like_obj.object)
+        inbox_url = (str(request.scheme) + "://"
+                                        + str(request.get_host())
+                                        + '/author/'
+                                        + str(current_user_profile.pk)
+                                        + '/inbox')
+        like_serializer = LikeSerializer(like_obj).data
+
+        response = requests.post(inbox_url,
+                                data={"like_obj":json.dumps(like_serializer)}, 
+                                auth=HTTPBasicAuth(auth_user, auth_pass))
+        print("like inbox response",response)
+
+
+    return redirect(redirect_path)
+'''
+def like_view(request):
+    redirect_path = '/public'
+    if request.path == "/friends/like":
+        redirect_path = "/friends"
+    elif request.path == "/mypost/like":
+        redirect_path = "/mypost"
+    elif request.path == "/public/like":
+        redirect_path = "/public"
+    elif request.path == "/following/like":
+        redirect_path = "/following"
+
+    # here two cases:
+    # 1. if this post is on our server, then pk works
+    # 2. if this post is not on our server, then url works
+    pk_raw = request.POST.get('pk')
+    current_user_profile = UserProfile.objects.get(user=request.user)
     like_obj = Like()
     like_obj.summary = "%s liked your post."%(current_user_profile.displayName)
     like_obj.author = GETProfileSerializer(current_user_profile).data
 
-    like_obj.object = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]['author']
+    like_obj.object = pk_raw
+    post_info = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]
+
+    post_author_url = post_info['author']['url']
+    full_inbox_url = post_author_url
+    if post_author_url[-1] != "/":
+        full_inbox_url += "/"
+    full_inbox_url += 'inbox'
+    print("inbox url",full_inbox_url)
+
+
     print("like object",like_obj.object)
-    inbox_url = (str(request.scheme) + "://"
-                                    + str(request.get_host())
-                                    + '/author/'
-                                    + str(current_user_profile.pk)
-                                    + '/inbox')
+    
     like_serializer = LikeSerializer(like_obj).data
-    print("serializer",like_serializer)
-    print("inbox url",inbox_url)
-    print(like_obj.summary)
-    response = requests.post(inbox_url,
-                             data=json.dumps(like_serializer), 
-                             auth=HTTPBasicAuth(auth_user, auth_pass))
+
+    response = requests.post(full_inbox_url,
+                            data={"like_obj":json.dumps(like_serializer)}, 
+                            auth=HTTPBasicAuth(auth_user, auth_pass))
     print("like inbox response",response)
-
-
     return redirect(redirect_path)
+
+
 
 def repost(request):
     # should pass back the post from the frontend
@@ -1279,42 +1331,37 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        print("inbox posting.....")
-        data_json = request.data
+
+        data_json = json.loads(request.POST.get('like_obj'))
         print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
-        print("class Inboxs post local profile: ", local_author_profile)
-        print("class Inboxs post local profile's url: ", local_author_profile.url)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "Like":
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
+                print("url",post_url)
                 post_id = [i for i in post_url.split('/') if i][-1]
+                print("id",post_id)
                 post_obj = Post.objects.get(pk=post_id)
+                
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
-                    # means it's local like author
-                    if local_author_profile.user in post_obj.like:
-                        # means this man liked the post before
-                        # we should make him unlike this post
-                        post_obj.like.remove(local_author_profile.user)
-                        post_obj.save()
-                        return Response(InboxSerializer(inbox_obj).data,status=204)
-                    else:
-                        # means add this man's id to the like list.
-                        post_obj.like.append(local_author_profile.user)
-                        like_obj = Like()
-                        like_obj.context= data_json["context"]
-                        like_obj.object = data_json["object"]
-                        like_obj.summary = data_json["summary"]
-                        like_obj.author = data_json["author"]
-                        like_obj.save()
-                        post_obj.save()
-                        like_json = LikeSerializer(like_obj).data
-                        inbox_obj.items['Like'].append(like_json)
-                        inbox_obj.save()
-                        return Response(InboxSerializer(inbox_obj).data,status=201)
+                    # means it's local like author              
+                    # means add this man's id to the like list.
+                    post_obj.like.add(local_author_profile.user)
+                    like_obj = Like()
+                    like_obj.context= data_json["context"]
+                    like_obj.object = data_json["object"]
+                    like_obj.summary = data_json["summary"]
+                    like_obj.author = data_json["author"]
+                    like_obj.save()
+                    post_obj.save()
+                    like_json = LikeSerializer(like_obj).data
+                    inbox_obj.items.append(like_json)
+                    inbox_obj.save()
+                    print("here2")
+                    return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
                     external_author_url = data_json["author"]["url"]
@@ -1330,7 +1377,7 @@ class Inboxs(APIView):
                         like_obj.save()
                         post_obj.save()
                         like_json = LikeSerializer(like_obj).data
-                        inbox_obj.items['Like'].append(like_json)
+                        inbox_obj.items.append(like_json)
                         inbox_obj.save()
                         return Response(InboxSerializer(inbox_obj).data,status=201)
                     else:
@@ -1343,13 +1390,13 @@ class Inboxs(APIView):
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
-                inbox_obj.items['Post'].append(data_json)
+                inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "Follow": 
                 # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
-                inbox_obj.items['Follow'].append(data_json)
+                inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
@@ -1363,7 +1410,7 @@ class Inboxs(APIView):
         currentUser = UserProfile.objects.get(pk=author_id)
 
         inbox = Inbox.objects.get(author=currentUser.url)
-        inbox.items = {"Like":[], "Post":[], "Follow":[]}
+        inbox.items = []
         inbox.save()
         return Response(InboxSerializer(inbox).data,status=200)
 
