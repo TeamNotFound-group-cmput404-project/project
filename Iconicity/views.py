@@ -891,7 +891,7 @@ def like_view(request):
     like_serializer = LikeSerializer(like_obj).data
 
     response = requests.post(full_inbox_url,
-                            data={"like_obj":json.dumps(like_serializer)}, 
+                            data={"obj":json.dumps(like_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
     print("like inbox response",response)
     return redirect(redirect_path)
@@ -1332,7 +1332,7 @@ class Inboxs(APIView):
 
     def post(self, request, author_id):
 
-        data_json = json.loads(request.POST.get('like_obj'))
+        data_json = json.loads(request.POST.get('obj'))
         print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
@@ -1396,6 +1396,11 @@ class Inboxs(APIView):
 
             elif data_json['type'] == "Follow": 
                 # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
+                inbox_obj.items.append(data_json)
+                inbox_obj.save()
+                return Response(InboxSerializer(inbox_obj).data,status=200)
+
+            elif data_json['type'] == 'comment':
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
@@ -1469,13 +1474,35 @@ def post_comments(request):
                     #form.post = post_id
                     #form.author = currentUserProfile.url
                     #form.save()
+                    
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments",
                             data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
+
+
                     else:
                         response = requests.post(pk_raw+"/comments",
                             data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
+                            auth=HTTPBasicAuth(auth_user, auth_pass))
+                    print("response",response)
+                    post_info = requests.get(pk_raw,
+                                        auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]
+                    post_author_url = post_info['author']['url']
+                    full_inbox_url = post_author_url
+                    if post_author_url[-1] != "/":
+                        full_inbox_url += "/"
+                    full_inbox_url += 'inbox'
+                    print("url",full_inbox_url)
+                    
+                    comment_obj = Comment()
+                    comment_obj.comment = form.cleaned_data['comment']
+                    comment_obj.author = author_json
+                    comment_obj.post = pk_raw
+                    comment_serializer = CommentSerializer(comment_obj).data
+                    
+                    response = requests.post(full_inbox_url,
+                            data={"obj":json.dumps(comment_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1505,6 +1532,25 @@ def post_comments(request):
                     newform.author = author_json
                     #form.author_id = request.user.id
                     newform.save()
+                    post_info = requests.get(pk_raw,
+                                        auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]
+                    post_author_url = post_info['author']['url']
+                    full_inbox_url = post_author_url
+                    if post_author_url[-1] != "/":
+                        full_inbox_url += "/"
+                    full_inbox_url += 'inbox'
+                    print(author_json)
+                    print(type(author_json))
+                    comment_obj = Comment()
+                    comment_obj.comment = form.cleaned_data['comment']
+                    comment_obj.author = author_json
+                    comment_obj.post = pk_raw
+                    comment_serializer = CommentSerializer(comment_obj).data
+                    print(comment_serializer)
+
+                    response = requests.post(full_inbox_url,
+                            data={"obj":json.dumps(comment_serializer)}, 
+                            auth=HTTPBasicAuth(auth_user, auth_pass))
                     return redirect('public')
                     
                 else:

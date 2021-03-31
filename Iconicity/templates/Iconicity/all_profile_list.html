@@ -21,12 +21,9 @@
       {% else %}
         <h1 class="w3-center w3-margin-top">Here Is Everyone Reachable:</h1>
         {% for profile in profiles %}
-        <div class="w3-container w3-card w3-white w3-round w3-margin">
-          <div>
-            <img class="w3-left w3-circle w3-margin-right" src="{% static 'images/shwaypic.jpg' %}"
-            style="width:120px" alt="Icon">
-          </div>
-          <h4>{{ profile.display_name }}</h4><br>
+        <div class="profile">
+          <h4>{{ profile.display_name }}</h4>
+          <console class="log" style = "margin-left:20px;">>>>>>>>>>>>>>>>>>>></console>
           <p>Github link: {{ profile.github }}</p>
           <p>Host link: {{ profile.host }}</p>
           <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
@@ -47,10 +44,10 @@
               <input type="hidden" name="followee_github" value="{{ profile.github }}">
               <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='followee_uid' value="{{ profile.uid }}">Follow</button>
+              name='followee_uid' value="{{ profile.uid }}" style ="margin-left:20px;width:20%;">Follow</button>
             </form>
           {% endif %}
-          <p style="color:blue;">If this user follows you back, you are automatically friends with each other!</p>
+          <p style="color:gray;margin-left:20px;">If this user follows you back, you are automatically friends with each other!</p>
           
           <!-- Case 1: Send friend request -->
           <!--
@@ -80,19 +77,7 @@
       {% endif %}
 
       <!-- Pagination-->
-      <br><br>
-      <div class="center">
-        <div class="pagination">
-        <a href="#">&laquo;</a>
-        <a href="#" class="active">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">4</a>
-        <a href="#">5</a>
-        <a href="#">6</a>
-        <a href="#">&raquo;</a>
-        </div>
-      </div>
+      
       <!-- End of Pagination-->
 
     <!-- End Middle Column -->
