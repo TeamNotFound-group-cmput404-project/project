@@ -317,7 +317,7 @@ def follow_someone(request):
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
-            frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
+            frd_request_serialized = json.dumps(FriendRequestSerializer(newFrdRequest).data)
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
@@ -1094,8 +1094,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        data_json = request.data
-        print("data_json",data_json)
+        data_json = json.loads(request.data)
+        print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
