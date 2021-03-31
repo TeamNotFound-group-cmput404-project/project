@@ -429,7 +429,10 @@ def inbox_view(request):
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
-    
+    for item in cur_inbox.items:
+        if item['type'] == 'follow':
+            item['actor'] = json.loads(item['actor'])
+            item['object'] = json.loads(item['object'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -1159,8 +1162,8 @@ class Inboxs(APIView):
             elif data_json['type'] == "follow":
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
-                data_json['actor'] = json.loads(data_json['actor'])
-                data_json['object'] = json.loads(data_json['object'])
+                #data_json['actor'] = json.loads(data_json['actor'])
+                #data_json['object'] = json.loads(data_json['object'])
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
