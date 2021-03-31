@@ -171,7 +171,7 @@ def mainPagePublic(request):
 
 def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
     profile = UserProfile(user=User,
-                          display_name=Display_name,
+                          displayName=Display_name,
                           github=Github,
                           host=host)
 
