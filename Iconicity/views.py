@@ -461,13 +461,12 @@ def remove_inbox_follow(request):
         print("gihtub ", followee_github)
         print("displayName ", followee_displayName)
         print("url ", followee_url)
-        # get current user profile
-        curProfile = UserProfile.objects.get(user = request.user)
+        
         # save the new uid into current user's follow attribute:
-        profile = getUserProfile(request.user)
-        print("inbox_view current profile: ", profile)
+        curProfile = getUserProfile(request.user)
+        print("inbox_view current profile: ", curProfile)
         # enumerate all possibilities of schemes
-        full_id = str(profile.host) + '/author/' + str(profile.id)
+        full_id = str(curProfile.host) + '/author/' + str(curProfile.id)
         if full_id.startswith('https://'):
             full_id = full_id[len('https://'):]
         elif full_id.startswith('http://'):
@@ -484,9 +483,14 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for i in cur_inbox.items:
-            if i['type'] == 'follow' and (followee_id == i['actor']['id'] or followee_url == i['actor']['id']):
-                cur_inbox.items.remove(i)
+        for item in cur_inbox.items:
+            if item['type'] == 'follow':
+                item['actor'] = json.loads(item['actor'])
+                item['object'] = json.loads(item['object'])
+        for item in cur_inbox.items:
+            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+                item['actor']['id'] == followee_url)):
+                cur_inbox.items.remove(item)
         cur_inbox.save()
         curProfile.save()
         # stay on the same page
