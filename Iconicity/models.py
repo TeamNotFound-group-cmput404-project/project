@@ -241,10 +241,11 @@ class Like(models.Model):
 class InboxManager(models.Manager):
     def add_new_item_to_author_inbox(self, item, url):
         if len(Inbox.objects.filter(author = url)) == 0:
-            self.author = url
-            self.items.append(item)
-        else:
-            Inbox.objects.filter(author = url)[0].items.append(item)
+            Inbox.objects.filter(author = url)[0].author = url
+        print("model here: ", Inbox.objects.filter(author = url)[0].author)
+        print("item: ", item)
+        Inbox.objects.filter(author = url)[0].items.append(item)
+        print("model here: ", Inbox.objects.filter(author = url)[0].items)
 
 
 class Inbox(models.Model):
@@ -254,8 +255,6 @@ class Inbox(models.Model):
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     items = models.JSONField(default=list,max_length=10000)
-
-    objects = InboxManager()
     
 
 class ExternalServer(models.Model):

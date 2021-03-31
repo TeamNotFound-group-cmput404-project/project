@@ -31,16 +31,17 @@
               <p>url: {{ item.actor.url }}</p>
               <!--{% csrf_token %}-->
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='accept_uid' value='{{ item.uid }}'>View Profile</button>
+              name='accept_id' value='{{ item.id }}'>View Profile</button>
 
               <!--For to follow this user back-->
               <form action="{% url 'follow_back' %}" method='POST'>
                 {% csrf_token %}
                 <input type="hidden" name="followee_host" value="{{ item.actor.host }}">
                 <input type="hidden" name="followee_github" value="{{ item.actor.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ item.actor.display_name }}">
+                <input type="hidden" name="followee_displayName" value="{{ item.actor.displayName }}">
+                <input type="hidden" name="followee_url" value="{{ item.actor.url }}">
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-                name='followee_uid' value="{{ item.actor.uid }}">Follow back(or accept friend request to be friends)</button>
+                name='followee_id' value="{{ item.actor.id }}">Follow back(or accept friend request to be friends)</button>
               </form>
 
               <!--For to remove this message-->
@@ -48,9 +49,9 @@
                 {% csrf_token %}
                 <input type="hidden" name="followee_host" value="{{ item.actor.host }}">
                 <input type="hidden" name="followee_github" value="{{ item.actor.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ item.actor.display_name }}">
+                <input type="hidden" name="followee_displayName" value="{{ item.actor.displayName }}">
                 <button type='submit' class="w3-button w3-theme-r1 w3-margin-bottom"
-                name='followee_uid' value="{{ item.actor.uid }}">Remove Message</button>
+                name='followee_id' value="{{ item.actor.id }}">Remove Message</button>
               </form>
             </div>
           {% endif %}
@@ -59,7 +60,7 @@
               <h1>{{ post.title }}</h1><br>
               <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
               <!-- <span class="w3-right w3-opacity">1 min</span> -->
-              <h5>By: {{ post.author_display_name}}</h5><br>
+              <h5>By: {{ post.author_displayName}}</h5><br>
               <hr class="w3-clear">
               {% if post.contentType == "text/plain" %}
                 <p>{{ post.content }}</p>
