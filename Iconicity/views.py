@@ -402,7 +402,7 @@ def follow_back(request):
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
-                cur_inbox.items.remove(i)
+                cur_inbox.items.remove(item)
         cur_inbox.save()
         curProfile.save()
         # stay on the same page
