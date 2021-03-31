@@ -38,7 +38,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         'count', 'size', 'published', 'author', 'host','like_count','comments', 'author_display_name')
 
     def get_author_display_name(self, obj):
-        return UserProfile.objects.filter(user=obj.author).first().display_name
+        return UserProfile.objects.filter(user=obj.author).first().displayName
 
     def get_comments(self, obj):
         url = obj.origin
@@ -97,7 +97,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
 
     def get_comment_author_name(self, obj):
         temp = obj.author
-        return temp['display_name']
+        return temp['displayName']
  
     def get_author(self, obj):
         return obj.author
@@ -111,19 +111,19 @@ class CommentSerializer(rest_serializers.ModelSerializer):
 
 class GETProfileSerializer(rest_serializers.ModelSerializer):
     uid = rest_serializers.SerializerMethodField("get_uid")
-    display_name = rest_serializers.SerializerMethodField("get_name")
+    displayName = rest_serializers.SerializerMethodField("get_name")
     host = rest_serializers.SerializerMethodField()
     github = rest_serializers.SerializerMethodField()
     url = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ('type', 'uid','display_name','host','github','url')
+        fields = ('type', 'uid','displayName','host','github','url')
 
     def get_uid(self, obj):
         return obj.url
 
     def get_name(self, obj):
-        return obj.display_name
+        return obj.displayName
 
     def get_host(self, obj):
         return obj.host
