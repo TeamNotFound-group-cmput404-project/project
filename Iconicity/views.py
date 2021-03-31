@@ -306,11 +306,12 @@ def follow_someone(request):
             # cannot get the profile with followee_id locally
             print("Not local")
             # create a new friend request with the receiver the (external) followee_id
-            actor = GETProfileSerializer(curProfile).data # prepare to send
+            actor = json.dumps(GETProfileSerializer(curProfile).data) # prepare to send
             object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
+            object = json.dumps(object)
             print("follow someone's actor serialized: ", actor)
             print("follow someone's object serialized: ", object)
             # construct the new friend request:
@@ -1147,11 +1148,7 @@ class Inboxs(APIView):
                         post_obj.external_likes['urls'].remove(external_author_url)
                         post_obj.save()
                         return Response(InboxSerializer(inbox_obj).data,status=204)
-            else:
-                inbox_obj.items.append(data_json)
-                inbox_obj.save()
-                return Response(InboxSerializer(inbox_obj).data,status=200)
-            '''
+            
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
@@ -1160,7 +1157,9 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "follow": 
-                # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
+                # need to load the actor and object into objects:
+                data_json['actor'] = json.loads(data_json['actor'])
+                data_json['object'] = json.loads(data_json['object'])
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
@@ -1171,7 +1170,6 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
                 print("Inbox operation not handled")
-            '''
         except Exception as e:
             print("Error happened: ", e)
 
