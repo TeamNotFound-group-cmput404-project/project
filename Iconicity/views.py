@@ -395,8 +395,13 @@ def follow_back(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for i in cur_inbox.items:
-            if i['type'] == 'follow' and (followee_id == i['actor']['id'] or followee_url == i['actor']['id']):
+        for item in cur_inbox.items:
+            if item['type'] == 'follow':
+                item['actor'] = json.loads(item['actor'])
+                item['object'] = json.loads(item['object'])
+        for item in cur_inbox.items:
+            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+                item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(i)
         cur_inbox.save()
         curProfile.save()
@@ -1162,8 +1167,6 @@ class Inboxs(APIView):
             elif data_json['type'] == "follow":
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
-                #data_json['actor'] = json.loads(data_json['actor'])
-                #data_json['object'] = json.loads(data_json['object'])
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
