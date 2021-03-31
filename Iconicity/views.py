@@ -1402,7 +1402,7 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == 'comment':
-                inbox_obj.items.add(data_json)
+                inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
             else:
