@@ -1156,7 +1156,8 @@ class Inboxs(APIView):
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
-            elif data_json['type'] == "follow": 
+            elif data_json['type'] == "follow":
+                print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 data_json['actor'] = json.loads(data_json['actor'])
                 data_json['object'] = json.loads(data_json['object'])
