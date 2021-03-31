@@ -465,38 +465,20 @@ def inbox_view(request):
     cur_inbox = cur_inbox[0] # to get from a query set...
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
-    follows_size = len(cur_inbox.items['Follow'])
+    inbox_size = len(cur_inbox.items)
     # jsonify the actors and objects:
     
-    for attribute in cur_inbox.items['Follow']:
+    for attribute in cur_inbox.items:
     	attribute['actor'] = json.loads(attribute['actor'])
     	attribute['object'] = json.loads(attribute['object'])
     
-    print("inbox_view cur_inbox: ", cur_inbox.items['Follow'])
-
-    posts_size = len(cur_inbox.items['Post'])
-    likes_size = len(cur_inbox.items['Like'])
-    print("here are the sizes: ", follows_size, posts_size, likes_size)
-    print('here are the contents: ', cur_inbox.items['Follow'], cur_inbox.items['Post'], cur_inbox.items['Like'])
-    inbox_size = follows_size + posts_size + likes_size
+    print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
-    is_follows_empty = False
-    is_posts_empty = False
-    is_likes_empty = False
-    if follows_size == 0: is_follows_empty = True
-    if posts_size == 0: is_posts_empty = True
-    if likes_size == 0: is_likes_empty = True
     if inbox_size == 0: is_all_empty = True
-    print("Here are the determinations: ", is_follows_empty, is_posts_empty, is_likes_empty)
     # put information to the context
     context = {
-        'is_follows_empty': is_follows_empty,
-        'is_posts_empty': is_posts_empty,
-        'is_likes_empty': is_likes_empty,
         'is_all_empty': is_all_empty,
-        'likes': cur_inbox.items['Like'],
-        'follows': cur_inbox.items['Follow'],
-        'posts': cur_inbox.items['Post'],}
+        'inbox': cur_inbox.items}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, to remove a follow notification from the inbox
