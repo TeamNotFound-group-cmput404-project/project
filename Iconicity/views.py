@@ -306,12 +306,11 @@ def follow_someone(request):
             # cannot get the profile with followee_id locally
             print("Not local")
             # create a new friend request with the receiver the (external) followee_id
-            actor = json.dumps(GETProfileSerializer(curProfile).data) # prepare to send
+            actor = GETProfileSerializer(curProfile).data # prepare to send
             object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
-            object = json.dumps(object) # now prepare to send
             print("follow someone's actor serialized: ", actor)
             print("follow someone's object serialized: ", object)
             # construct the new friend request:
