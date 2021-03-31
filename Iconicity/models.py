@@ -48,7 +48,7 @@ class UserProfile(models.Model):
 
     # I'm following / friend
     #follow = models.ManyToManyField(User, related_name='following', blank=True)
-    follow = models.JSONField(default=dict, max_length=5000)
+    follow = models.JSONField(default=dict, max_length=500)
 
     objects = UserProfileManager()
 
@@ -183,41 +183,18 @@ class Post(models.Model):
     def __str__(self):
         return '%s' % (self.title)
 
-# By Shway:
-'''
-STATUS_CHOICES = (
-    ('sent', 'sent'),
-    ('accepted', 'accepted'),
-)
-'''
-
-class FriendRequestManager(models.Manager):
-    def friendRequests_received(self, receiver):
-        return FriendRequest.objects.filter(object=receiver, status='sent')
-
-    #FriendRequest.objects.friendRequests_received(curUserProfile)
-
 class FriendRequest(models.Model):
     # Type is set to follow
-    type = models.CharField(max_length=10, default="Follow")
+    type = models.CharField(max_length=10, default="follow")
 
     # Summary of following info
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    actor = models.URLField(default="",max_length=500)
-
-    # By: Shway
-    # For the receiver to choose to accept or reject:
-    #status = models.CharField(default="sent", max_length=10, choices=STATUS_CHOICES)
+    actor = models.JSONField(default=dict, max_length=500)
 
     # Reciever of this friend request:
-    object = models.URLField(default="",max_length=500)
-
-    objects = FriendRequestManager()
-
-    def __str__(self):
-        return f"{self.actor}-->{self.object}: {self.summary}"
+    object = models.JSONField(default=dict, max_length=500)
 
 
 class Comment(models.Model):
@@ -252,13 +229,23 @@ class Like(models.Model):
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
-    type = models.CharField(max_length=10, default="Like")
+    type = models.CharField(max_length=10, default="like")
     context = models.URLField(default="")
     summary = models.TextField(default="")
 
     # foreign key to the author
     author = models.JSONField(default=dict,max_length=500)
     object = models.JSONField(default=dict,max_length=500)
+
+# by: Shway Wang:
+class InboxManager(models.Manager):
+    def add_new_item_to_author_inbox(self, item, url):
+        if len(Inbox.objects.filter(author = url)) == 0:
+            self.author = url
+            self.items.append(item)
+        else:
+            Inbox.objects.filter(author = url)[0].items.append(item)
+
 
 class Inbox(models.Model):
     type = models.CharField(max_length=10, default="inbox")
@@ -267,6 +254,9 @@ class Inbox(models.Model):
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     items = models.JSONField(default=list,max_length=10000)
+
+    objects = InboxManager()
+    
 
 class ExternalServer(models.Model):
     host = models.URLField(default="",primary_key=True,)

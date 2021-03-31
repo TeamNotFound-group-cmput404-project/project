@@ -279,59 +279,46 @@ def follow_someone(request):
         followee_github = request.POST.get('followee_github')
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
+        followee_url = request.POST.get('followee_url')
         print("id ", followee_id)
         print("host ", followee_host)
         print("gihtub ", followee_github)
         print("displayName ", followee_displayName)
+        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
+        summary = curProfile.displayName + " wants to follow " + followee_displayName
         # save the new uid into current user's follow attribute:
         try: # local
             followee_profile = UserProfile.objects.get(id = followee_id)
-            summary = curProfile.displayName + " wants to follow " + followee_displayName
             # create a new friend request locally
-            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
-            profile_json = GETProfileSerializer(followee_profile).data
-            curProfile.add_follow(profile_json)
+            actor = GETProfileSerializer(curProfile).data
+            object = GETProfileSerializer(followee_profile).data
+            curProfile.add_follow(object) # add the followee to current profile follow
+            newFrdRequest = FriendRequest(type = 'follow', summary = summary, actor = actor, object = object)
+            # send the friend request to the local inbox:
+            newFrdRequest = FriendRequestSerializer(newFrdRequest).data
+            Inbox.objects.add_new_item_to_author_inbox(item = newFrdRequest, url = followee_url)
         except Exception as e: # external
             # cannot get the profile with followee_id locally
             print("Not local")
-            # Second, send the remote post request:
             # create a new friend request with the receiver the (external) followee_id
-            summary = curProfile.displayName + " wants to follow " + followee_displayName
-
-            # serialized current profile
-            '''
-            actor = {"type":"author", "id":str(curProfile.uid), "host":str(curProfile.host),
-            	"displayName":str(curProfile.display_name),
-                "url":str(curProfile.url), "github": str(curProfile.github)}
-            '''
-            # form the freind request data stream
-            '''
-            object = {"type":"author", "id":followee_id, "host":followee_host,
-            	"displayName":followee_displayName,
-                "url":followee_id, "github": followee_github}
-            print("this is followee_id:  ", followee_id)
-            '''
-            # TEST
-            actor = json.dumps(GETProfileSerializer(curProfile).data)
+            actor = json.dumps(GETProfileSerializer(curProfile).data) # prepare to send
+            object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
+                github = followee_github, host = followee_host, url = followee_url)
+            object = GETProfileSerializer(object_obj).data
+            curProfile.add_follow(object) # add the followee to current profile follow
+            object = json.dumps(object) # now prepare to send
             print("follow someone's actor serialized: ", actor)
+            print("follow someone's object serialized: ", object)
+            # construct the new friend request:
+            newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
+            # serialize the new friend request:
+            frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
             else: full_followee_url = str(request.scheme) + "://" + followee_id
-            # request the user profile with the full followee_url:
-            object_profile = json.loads(requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text)
-            # construct the new friend request:
-            new_frdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, 
-                status = 'sent', object = json.dumps(object_profile))
-            # serialize the new friend request:
-            frd_request_serialized = FriendRequestSerializer(new_frdRequest).data
-
-            '''
-            frd_request_context = {"type": "Follow", "summary": summary,
-            						"actor": json.dumps(actor), "object": json.dumps(object)}
-            '''
             # should send to inbox:
             if full_followee_url[-1] == '/': full_followee_url += "inbox"
             else: full_followee_url += '/inbox'
