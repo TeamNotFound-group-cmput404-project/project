@@ -397,8 +397,8 @@ def follow_back(request):
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
             if item['type'] == 'follow':
-                if type(item['actor']) is dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is dict: item['object'] = json.loads(item['object'])
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -436,8 +436,8 @@ def inbox_view(request):
     inbox_size = len(cur_inbox.items)
     for item in cur_inbox.items:
         if item['type'] == 'follow':
-            if type(item['actor']) is dict: item['actor'] = json.loads(item['actor'])
-            if type(item['object']) is dict: item['object'] = json.loads(item['object'])
+            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -485,8 +485,8 @@ def remove_inbox_follow(request):
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
             if item['type'] == 'follow':
-                if type(item['actor']) is dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is dict: item['object'] = json.loads(item['object'])
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
