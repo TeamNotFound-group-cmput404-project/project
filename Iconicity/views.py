@@ -1092,7 +1092,7 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        data_json = json.loads(request.POST.get('obj'))
+        data_json = json.loads(request.data)
         print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
