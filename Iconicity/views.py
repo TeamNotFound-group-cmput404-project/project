@@ -429,13 +429,6 @@ def inbox_view(request):
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
-    # jsonify the actors and objects:
-    
-    '''
-    for item in cur_inbox.items:
-    	item['actor'] = json.loads(item['actor'])
-    	item['object'] = json.loads(item['object'])
-    '''
     
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
@@ -1099,7 +1092,6 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-
         data_json = json.loads(request.POST.get('obj'))
         print("data_json",data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
