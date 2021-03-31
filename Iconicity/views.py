@@ -446,10 +446,12 @@ def remove_inbox_follow(request):
         followee_github = request.POST.get('followee_github')
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
+        followee_url = request.POST.get('followee_url')
         print("uid ", followee_id)
         print("host ", followee_host)
         print("gihtub ", followee_github)
-        print("display_name ", followee_displayName)
+        print("displayName ", followee_displayName)
+        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow attribute:
@@ -473,9 +475,9 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for i in cur_inbox.items['Follow']:
-            if followee_id == json.loads(i['actor'])['id']:
-                cur_inbox.items['Follow'].remove(i)
+        for i in cur_inbox.items:
+            if i['type'] == 'follow' and (followee_id == i['actor']['id'] or followee_url == i['actor']['id']):
+                cur_inbox.items.remove(i)
         cur_inbox.save()
         curProfile.save()
         # stay on the same page
