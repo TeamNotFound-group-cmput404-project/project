@@ -1494,18 +1494,18 @@ def post_comments(request):
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
                     full_inbox_url += 'inbox'
+                    print("url",full_inbox_url)
                     
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = json.dumps(author_json)
+                    comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
                     
-
                     response = requests.post(full_inbox_url,
                             data={"obj":json.dumps(comment_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
-                    
+                    print("response",response)
                     return redirect('public')
                     
                 else:
@@ -1540,13 +1540,14 @@ def post_comments(request):
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
                     full_inbox_url += 'inbox'
-                    
+                    print(author_json)
+                    print(type(author_json))
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = json.dumps(author_json)
+                    comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
-                    
+                    print(comment_serializer)
 
                     response = requests.post(full_inbox_url,
                             data={"obj":json.dumps(comment_serializer)}, 
