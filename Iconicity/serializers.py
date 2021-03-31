@@ -110,16 +110,20 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         
 
 class GETProfileSerializer(rest_serializers.ModelSerializer):
-    uid = rest_serializers.SerializerMethodField("get_uid")
+    type = rest_serializers.SerializerMethodField("get_type")
+    id = rest_serializers.SerializerMethodField("get_id")
     displayName = rest_serializers.SerializerMethodField("get_name")
     host = rest_serializers.SerializerMethodField()
     github = rest_serializers.SerializerMethodField()
     url = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ('type', 'uid','displayName','host','github','url')
+        fields = ('type', 'id', 'url', 'host', 'displayName','github')
 
-    def get_uid(self, obj):
+    def get_type(self, obj):
+        return obj.type
+
+    def get_id(self, obj):
         return obj.url
 
     def get_name(self, obj):
@@ -175,7 +179,7 @@ class FriendRequestSerializer(rest_serializers.ModelSerializer):
 
     class Meta:
         model = FriendRequest
-        fields = ('type', 'summary', 'actor', 'status', 'object')
+        fields = ('type', 'summary', 'actor', 'object')
     
     def get_type(self, obj):
         return obj.type
