@@ -399,6 +399,10 @@ def follow_back(request):
             if item['type'] == 'follow':
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+            if item['type'] == 'like':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if item['type'] == 'comment':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -438,6 +442,10 @@ def inbox_view(request):
         if item['type'] == 'follow':
             if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
             if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+        if item['type'] == 'like':
+            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+        if item['type'] == 'comment':
+            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -487,6 +495,10 @@ def remove_inbox_follow(request):
             if item['type'] == 'follow':
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+            if item['type'] == 'like':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if item['type'] == 'comment':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -648,7 +660,7 @@ def like_view(request):
     current_user_profile = UserProfile.objects.get(user=request.user)
     like_obj = Like()
     like_obj.summary = "%s liked your post."%(current_user_profile.displayName)
-    like_obj.author = GETProfileSerializer(current_user_profile).data
+    like_obj.author = json.dumps(GETProfileSerializer(current_user_profile).data)
 
     like_obj.object = pk_raw
     post_info = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]
@@ -1275,7 +1287,7 @@ def post_comments(request):
                     
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = author_json
+                    comment_obj.author = json.dumps(author_json)
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
                     
@@ -1321,7 +1333,7 @@ def post_comments(request):
                     print(type(author_json))
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = author_json
+                    comment_obj.author = json.dumps(author_json)
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
                     print(comment_serializer)
