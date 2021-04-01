@@ -968,12 +968,10 @@ def getUserFriend(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
-
-
     return friendList
 
 def getExternalUserFriends(currentUser):
