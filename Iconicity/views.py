@@ -809,6 +809,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     if team10_host_url in full_url:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    print("getAllFollowExternalAuthorPosts: ", full_url)
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     print(temp)
                     responseJsonlist = temp.json()
