@@ -925,15 +925,20 @@ def following(request):
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
-    # get all local followers of our user
+    # get all local followers of our user which our user also follows
     allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
         if len(UserProfile.objects.filter(url=user['url'])) != 0:
             otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
-            print("getUserFriend: ", otherUserProfile.user)
-            friendList.append(otherUserProfile.user)
+            # DEBUG
+            friends = otherUserProfile.get_followers()
+            for userInfo in friends:
+                if userProfile.url == userInfo['url']:
+                    print("getUserFriend: ", otherUserProfile.user)
+                    friendList.append(otherUserProfile.user)
+                    break
     return friendList
 
 # modified by Shway
