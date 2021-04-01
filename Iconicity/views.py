@@ -808,9 +808,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     responseJsonlist = temp.json()
                     post_list += responseJsonlist
             '''
-            #print(friendUrlList)
+            print("all",allFollowers)
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+                    print("in")
                     full_url = user['url']
                     if user['url'][-1]=="/":
                         full_url += "posts/"
@@ -822,6 +823,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                         the_user_name = team10_name
                         the_user_pass = team10_pass
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                    print(temp)
                     responseJsonlist = temp.json()
                     post_list += responseJsonlist
 
