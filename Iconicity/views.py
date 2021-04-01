@@ -559,7 +559,7 @@ def like_view(request):
     like_obj.object = pk_raw
     the_user_name = auth_user
     the_user_pass = auth_pass
-    print
+    
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
@@ -1092,6 +1092,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
+        print(request.data['obj'])
+        print(type(request.data['obj']))
         data_json = json.loads(request.data['obj'])
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
