@@ -135,10 +135,10 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'Iconicity', 'static'),
     )
 
-django_on_heroku.settings(locals()) # bottom of the file
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
     ]
 }
+
+django_on_heroku.settings(locals()) # bottom of the file
