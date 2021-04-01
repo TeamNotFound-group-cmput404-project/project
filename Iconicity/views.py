@@ -897,7 +897,8 @@ def getExternalUserFriends(currentUser):
             else:
                 full_url += "/followers/"
             # now check whether you are also his/hers followee.
-            friends = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+            raw = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+            friends = raw.json()
             for userInfo in friends:
                 if userProfile.url == userInfo['url']:
                     friendUrlList.append(user['url'])
