@@ -146,25 +146,10 @@ def mainPagePublic(request):
     new_list.reverse()
 
     # by Shway:
-
     curProfile = getUserProfile(request.user)
-    '''
-    externalFollowNames = []
-    the_user_name = auth_user
-    the_user_pass = auth_pass
-    if host_url == team10_host_url:
-        the_user_name = team10_name
-        the_user_pass = team10_pass
-        full_url += "s"
-    '''
-    '''
-    for i in curProfile.get_external_follows():
-        externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['display_name']
-    '''
     context = {
         'posts': new_list,
         'UserProfile': curProfile,
-        #'externalFollowNames': externalFollowNames,
         'myself': str(request.user),
     }
     return render(request, 'Iconicity/main_page.html', context)
@@ -172,12 +157,12 @@ def mainPagePublic(request):
 
 def createUserProfileAndInbox(scheme, Display_name, User, Github, host):
     profile = UserProfile(user=User,
-                          display_name=Display_name,
+                          displayName=Display_name,
                           github=Github,
                           host=host)
 
 
-    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.uid)
+    profile.url = str(scheme) + "://" + str(host) + '/author/' + str(profile.id)
     
     inbox_obj = Inbox()
     inbox_obj.author = profile.url
@@ -246,7 +231,7 @@ class AddPostView(CreateView):
     model = Post
     template= "/Iconicity/post_form.html"
     # fields = "__all__"
-    # Post.author = UserProfile.objects.values()['uid']
+    # Post.author = UserProfile.objects.values()['id']
     def post(self, request):
         print("posting")
         template = "Iconicity/post_form.html"
@@ -292,64 +277,51 @@ def follow_someone(request):
         # receive data from front-end
         followee_host = request.POST.get('followee_host')
         followee_github = request.POST.get('followee_github')
-        followee_display_name = request.POST.get('followee_display_name')
-        followee_uid = request.POST.get('followee_uid')
-        print("uid ", followee_uid)
+        followee_displayName = request.POST.get('followee_displayName')
+        followee_id = request.POST.get('followee_id')
+        followee_url = request.POST.get('followee_url')
+        print("id ", followee_id)
         print("host ", followee_host)
         print("gihtub ", followee_github)
-        print("display_name ", followee_display_name)
+        print("displayName ", followee_displayName)
+        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
+        summary = curProfile.displayName + " wants to follow " + followee_displayName
         # save the new uid into current user's follow attribute:
         try: # local
-            followee_profile = UserProfile.objects.get(uid = followee_uid)
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            followee_profile = UserProfile.objects.get(id = followee_id)
             # create a new friend request locally
-            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
-            curProfile.follow.add(followee_profile.user)
+            actor = GETProfileSerializer(curProfile).data
+            object = GETProfileSerializer(followee_profile).data
+            curProfile.add_follow(object) # add the followee to current profile follow
+            newFrdRequest = FriendRequest(type = 'follow', summary = summary, actor = actor, object = object)
+            # send the friend request to the local inbox:
+            newFrdRequest = FriendRequestSerializer(newFrdRequest).data
+            cur_inbox = Inbox.objects.get(author=followee_url)
+            cur_inbox.items.append(newFrdRequest)
+            print("follow some one new inbox: ", cur_inbox.items)
+            cur_inbox.save()
         except Exception as e: # external
-            # cannot get the profile with followee_uid locally
+            # cannot get the profile with followee_id locally
             print("Not local")
-            # First, add the uid into local database:
-            if curProfile.externalFollows == {}:
-                curProfile.externalFollows['urls'] = []
-            curProfile.externalFollows['urls'].append(followee_uid)
-            # Second, send the remote post request:
-            # create a new friend request with the receiver the (external) followee_uid
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
-
-            # serialized current profile
-            '''
-            actor = {"type":"author", "id":str(curProfile.uid), "host":str(curProfile.host),
-            	"displayName":str(curProfile.display_name),
-                "url":str(curProfile.url), "github": str(curProfile.github)}
-            '''
-            # form the freind request data stream
-            '''
-            object = {"type":"author", "id":followee_uid, "host":followee_host,
-            	"displayName":followee_display_name,
-                "url":followee_uid, "github": followee_github}
-            print("this is followee_uid:  ", followee_uid)
-            '''
-
-            actor = json.dumps(GETProfileSerializer(curProfile).data)
+            # create a new friend request with the receiver the (external) followee_id
+            actor = json.dumps(GETProfileSerializer(curProfile).data) # prepare to send
+            object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
+                github = followee_github, host = followee_host, url = followee_url)
+            object = GETProfileSerializer(object_obj).data
+            curProfile.add_follow(object) # add the followee to current profile follow
+            object = json.dumps(object)
             print("follow someone's actor serialized: ", actor)
+            print("follow someone's object serialized: ", object)
+            # construct the new friend request:
+            newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
+            # serialize the new friend request:
+            frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             # API from the other server
             full_followee_url = ''
-            if followee_uid.startswith('http'): full_followee_url = followee_uid
-            else: full_followee_url = str(request.scheme) + "://" + followee_uid
-            # request the user profile with the full followee_url:
-            object_profile = json.loads(requests.get(full_followee_url, auth=HTTPBasicAuth(auth_user, auth_pass)).text)
-            # construct the new friend request:
-            new_frdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, 
-                status = 'sent', object = json.dumps(object_profile))
-            # serialize the new friend request:
-            frd_request_serialized = FriendRequestSerializer(new_frdRequest).data
-
-            '''
-            frd_request_context = {"type": "Follow", "summary": summary,
-            						"actor": json.dumps(actor), "object": json.dumps(object)}
-            '''
+            if followee_id.startswith('http'): full_followee_url = followee_id
+            else: full_followee_url = str(request.scheme) + "://" + followee_id
             # should send to inbox:
             if full_followee_url[-1] == '/': full_followee_url += "inbox"
             else: full_followee_url += '/inbox'
@@ -366,18 +338,11 @@ def follow_someone(request):
 # by Shway, the follow function, to add someone to your follow list:
 def unfollow_someone(request):
     if request.method == 'POST':
-        followee_uid = request.POST.get('followee_uid')
+        followee_id = request.POST.get('followee_id')
         curProfile = UserProfile.objects.get(user = request.user)
-        followee_profile = None
-        try: # local
-            followee_profile = UserProfile.objects.get(uid = followee_uid)
-            # remove the uid from current user's follow:
-            if followee_profile.user in curProfile.follow.all():
-                curProfile.follow.remove(followee_profile.user)
-        except Exception as e: # external
-            print("Not local")
-            if followee_uid in curProfile.externalFollows['urls']:
-                curProfile.externalFollows['urls'].remove(followee_uid)
+        # remove the uid from current user's follow:
+        print(followee_id)
+        curProfile.remove_follow_by_id(followee_id)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -389,55 +354,57 @@ def follow_back(request):
         # receive data from front-end
         followee_host = request.POST.get('followee_host')
         followee_github = request.POST.get('followee_github')
-        followee_display_name = request.POST.get('followee_display_name')
-        followee_uid = request.POST.get('followee_uid')
-        print("uid ", followee_uid)
+        followee_displayName = request.POST.get('followee_displayName')
+        followee_id = request.POST.get('followee_id')
+        followee_url = request.POST.get('followee_url')
+        print("uid ", followee_id)
         print("host ", followee_host)
         print("gihtub ", followee_github)
-        print("display_name ", followee_display_name)
+        print("displayName ", followee_displayName)
+        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow attribute:
         try: # local
-            followee_profile = UserProfile.objects.get(uid = followee_uid)
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
+            followee_profile = UserProfile.objects.get(id = followee_id)
             # create a new friend request locally
-            newFrdRequest = FriendRequest.objects.create(actor=curProfile, object=followee_profile, summary = summary)
-            curProfile.follow.add(followee_profile.user)
+            object = GETProfileSerializer(followee_profile).data
+            curProfile.add_follow(object) # add the followee to current profile follow
         except Exception as e: # external
-            # cannot get the profile with followee_uid locally
+            # cannot get the profile with followee_id locally
             print("Not local")
-            # First, add the uid into local database:
-            if curProfile.externalFollows == {}:
-                curProfile.externalFollows['urls'] = []
-            curProfile.externalFollows['urls'].append(followee_uid)
-            # Second, delete from inbox:
-            # save the new uid into current user's follow attribute:
-            profile = getUserProfile(request.user)
-            print("inbox_view current profile: ", profile)
-            # enumerate all possibilities of schemes
-            full_id = str(profile.host) + '/author/' + str(profile.uid)
-            if full_id.startswith('https://'):
-                full_id = full_id[len('https://'):]
-            elif full_id.startswith('http://'):
-                full_id = full_id[len('http://'):]
-            print("full_id",full_id)
-            cur_inbox = Inbox.objects.filter(author=full_id)
+            object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
+                github = followee_github, host = followee_host, url = followee_url)
+            object = GETProfileSerializer(object_obj).data
+            curProfile.add_follow(object) # add the followee to current profile follow
+        # enumerate all possibilities of schemes
+        full_id = str(curProfile.host) + '/author/' + str(curProfile.id)
+        if full_id.startswith('https://'):
+            full_id = full_id[len('https://'):]
+        elif full_id.startswith('http://'):
+            full_id = full_id[len('http://'):]
+        print("full_id",full_id)
+        cur_inbox = Inbox.objects.filter(author=full_id)
+        if len(cur_inbox) == 0:
+            temp = "https://" + full_id
+            cur_inbox = Inbox.objects.filter(author=temp)
             if len(cur_inbox) == 0:
-                temp = "https://" + full_id
+                temp = "http://" + full_id
                 cur_inbox = Inbox.objects.filter(author=temp)
                 if len(cur_inbox) == 0:
-                    temp = "http://" + full_id
-                    cur_inbox = Inbox.objects.filter(author=temp)
-                    if len(cur_inbox) == 0:
-                        print("did not find any inbox with id: ", full_id)
-                        return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
-            cur_inbox = cur_inbox[0] # to get from a query set...
-            for i in cur_inbox.items['Follow']:
-                if followee_uid == json.loads(i['actor'])['uid']:
-                    cur_inbox.items['Follow'].remove(i)
-            cur_inbox.save()
-            curProfile.save()
+                    print("did not find any inbox with id: ", full_id)
+                    return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
+        cur_inbox = cur_inbox[0] # to get from a query set...
+        for item in cur_inbox.items:
+            if item['type'] == 'follow':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+        for item in cur_inbox.items:
+            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+                item['actor']['id'] == followee_url)):
+                cur_inbox.items.remove(item)
+        cur_inbox.save()
+        curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
@@ -447,7 +414,7 @@ def inbox_view(request):
     profile = getUserProfile(request.user)
     print("inbox_view current profile: ", profile)
     # enumerate all possibilities of schemes
-    full_id = str(profile.host) + '/author/' + str(profile.uid)
+    full_id = str(profile.host) + '/author/' + str(profile.id)
     if full_id.startswith('https://'):
         full_id = full_id[len('https://'):]
     elif full_id.startswith('http://'):
@@ -466,38 +433,18 @@ def inbox_view(request):
     cur_inbox = cur_inbox[0] # to get from a query set...
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
-    follows_size = len(cur_inbox.items['Follow'])
-    # jsonify the actors and objects:
-    
-    for attribute in cur_inbox.items['Follow']:
-    	attribute['actor'] = json.loads(attribute['actor'])
-    	attribute['object'] = json.loads(attribute['object'])
-    
-    print("inbox_view cur_inbox: ", cur_inbox.items['Follow'])
-
-    posts_size = len(cur_inbox.items['Post'])
-    likes_size = len(cur_inbox.items['Like'])
-    print("here are the sizes: ", follows_size, posts_size, likes_size)
-    print('here are the contents: ', cur_inbox.items['Follow'], cur_inbox.items['Post'], cur_inbox.items['Like'])
-    inbox_size = follows_size + posts_size + likes_size
+    inbox_size = len(cur_inbox.items)
+    for item in cur_inbox.items:
+        if item['type'] == 'follow':
+            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+    print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
-    is_follows_empty = False
-    is_posts_empty = False
-    is_likes_empty = False
-    if follows_size == 0: is_follows_empty = True
-    if posts_size == 0: is_posts_empty = True
-    if likes_size == 0: is_likes_empty = True
     if inbox_size == 0: is_all_empty = True
-    print("Here are the determinations: ", is_follows_empty, is_posts_empty, is_likes_empty)
     # put information to the context
     context = {
-        'is_follows_empty': is_follows_empty,
-        'is_posts_empty': is_posts_empty,
-        'is_likes_empty': is_likes_empty,
         'is_all_empty': is_all_empty,
-        'likes': cur_inbox.items['Like'],
-        'follows': cur_inbox.items['Follow'],
-        'posts': cur_inbox.items['Post'],}
+        'inbox': cur_inbox.items}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, to remove a follow notification from the inbox
@@ -506,19 +453,20 @@ def remove_inbox_follow(request):
         # receive data from front-end
         followee_host = request.POST.get('followee_host')
         followee_github = request.POST.get('followee_github')
-        followee_display_name = request.POST.get('followee_display_name')
-        followee_uid = request.POST.get('followee_uid')
-        print("uid ", followee_uid)
+        followee_displayName = request.POST.get('followee_displayName')
+        followee_id = request.POST.get('followee_id')
+        followee_url = request.POST.get('followee_url')
+        print("uid ", followee_id)
         print("host ", followee_host)
         print("gihtub ", followee_github)
-        print("display_name ", followee_display_name)
-        # get current user profile
-        curProfile = UserProfile.objects.get(user = request.user)
+        print("displayName ", followee_displayName)
+        print("url ", followee_url)
+        
         # save the new uid into current user's follow attribute:
-        profile = getUserProfile(request.user)
-        print("inbox_view current profile: ", profile)
+        curProfile = getUserProfile(request.user)
+        print("inbox_view current profile: ", curProfile)
         # enumerate all possibilities of schemes
-        full_id = str(profile.host) + '/author/' + str(profile.uid)
+        full_id = str(curProfile.host) + '/author/' + str(curProfile.id)
         if full_id.startswith('https://'):
             full_id = full_id[len('https://'):]
         elif full_id.startswith('http://'):
@@ -535,78 +483,19 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for i in cur_inbox.items['Follow']:
-            if followee_uid == json.loads(i['actor'])['uid']:
-                cur_inbox.items['Follow'].remove(i)
+        for item in cur_inbox.items:
+            if item['type'] == 'follow':
+                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
+        for item in cur_inbox.items:
+            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+                item['actor']['id'] == followee_url)):
+                cur_inbox.items.remove(item)
         cur_inbox.save()
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
-
-'''
-# by Shway, accept friend request function view:
-def accept_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('accept_uid')
-        sender = UserProfile.objects.get(uid = uid)
-        receiver = UserProfile.objects.get(user = request.user)
-        # save the new friend's uid into current user's follow and vice versa:
-        sender.follow.add(receiver.user)
-        #sender.externalFollows.append(receiver.host) # external connectivity
-        receiver.follow.add(sender.user)
-        # if sender.externalFollows like {}, we should add key value pair
-        # assume all local:
-        if sender.externalFollows == {}:
-            sender.externalFollows['urls'] = []
-        # if sender.externalFollows like {"urls":[]}, we can append
-        full_recv_url = receiver.host
-        if not receiver.host.startswith(str(request.scheme)):
-            full_recv_url = str(request.scheme) + "://"  + str(receiver.host)
-        if receiver.host[-1] == "/":
-            full_recv_url = full_recv_url + "author/" + str(receiver.pk)
-        else:
-            full_recv_url = full_recv_url + "/author/" + str(receiver.pk)
-        if not sender.host.startswith(str(request.scheme)):
-            full_sender_url = str(request.scheme) + "://" + str(sender.host)
-        if sender.host[-1] == "/":
-            full_sender_url = full_sender_url + "author/" + str(sender.pk)
-        else:
-            full_sender_url = full_sender_url + "/author/" + str(sender.pk)
-        sender.externalFollows['urls'].append(full_recv_url) # external connectivity
-        if receiver.externalFollows == {}:
-            receiver.externalFollows["urls"] = []
-        receiver.externalFollows['urls'].append(full_sender_url) # external connectivity
-        sender.save()
-        receiver.save()
-        print("reveiver",receiver.externalFollows["urls"])
-        print(sender.externalFollows['urls'])
-        # change the status of the friend request to accepted:
-        sender.save()
-        receiver.save()
-        friend_request = FriendRequest.objects.get(actor = sender, object = receiver)
-        if friend_request.status == 'sent':
-            friend_request.status = 'accepted'
-            friend_request.save()
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
-'''
-
-# by Shway, reject friend request function view:
-'''
-def reject_friend_request(request):
-    if request.method == 'POST':
-        uid = request.POST.get('reject_uid')
-        sender = UserProfile.objects.get(uid = uid)
-        receiver = UserProfile.objects.get(user = request.user)
-        friend_request = get_object_or_404(FriendRequest, actor = sender, object_author = receiver)
-        friend_request = FriendRequest.objects.get(actor = sender, object = receiver)
-        friend_request.delete()
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
-'''
 
 # by Shway, this view below shows the list of all profiles except for the current user
 class UserProfileListView(ListView):
@@ -624,139 +513,23 @@ class UserProfileListView(ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         # my profile
-        my_profile = UserProfile.objects.filter(user = user)[0] # type is a query set!
-        '''
-        # whom I want to follow
-        pending_requests = FriendRequest.objects.filter(Q(actor = my_profile.user) & Q(status = 'sent'))
-        # whom wants to follow me
-        inbox_requests = FriendRequest.objects.filter(Q(object = my_profile.user) & Q(status = 'sent'))
-        # friend relations requests
-        accepted_requests = FriendRequest.objects.filter(
-            (Q(object = my_profile.user) | Q(actor = my_profile.user)) & Q(status = 'accepted'))
-        '''
-        # listify and setify the above two results:
-        '''
-        pending_requests_list = set()
-        inbox_requests_list = set()
-        accepted_list = set()
-        '''
+        my_profile = UserProfile.objects.get(user = user) # type is a query set!
         follow_list_processed = set()
         # whom I am following locally
         follow_list = my_profile.get_followers()
-        # whom I am following externally
-        external_follows_list = my_profile.get_external_follows()
-        print("whom I am following: ", external_follows_list)
 
-        '''
         for i in follow_list:
-            if not(i.github == '' or i.github == None):
-                follow_list_processed.add(i)
-        '''
+            follow_list_processed.add(i['url'])
 
-        '''
-        for i in pending_requests:
-            pending_requests_list.add(i.object.user)
-        for i in inbox_requests:
-            inbox_requests_list.add(i.actor.user)
-        for i in accepted_requests:
-            accepted_list.add(i.actor.user)
-            accepted_list.add(i.object_author.user)
-        '''
+        print("this is the follow list: ", follow_list_processed)
         context['follows'] = follow_list_processed
-        context['external_follows'] = external_follows_list
-        '''
-        context['pending_requests'] = pending_requests_list
-        context['inbox_requests'] = inbox_requests_list
-        context['accepted_requests'] = accepted_list
-        '''
+
         # if there are no profiles other than the current user:
         context['is_empty'] = False # initially not empty
         if len(self.get_queryset()) == 0:
             context['is_empty'] = True
         return context
 
-# by Shway, view function for sending friend requests
-'''
-def send_friend_request(request):
-	if request.method == 'POST':
-		uid = request.POST.get('profile_uid')
-		sender = UserProfile.objects.get(user=request.user) # current user is the sender
-		try:
-			receiver = UserProfile.objects.get(uid=uid)
-			# create a new friend request
-			FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
-		except Exception as e: # external friend request
-			print(e)
-			# First, add the uid into local database:
-            if curProfile.externalFollows == {}:
-                curProfile.externalFollows['urls'] = []
-            curProfile.externalFollows['urls'].append(followee_uid)
-            # Second create a new UserPfile and a new friend request:
-            receiver = UserProfile(user=User,
-                          display_name=Display_name,
-                          github=Github,
-                          host=host)
-    		receiver.url = str(scheme) + "://" + str(host) + '/author/' + str(receiver.uid)
-
-            FriendRequest.objects.create(actor=sender, object=receiver, status='sent')
-            # Third, send the remote post request:
-            # create a new friend request with the receiver the (external) followee_uid
-            summary = curProfile.display_name + " wants to follow " + followee_display_name
-            # serialized current profile
-            serialized_actor = GETProfileSerializer(curProfile)
-            # form the freind request data stream
-            object = json.dumps({"type":"author", "id":followee_uid, "host":followee_host, "displayName":followee_display_name,
-                "url":followee_uid, "github": followee_github})
-            frd_request_context = {"type": "Friend", "summary": summary, "actor": serialized_actor, "object": object}
-            full_followee_url = followee_uid
-            # add the request scheme if there isn't any
-            if not full_followee_url.startswith(str(request.scheme)):
-                full_followee_url = str(request.scheme) + "://"  + str(full_followee_url)
-            # should send to inbox:
-            if full_followee_url[-1] == '/': full_followee_url += "inbox"
-            else: full_followee_url += '/inbox'
-            # post the friend request to the external server's inbox
-            print(full_followee_url)
-            post_data = requests.post(full_followee_url, data=frd_request_context)
-            print("data responded: ", post_data)
-		curProfile.save()
-		# stay on the same page
-		return redirect(request.META.get('HTTP_REFERER'))
-	# go to main page if the user did not use the "POST" method
-	return redirect('main')
-'''
-
-'''
-# by Shway, view function for removing a friend
-def remove_friend(request):
-    if request.method == 'POST':
-        uid = request.POST.get('profile_uid')
-        sender = UserProfile.objects.get(user=request.user)
-        receiver = UserProfile.objects.get(uid=uid)
-        # delete the friend request involving current user and the past in user with uid specified
-        friendRequest = FriendRequest.objects.get(
-            (Q(actor=sender) & Q(object=receiver)) | (Q(actor=receiver) & Q(object=sender)))
-        friendRequest.delete()
-        # want to also unfollow both, but it is done by the function beneath this one
-        # stay on the same page
-        return redirect(request.META.get('HTTP_REFERER'))
-    return redirect('main')
-
-# by Shway, whenever a friend request is deleted, want to also delete
-# from follow lists of actor and object_author
-@receiver(pre_delete, sender=FriendRequest)
-def pre_delete_remove_from_follow(sender, instance, **kwargs):
-    sender = instance.actor
-    receiver = instance.object_author
-    sender.follow.remove(receiver.user)
-    if receiver.host in sender.externalFollows:
-        sender.externalFollows.remove(receiver.host) # external connectivity
-    receiver.follow.remove(sender.user)
-    if sender.host in receiver.externalFollows:
-        receiver.externalFollows.remove(sender.host) # external connectivity
-    sender.save()
-    receiver.save()
-'''
 '''
 def like_view(request):
     redirect_path = '/public'
@@ -856,6 +629,7 @@ def like_view(request):
 
     return redirect(redirect_path)
 '''
+
 def like_view(request):
     redirect_path = '/public'
     if request.path == "/friends/like":
@@ -873,7 +647,7 @@ def like_view(request):
     pk_raw = request.POST.get('pk')
     current_user_profile = UserProfile.objects.get(user=request.user)
     like_obj = Like()
-    like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
+    like_obj.summary = "%s liked your post."%(current_user_profile.displayName)
     like_obj.author = GETProfileSerializer(current_user_profile).data
 
     like_obj.object = pk_raw
@@ -1332,14 +1106,13 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-
-        data_json = json.loads(request.POST.get('obj'))
-        print("data_json",data_json)
+        data_json = request.data
+        print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             print("inbox_obj: ", inbox_obj)
-            if data_json['type'] == "Like":
+            if data_json['type'] == "like":
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
                 print("url",post_url)
@@ -1395,8 +1168,9 @@ class Inboxs(APIView):
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
-            elif data_json['type'] == "Follow": 
-                # if the type is “Follow” then add that follow is added to the author’s inbox to approve later
+            elif data_json['type'] == "follow":
+                print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
+                # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)

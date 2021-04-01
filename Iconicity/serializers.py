@@ -38,7 +38,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
         'count', 'size', 'published', 'author', 'host','like_count','comments', 'author_display_name')
 
     def get_author_display_name(self, obj):
-        return UserProfile.objects.filter(user=obj.author).first().display_name
+        return UserProfile.objects.filter(user=obj.author).first().displayName
 
     def get_comments(self, obj):
         url = obj.origin
@@ -97,7 +97,7 @@ class CommentSerializer(rest_serializers.ModelSerializer):
 
     def get_comment_author_name(self, obj):
         temp = obj.author
-        return temp['display_name']
+        return temp['displayName']
  
     def get_author(self, obj):
         return obj.author
@@ -110,20 +110,24 @@ class CommentSerializer(rest_serializers.ModelSerializer):
         
 
 class GETProfileSerializer(rest_serializers.ModelSerializer):
-    uid = rest_serializers.SerializerMethodField("get_uid")
-    display_name = rest_serializers.SerializerMethodField("get_name")
+    type = rest_serializers.SerializerMethodField("get_type")
+    id = rest_serializers.SerializerMethodField("get_id")
+    displayName = rest_serializers.SerializerMethodField("get_name")
     host = rest_serializers.SerializerMethodField()
     github = rest_serializers.SerializerMethodField()
     url = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ('type', 'uid','display_name','host','github','url')
+        fields = ('type', 'id', 'url', 'host', 'displayName','github')
 
-    def get_uid(self, obj):
+    def get_type(self, obj):
+        return obj.type
+
+    def get_id(self, obj):
         return obj.url
 
     def get_name(self, obj):
-        return obj.display_name
+        return obj.displayName
 
     def get_host(self, obj):
         return obj.host
@@ -170,12 +174,11 @@ class FriendRequestSerializer(rest_serializers.ModelSerializer):
     type = rest_serializers.SerializerMethodField()
     summary = rest_serializers.SerializerMethodField()
     actor = rest_serializers.SerializerMethodField()
-    status = rest_serializers.SerializerMethodField()
     object = rest_serializers.SerializerMethodField()
 
     class Meta:
         model = FriendRequest
-        fields = ('type', 'summary', 'actor', 'status', 'object')
+        fields = ('type', 'summary', 'actor', 'object')
     
     def get_type(self, obj):
         return obj.type
@@ -185,9 +188,6 @@ class FriendRequestSerializer(rest_serializers.ModelSerializer):
 
     def get_actor(self, obj):
         return obj.actor
-
-    def get_status(self, obj):
-        return obj.status
 
     def get_object(self, obj):
         return obj.object

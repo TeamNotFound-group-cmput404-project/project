@@ -143,12 +143,9 @@
           <h4 class="w3-center w3-margin-top">Follower List of {{ request.user }}:</h4>
           <hr>
           {% for friend in UserProfile.get_followers %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
+          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
           {% endfor %}
-          {% for friend in UserProfile.get_external_follows %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
-          {% endfor %}
-          <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} followers.</h5>
+          <h5 class="w3-center w3-margin-top">You are following {{ UserProfile.get_number_of_followers }} user(s).</h5>
         </div>
       </div>
     </div>
