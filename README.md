@@ -27,6 +27,7 @@ pip install typing-extensions==3.7.4.3;<br/>
 pip install urllib3==1.26.3;<br/>
 pip install whitenoise==5.2.0;<br/>
 pip install zipp==3.4.0;<br/>
+pip install django-cors-headers;<br/>
 Or you can:<br/>
 pip install -r requirements.txt<br/>
 
