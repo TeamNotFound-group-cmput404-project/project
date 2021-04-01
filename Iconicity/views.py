@@ -1031,13 +1031,18 @@ def getExternalUserFriends(currentUser):
                 the_user_pass = team10_pass
             print('url: ', full_url)
             print('user name: ', the_user_name)
-            raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-            print('raw: ', raw)
-            friends = raw.json()
-            for userInfo in friends['items']:
-                if userProfile.url == userInfo['url']:
-                    friendUrlList.append(user['url'])
-                    break
+            try:
+                raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
+                print('raw: ', raw)
+                friends = raw.json()
+            except Exception as e:
+                print("error in other servers' API")
+            else:
+                for userInfo in friends['items']:
+                    if userProfile.url == userInfo['url']:
+                        friendUrlList.append(user['url'])
+                        break
     print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
