@@ -142,11 +142,12 @@ def mainPagePublic(request):
 
     new_list += externalPosts
     for post in new_list:
-        if post['image'] is not None:
-            if "socialdistributionproject" not in post['author']['host']:
-                abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-                post['image'] = abs_imgpath
-        
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
 
     # by Shway:
@@ -259,6 +260,8 @@ class AddPostView(CreateView):
             form.id = form.source
             form.save()
             print(form.image)
+            print('------------------')
+            print(form.id)
             return redirect('public')
 
         else:
@@ -600,6 +603,7 @@ def repost(request):
         post_form = post_form.save(commit=False)
         post_form.origin = post['origin']
         post_form.author = request.user
+        post_form.id = post['id']
         if img_path is not None:
             post_form.image = new_path
         post_form.origin = post['origin']
@@ -642,6 +646,7 @@ def repost_to_friend(request):
         if img_path is not None:
             post_form.image = new_path
         post_form.origin = post['origin']
+        post_form.id = post['id']
         userProfile = UserProfile.objects.get(user=request.user)
         post_form.source = (str(request.scheme) + "://"
                                             + str(request.get_host())
@@ -731,6 +736,13 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
+    for post in new_list:
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
     context = {
         'posts': new_list,
@@ -857,9 +869,12 @@ def following(request):
 
     new_list += getAllFollowExternalAuthorPosts(request.user)
     for post in new_list:
-        if post['image'] is not None:
-            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-            post['image'] = abs_imgpath
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
     context = {
         'posts': new_list,
@@ -929,10 +944,12 @@ def friends(request):
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             postList += posts
     postList += new_list  
-    for post in postList:
+    for post in new_list:
         if post['image'] is not None:
-            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-            post['image'] = abs_imgpath
+            if "socialdistributionproject" not in post['author']['host']:
+                imghost = post['origin'].split('.com')[0]
+                abs_imgpath = imghost + '.com' + post['image']
+                post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
     postList.reverse()
     context = {

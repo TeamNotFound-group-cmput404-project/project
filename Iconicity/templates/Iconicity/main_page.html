@@ -75,9 +75,9 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
-          {% if post.source != '' and post.source != None %}
+          {% if post.id != '' and post.id != None %}
             <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{post.source}}>
+            style = "float:left;",type="submit", name="pk", value={{post.id}}>
           {% else %}
             <button class="button", 
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
@@ -92,7 +92,7 @@
               type="submit", 
               style="float:left;",
               name="ppid", 
-              value={{post.source}}>
+              value={{post.id}}>
               <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
         </form>
 
@@ -100,14 +100,14 @@
           {% csrf_token %}
           <button class="button", 
             style = "float:left;",
-            type="submit", name="pk", value={{post.source}}>
+            type="submit", name="pk", value={{post.id}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
         </form>
 
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value={{post.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", style="float:left;", type="submit", name="pk", value={{post.id}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
         <br>
         <p>{{post.like_count}} liked this post.</p>
