@@ -186,12 +186,12 @@ def getAllFollowAuthorPosts(currentUser):
         otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
-                temp = getPosts(user, visibility="FRIENDS") # join the post_list
+                temp = getPosts(otherUserProfile.user, visibility="FRIENDS") # join the post_list
                 post_list += temp
             else:
                 # one direct
                 # only public
-                post_list += getPosts(user, visibility="PUBLIC")# join the post_list
+                post_list += getPosts(otherUserProfile.user, visibility="PUBLIC")# join the post_list
 
     return post_list
 
@@ -204,12 +204,14 @@ def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
         # public can only see your public posts
-        print(user)
-        return list(Post.objects.filter(id=user['id'], visibility="PUBLIC"))
+        print("getPosts(PUBLIC): ", user)
+        if type(user) is dict: return list(Post.objects.filter(id = user['id'], visibility="PUBLIC"))
+        else: return list(Post.objects.filter(author = user, visibility="PUBLIC"))
     elif visibility == "FRIENDS":
         # friends can see all your posts (public + friends posts)
-        print(user)
-        return list(Post.objects.filter(author=user))
+        print("getPosts(FRIENDS): ", user)
+        if type(user) is dict: return list(Post.objects.filter(id = user['id']))
+        else: return list(Post.objects.filter(author = user))
 
 def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
@@ -765,6 +767,7 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
+    print("mypost: ", new_list)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -795,20 +798,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            '''
-            for user in allFollowers:
-                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
-                    full_url = user['url']
-                    if user['url'][-1] == "/":
-                        full_url += "posts/"
-                    else:
-                        full_url += "/posts/"
-                    # now check whether you are also his/hers followee.
-                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-                    responseJsonlist = temp.json()
-                    post_list += responseJsonlist
-            '''
-            print("all",allFollowers)
+            print("all", allFollowers)
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
                     print("in")
@@ -822,6 +812,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     if team10_host_url in full_url:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    print("getAllFollowExternalAuthorPosts: ", full_url)
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     print(temp)
                     responseJsonlist = temp.json()
@@ -915,7 +906,6 @@ def following(request):
     postList = getAllFollowAuthorPosts(request.user)
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-
     new_list += getAllFollowExternalAuthorPosts(request.user)
     for post in new_list:
         if 'image' in post:
@@ -935,16 +925,20 @@ def following(request):
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
-    # get all local followers of our user
+    # get all local followers of our user which our user also follows
     allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
-        if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
-            print("they are friends")
-            friendList.append(user)
-
+        if len(UserProfile.objects.filter(url=user['url'])) != 0:
+            otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
+            # DEBUG
+            friends = otherUserProfile.get_followers()
+            for userInfo in friends:
+                if userProfile.url == userInfo['url']:
+                    print("getUserFriend: ", otherUserProfile.user)
+                    friendList.append(otherUserProfile.user)
+                    break
     return friendList
 
 # modified by Shway
@@ -983,8 +977,8 @@ def friends(request):
     postList = []
     friends_test = getUserFriend(request.user)
     tmp_list = []
-    for friend_id in friends_test:
-        tmp_list += getPosts(friend_id, visibility="FRIENDS")
+    for user in friends_test:
+        tmp_list += getPosts(user, visibility="FRIENDS")
 
     new_list = PostSerializer(tmp_list, many=True).data
     externalFriends = getExternalUserFriends(request.user)
