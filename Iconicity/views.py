@@ -141,8 +141,13 @@ def mainPagePublic(request):
             post['author_display_name'] = post['author']['displayName']
 
     new_list += externalPosts
-
-        
+    for post in new_list:
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
 
     # by Shway:
@@ -252,8 +257,11 @@ class AddPostView(CreateView):
                                                + '/posts/'
                                                + str(form.post_id))
             form.source = form.origin
+            form.id = form.source
             form.save()
             print(form.image)
+            print('------------------')
+            print(form.id)
             return redirect('public')
 
         else:
@@ -517,106 +525,6 @@ class UserProfileListView(ListView):
             context['is_empty'] = True
         return context
 
-'''
-def like_view(request):
-    redirect_path = '/public'
-    if request.path == "/friends/like":
-        redirect_path = "/friends"
-    elif request.path == "/mypost/like":
-        redirect_path = "/mypost"
-    elif request.path == "/public/like":
-        redirect_path = "/public"
-    elif request.path == "/following/like":
-        redirect_path = "/following"
-
-    # here two cases:
-    # 1. if this post is on our server, then pk works
-    # 2. if this post is not on our server, then url works
-    pk_raw = request.POST.get('pk')
-    current_user_profile = UserProfile.objects.get(user=request.user)
-    current_url = current_user_profile.url
-    post = None
-    changed = False
-
-    #print(request.POST.data)
-    if '/' in pk_raw:
-        try:
-            pk_new = [i for i in pk_raw.split('/') if i][-1]
-            print(pk_new)
-            post = Post.objects.get(pk=pk_new)
-        except Exception as e:
-            # means that this is not on our server
-            print("pk_raw")
-            print(e)
-            get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass))
-            response_dict = json.loads(get_json_response.text)[0]
-            print("response_dict",response_dict)
-            post_external_like = response_dict["external_likes"]
-            if post_external_like == {}:
-                post_external_like['urls'] = []
-
-            # Means that this post has already been liked by you.
-            # We remove this like from the list, means unlike the post
-            if current_url in post_external_like['urls']:
-                print("This user has clicked on like on this post before")
-                post_external_like['urls'].remove(current_url)
-            else:
-                # You haven't clicked on the like button before, so append it to 
-                # this post's external like list.
-                post_external_like['urls'].append(current_url)
-            print(post_external_like['urls'])
-            response = requests.post(pk_raw,
-                data={"external_likes":json.dumps({"urls":post_external_like['urls']})}, 
-                auth=HTTPBasicAuth(auth_user, auth_pass))
-            print("like response",response)
-
-        else:
-            # means that this post is on our server
-            if request.user in list(post.like.all()):
-                changed = False
-            else:
-                changed = True
-                post.like.add(request.user)
-                post.like_count = post.count_like()
-                post.save()
-
-        
-    else:
-        # Pass in primary key, this post is on our system.
-        post = get_object_or_404(Post, pk=request.POST.get('pk'))
-        if request.user in list(post.like.all()):
-            changed = False
-        else:
-            changed = True
-            post.like.add(request.user)
-            post.like_count = post.count_like()
-            post.save()
-
-    # Send something to its inbox
-
-    if changed:
-        like_obj = Like()
-        like_obj.summary = "%s liked your post."%(current_user_profile.display_name)
-        like_obj.author = GETProfileSerializer(current_user_profile).data
-
-        like_obj.object = pk_raw
-        print("like object",like_obj.object)
-        inbox_url = (str(request.scheme) + "://"
-                                        + str(request.get_host())
-                                        + '/author/'
-                                        + str(current_user_profile.pk)
-                                        + '/inbox')
-        like_serializer = LikeSerializer(like_obj).data
-
-        response = requests.post(inbox_url,
-                                data={"like_obj":json.dumps(like_serializer)}, 
-                                auth=HTTPBasicAuth(auth_user, auth_pass))
-        print("like inbox response",response)
-
-
-    return redirect(redirect_path)
-'''
-
 def like_view(request):
     redirect_path = '/public'
     if request.path == "/friends/like":
@@ -681,6 +589,7 @@ def repost(request):
         post_form = post_form.save(commit=False)
         post_form.origin = post['origin']
         post_form.author = request.user
+        post_form.id = post['id']
         if img_path is not None:
             post_form.image = new_path
         post_form.origin = post['origin']
@@ -691,6 +600,7 @@ def repost(request):
                                             + str(userProfile.pk)
                                             + '/posts/'
                                             + str(post_form.post_id))
+        post_form.id = post_form.source
         post_form.save()
         print("post_form image", post_form.image)
 
@@ -722,6 +632,7 @@ def repost_to_friend(request):
         if img_path is not None:
             post_form.image = new_path
         post_form.origin = post['origin']
+        post_form.id = post['id']
         userProfile = UserProfile.objects.get(user=request.user)
         post_form.source = (str(request.scheme) + "://"
                                             + str(request.get_host())
@@ -729,6 +640,7 @@ def repost_to_friend(request):
                                             + str(userProfile.pk)
                                             + '/posts/'
                                             + str(post_form.post_id))
+        post_form.id = post_form.source
         post_form.save()
     else:
         print(post_form.errors)
@@ -810,6 +722,13 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
+    for post in new_list:
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
     context = {
         'posts': new_list,
@@ -936,9 +855,12 @@ def following(request):
 
     new_list += getAllFollowExternalAuthorPosts(request.user)
     for post in new_list:
-        if post['image'] is not None:
-            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-            post['image'] = abs_imgpath
+        if 'image' in post:
+            if post['image'] is not None:
+                if "socialdistributionproject" not in post['author']['host']:
+                    imghost = post['origin'].split('.com')[0]
+                    abs_imgpath = imghost + '.com' + post['image']
+                    post['image'] = abs_imgpath
     new_list.reverse()
     context = {
         'posts': new_list,
@@ -1008,10 +930,12 @@ def friends(request):
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             postList += posts
     postList += new_list  
-    for post in postList:
+    for post in new_list:
         if post['image'] is not None:
-            abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
-            post['image'] = abs_imgpath
+            if "socialdistributionproject" not in post['author']['host']:
+                imghost = post['origin'].split('.com')[0]
+                abs_imgpath = imghost + '.com' + post['image']
+                post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
     postList.reverse()
     context = {
