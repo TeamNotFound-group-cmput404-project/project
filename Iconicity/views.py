@@ -905,7 +905,7 @@ def getExternalUserFriends(currentUser):
     allFollowers = list(userProfile.get_followers()) # a list of followers
 
     for user in allFollowers:
-        if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+        if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
             full_url = user['url']
             if user['url'][-1] == "/":
                 full_url += "followers/"
@@ -1136,6 +1136,7 @@ class ExternalFollowersByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
+        print(author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(FollowersSerializer(authorProfile).data)
 
