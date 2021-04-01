@@ -141,7 +141,11 @@ def mainPagePublic(request):
             post['author_display_name'] = post['author']['displayName']
 
     new_list += externalPosts
-
+    for post in new_list:
+        if post['image'] is not None:
+            if "socialdistributionproject" not in post['author']['host']:
+                abs_imgpath = str(request.scheme) + "://" + post['author']['host'] + post['image']
+                post['image'] = abs_imgpath
         
     new_list.reverse()
 
@@ -252,6 +256,7 @@ class AddPostView(CreateView):
                                                + '/posts/'
                                                + str(form.post_id))
             form.source = form.origin
+            form.id = form.source
             form.save()
             print(form.image)
             return redirect('public')
@@ -605,6 +610,7 @@ def repost(request):
                                             + str(userProfile.pk)
                                             + '/posts/'
                                             + str(post_form.post_id))
+        post_form.id = post_form.source
         post_form.save()
         print("post_form image", post_form.image)
 
@@ -643,6 +649,7 @@ def repost_to_friend(request):
                                             + str(userProfile.pk)
                                             + '/posts/'
                                             + str(post_form.post_id))
+        post_form.id = post_form.source
         post_form.save()
     else:
         print(post_form.errors)
