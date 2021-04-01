@@ -1275,7 +1275,7 @@ def post_comments(request):
                     comment_serializer = CommentSerializer(comment_obj).data
                     
                     response = requests.post(full_inbox_url,
-                            data={"obj":json.dumps(comment_serializer)}, 
+                            data=json.dumps(comment_serializer), 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1322,7 +1322,7 @@ def post_comments(request):
                     print(comment_serializer)
 
                     response = requests.post(full_inbox_url,
-                            data={"obj":json.dumps(comment_serializer)}, 
+                            data=json.dumps(comment_serializer), 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     return redirect('public')
                     
