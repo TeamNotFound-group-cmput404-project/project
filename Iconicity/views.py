@@ -182,7 +182,7 @@ def getAllFollowAuthorPosts(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
