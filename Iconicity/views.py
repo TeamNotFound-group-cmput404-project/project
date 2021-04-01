@@ -139,7 +139,20 @@ def mainPagePublic(request):
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
             print("inside")
             post['author_display_name'] = post['author']['displayName']
+        
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
 
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
 
     new_list += externalPosts
     for post in new_list:
@@ -186,12 +199,12 @@ def getAllFollowAuthorPosts(currentUser):
         otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
-                temp = getPosts(user, visibility="FRIENDS") # join the post_list
+                temp = getPosts(otherUserProfile.user, visibility="FRIENDS") # join the post_list
                 post_list += temp
             else:
                 # one direct
                 # only public
-                post_list += getPosts(user, visibility="PUBLIC")# join the post_list
+                post_list += getPosts(otherUserProfile.user, visibility="PUBLIC")# join the post_list
 
     return post_list
 
@@ -204,12 +217,14 @@ def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
         # public can only see your public posts
-        print(user)
-        return list(Post.objects.filter(id=user['id'], visibility="PUBLIC"))
+        print("getPosts(PUBLIC): ", user)
+        if type(user) is dict: return list(Post.objects.filter(id = user['id'], visibility="PUBLIC"))
+        else: return list(Post.objects.filter(author = user, visibility="PUBLIC"))
     elif visibility == "FRIENDS":
         # friends can see all your posts (public + friends posts)
-        print(user)
-        return list(Post.objects.filter(author=user))
+        print("getPosts(FRIENDS): ", user)
+        if type(user) is dict: return list(Post.objects.filter(id = user['id']))
+        else: return list(Post.objects.filter(author = user))
 
 def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
@@ -270,9 +285,6 @@ class AddPostView(CreateView):
             form.source = form.origin
             form.id = form.source
             form.save()
-            print(form.image)
-            print('------------------')
-            print(form.id)
             return redirect('public')
 
         else:
@@ -765,6 +777,7 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
+    print("mypost: ", new_list)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -795,20 +808,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            '''
-            for user in allFollowers:
-                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
-                    full_url = user['url']
-                    if user['url'][-1] == "/":
-                        full_url += "posts/"
-                    else:
-                        full_url += "/posts/"
-                    # now check whether you are also his/hers followee.
-                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-                    responseJsonlist = temp.json()
-                    post_list += responseJsonlist
-            '''
-            print("all",allFollowers)
+            print("all", allFollowers)
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
                     print("in")
@@ -822,11 +822,16 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     if team10_host_url in full_url:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    print("getAllFollowExternalAuthorPosts: ", full_url)
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     print(temp)
                     responseJsonlist = temp.json()
-                    post_list += responseJsonlist
-
+                    print(responseJsonlist)
+                    if team10_host_url in full_url:
+                        post_list += responseJsonlist['posts']
+                    else:
+                        post_list += responseJsonlist
+    print(post_list)
     return post_list
 
 
@@ -915,8 +920,61 @@ def following(request):
     postList = getAllFollowAuthorPosts(request.user)
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-
     new_list += getAllFollowExternalAuthorPosts(request.user)
+    print(getAllFollowExternalAuthorPosts(request.user))
+    for post in new_list:
+        # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+        if post["contentType"] == "text/plain":
+            # means the content part is all plain text, not image
+            try:
+                image_field = post['image']
+
+            except Exception:
+                # means this post has no image field, set image field to None.
+                post['image'] = ""
+
+            else:
+                pass
+
+        elif post["contentType"] =="image/png;base64":
+            # means it's a image in the content
+            # means this post has no image field, probably this is from external server.
+            # in this case, we will save the image to local and use the absolute
+            # path to set a new image field.
+            
+            post_id = [i for i in post['id'].split('/') if i][-1]
+            file_name = post_id+".png"
+            folder_path = "/media/images/"
+            path = folder_path+file_name
+            # first, check this image exists.
+            
+            if os.path.exists("Iconicity"+path):
+                post['image'] = path
+            else:
+                print("create new file")
+                # then write the dump file to an image file.
+                with open("Iconicity"+path, "wb") as fh:
+                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                post['image'] = path
+        if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
+            print("inside")
+            post['author_display_name'] = post['author']['displayName']
+                
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
+
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
+
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -935,16 +993,20 @@ def following(request):
 def getUserFriend(currentUser):
     userProfile = getUserProfile(currentUser)
     friendList = []
-    # get all local followers of our user
+    # get all local followers of our user which our user also follows
     allFollowedAuthors = list(userProfile.get_followers())
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
-        if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
-            print("they are friends")
-            friendList.append(user)
-
+        if len(UserProfile.objects.filter(url=user['url'])) != 0:
+            otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
+            # DEBUG
+            friends = otherUserProfile.get_followers()
+            for userInfo in friends:
+                if userProfile.url == userInfo['url']:
+                    print("getUserFriend: ", otherUserProfile.user)
+                    friendList.append(otherUserProfile.user)
+                    break
     return friendList
 
 # modified by Shway
@@ -958,16 +1020,19 @@ def getExternalUserFriends(currentUser):
         if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
             full_url = user['url']
             if user['url'][-1] == "/":
-                full_url += "followers/"
+                full_url += "followers"
             else:
-                full_url += "/followers/"
+                full_url += "/followers"
             # now check whether you are also his/hers followee.
             the_user_name = auth_user
             the_user_pass = auth_pass
             if team10_host_url in full_url:
                 the_user_name = team10_name
                 the_user_pass = team10_pass
+            print('url: ', full_url)
+            print('user name: ', the_user_name)
             raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+            print('raw: ', raw)
             friends = raw.json()
             for userInfo in friends['items']:
                 if userProfile.url == userInfo['url']:
@@ -983,8 +1048,8 @@ def friends(request):
     postList = []
     friends_test = getUserFriend(request.user)
     tmp_list = []
-    for friend_id in friends_test:
-        tmp_list += getPosts(friend_id, visibility="FRIENDS")
+    for user in friends_test:
+        tmp_list += getPosts(user, visibility="FRIENDS")
 
     new_list = PostSerializer(tmp_list, many=True).data
     externalFriends = getExternalUserFriends(request.user)
@@ -1005,6 +1070,59 @@ def friends(request):
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             postList += posts
     postList += new_list  
+    for post in new_list:
+        # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+        if post["contentType"] == "text/plain":
+            # means the content part is all plain text, not image
+            try:
+                image_field = post['image']
+
+            except Exception:
+                # means this post has no image field, set image field to None.
+                post['image'] = ""
+
+            else:
+                pass
+
+        elif post["contentType"] =="image/png;base64":
+            # means it's a image in the content
+            # means this post has no image field, probably this is from external server.
+            # in this case, we will save the image to local and use the absolute
+            # path to set a new image field.
+            
+            post_id = [i for i in post['id'].split('/') if i][-1]
+            file_name = post_id+".png"
+            folder_path = "/media/images/"
+            path = folder_path+file_name
+            # first, check this image exists.
+            
+            if os.path.exists("Iconicity"+path):
+                post['image'] = path
+            else:
+                print("create new file")
+                # then write the dump file to an image file.
+                with open("Iconicity"+path, "wb") as fh:
+                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                post['image'] = path
+        if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
+            print("inside")
+            post['author_display_name'] = post['author']['displayName']
+                
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
+
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
+
     for post in new_list:
         if post['image'] is not None:
             if "socialdistributionproject" not in post['author']['host']:
