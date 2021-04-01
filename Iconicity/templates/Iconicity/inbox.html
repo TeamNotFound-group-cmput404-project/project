@@ -28,8 +28,8 @@
               <h4>{{ item.comment }}</h4>
               <h5>Author Info:</h5>
               <p>Name: {{ item.comment_author_name }}</p>
-              <p>Host link: {{ item.actor.host }}</p>
-              <p>url: {{ item.actor.url }}</p>
+              <p>Host link: {{ item.author.host }}</p>
+              <p>url: {{ item.author.url }}</p>
             </div>
           {% endif %}
           {% if item.type == "follow" %}

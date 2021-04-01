@@ -179,7 +179,7 @@ def getAllFollowAuthorPosts(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
@@ -399,10 +399,6 @@ def follow_back(request):
             if item['type'] == 'follow':
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
-            if item['type'] == 'like':
-                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
-            if item['type'] == 'comment':
-                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -442,10 +438,6 @@ def inbox_view(request):
         if item['type'] == 'follow':
             if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
             if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
-        if item['type'] == 'like':
-            if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
-        if item['type'] == 'comment':
-            if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -495,10 +487,6 @@ def remove_inbox_follow(request):
             if item['type'] == 'follow':
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
-            if item['type'] == 'like':
-                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
-            if item['type'] == 'comment':
-                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -660,7 +648,7 @@ def like_view(request):
     current_user_profile = UserProfile.objects.get(user=request.user)
     like_obj = Like()
     like_obj.summary = "%s liked your post."%(current_user_profile.displayName)
-    like_obj.author = json.dumps(GETProfileSerializer(current_user_profile).data)
+    like_obj.author = GETProfileSerializer(current_user_profile).data
 
     like_obj.object = pk_raw
     post_info = requests.get(pk_raw, auth=HTTPBasicAuth(auth_user, auth_pass)).json()[0]
@@ -678,7 +666,7 @@ def like_view(request):
     like_serializer = LikeSerializer(like_obj).data
 
     response = requests.post(full_inbox_url,
-                            data=like_serializer, 
+                            data={"obj":json.dumps(like_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
     print("like inbox response",response)
     return redirect(redirect_path)
@@ -980,17 +968,19 @@ def getUserFriend(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
+        otherUserProfile = UserProfile.objects.filter(user=user).first()
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
+
+
     return friendList
 
 def getExternalUserFriends(currentUser):
     userProfile = getUserProfile(currentUser)
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
-    externalFollowers = userProfile.get_followers() # a list of urls
+    externalFollowers = userProfile.get_external_follows() # a list of urls
 
     for each_url in externalFollowers:
         full_url = each_url
@@ -1116,13 +1106,14 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        data_json = request.data
+        data_json = json.loads(request.data)['obj']
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "like":
+                print("likelikelikelikelikelikelikelikelikelikelikelikelikelikelike")
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
                 print("url",post_url)
@@ -1173,7 +1164,6 @@ class Inboxs(APIView):
             
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
                 print("postpostpostpostpostpostpostpostpostpostpostpostpostpostpostpostpost")
-                print(data_json)
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
                 inbox_obj.items.append(data_json)
@@ -1182,7 +1172,6 @@ class Inboxs(APIView):
 
             elif data_json['type'] == "follow":
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
-                print(data_json)
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
@@ -1190,7 +1179,6 @@ class Inboxs(APIView):
 
             elif data_json['type'] == 'comment':
                 print("commentcommentcommentcommentcommentcommentcommentcommentcommentcomment")
-                print(data_json)
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
@@ -1287,12 +1275,12 @@ def post_comments(request):
                     
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = json.dumps(author_json)
+                    comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
                     
                     response = requests.post(full_inbox_url,
-                            data=comment_serializer, 
+                            data={"obj":json.dumps(comment_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1333,13 +1321,13 @@ def post_comments(request):
                     print(type(author_json))
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
-                    comment_obj.author = json.dumps(author_json)
+                    comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     comment_serializer = CommentSerializer(comment_obj).data
                     print(comment_serializer)
 
                     response = requests.post(full_inbox_url,
-                            data=comment_serializer, 
+                            data={"obj":json.dumps(comment_serializer)}, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     return redirect('public')
                     
