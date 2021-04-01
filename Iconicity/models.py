@@ -73,7 +73,7 @@ class UserProfile(models.Model):
         if self.follow == {}:
             self.follow['type'] = 'followers'
             self.follow['items'] = []
-        return self.follow['items']
+        return self.follow
 
     def get_number_of_followers(self):
         if self.follow == {}:

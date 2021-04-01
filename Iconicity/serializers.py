@@ -9,13 +9,17 @@ import json
 
 
 class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
-    externalFollows = rest_serializers.SerializerMethodField('get_externalFollows')
+    type = rest_serializers.SerializerMethodField()
+    items = rest_serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
-        fields = ('externalFollows',)
+        fields = ('type','items',)
+
+    def get_type(self, obj):
+        return obj.get_followers()['type']
 
     def get_externalFollows(self, obj):
-        return obj.get_followers()
+        return obj.get_followers()['items']
 
 # https://www.django-rest-framework.org
 class PostSerializer(rest_serializers.ModelSerializer):
