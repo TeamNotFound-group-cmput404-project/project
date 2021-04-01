@@ -203,10 +203,12 @@ def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
         # public can only see your public posts
-        return list(Post.objects.filter(author=user.id, visibility="PUBLIC"))
+        print(user)
+        return list(Post.objects.filter(id=user['id'], visibility="PUBLIC"))
     elif visibility == "FRIENDS":
         # friends can see all your posts (public + friends posts)
-        return list(Post.objects.filter(author=user.id))
+        print(user)
+        return list(Post.objects.filter(author=user))
 
 def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
