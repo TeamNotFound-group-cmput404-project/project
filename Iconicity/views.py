@@ -882,6 +882,7 @@ def getUserFriend(currentUser):
 
     return friendList
 
+# modified by Shway
 def getExternalUserFriends(currentUser):
     userProfile = getUserProfile(currentUser)
     friendUrlList = []
