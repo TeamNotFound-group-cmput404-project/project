@@ -899,7 +899,7 @@ def getExternalUserFriends(currentUser):
             # now check whether you are also his/hers followee.
             raw = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
             friends = raw.json()
-            for userInfo in friends:
+            for userInfo in friends['items']:
                 if userProfile.url == userInfo['url']:
                     friendUrlList.append(user['url'])
                     break
@@ -1121,7 +1121,7 @@ class ExternalFollowersByAuthor(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk=author_id)
-        return Response(ExternalFollowersSerializer(authorProfile).data)
+        return Response(FollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
