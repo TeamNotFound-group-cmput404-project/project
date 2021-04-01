@@ -571,7 +571,7 @@ def like_view(request):
     like_obj.object = pk_raw
     the_user_name = auth_user
     the_user_pass = auth_pass
-    print
+    
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
@@ -1031,13 +1031,18 @@ def getExternalUserFriends(currentUser):
                 the_user_pass = team10_pass
             print('url: ', full_url)
             print('user name: ', the_user_name)
-            raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-            print('raw: ', raw)
-            friends = raw.json()
-            for userInfo in friends['items']:
-                if userProfile.url == userInfo['url']:
-                    friendUrlList.append(user['url'])
-                    break
+            try:
+                raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
+                print('raw: ', raw)
+                friends = raw.json()
+            except Exception as e:
+                print("error in other servers' API")
+            else:
+                for userInfo in friends['items']:
+                    if userProfile.url == userInfo['url']:
+                        friendUrlList.append(user['url'])
+                        break
     print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
@@ -1210,6 +1215,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
+        print(request.data['obj'])
+        print(type(request.data['obj']))
         data_json = json.loads(request.data['obj'])
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
