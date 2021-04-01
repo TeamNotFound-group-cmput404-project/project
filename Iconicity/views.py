@@ -149,8 +149,6 @@ def mainPagePublic(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
     new_list.reverse()
-
-    # by Shway:
     curProfile = getUserProfile(request.user)
     context = {
         'posts': new_list,
@@ -877,11 +875,10 @@ def getUserFriend(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
-
 
     return friendList
 
@@ -889,22 +886,23 @@ def getExternalUserFriends(currentUser):
     userProfile = getUserProfile(currentUser)
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
-    externalFollowers = userProfile.get_external_follows() # a list of urls
+    allFollowers = list(userProfile.get_followers()) # a list of followers
 
-    for each_url in externalFollowers:
-        full_url = each_url
-
-        if each_url[-1] == "/":
-            full_url += "followers/"
-        else:
-            full_url += "/followers/"
-
-        # now check whether you are also his/hers followee.
-        temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-        friends = temp.json()['externalFollows']
-        if userProfile.url in friends:
-            friendUrlList.append(each_url)
-
+    for user in allFollowers:
+        if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+            full_url = user['url']
+            if each_url[-1] == "/":
+                full_url += "followers/"
+            else:
+                full_url += "/followers/"
+            # now check whether you are also his/hers followee.
+            temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+            friends = temp.json()['items']
+            for userInfo in friends:
+                if userProfile.url == userInfo['url']:
+                    friendUrlList.append(user['url'])
+                    break
+    print(friendUrlList)
     return friendUrlList
 
 def friends(request):
