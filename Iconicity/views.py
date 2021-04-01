@@ -763,7 +763,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     responseJsonlist = temp.json()
                     post_list += responseJsonlist
             '''
-            print(friendUrlList)
+            #print(friendUrlList)
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
                     full_url = user['url']
@@ -774,6 +774,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
                     responseJsonlist = temp.json()
                     post_list += responseJsonlist
+
     return post_list
 
 
