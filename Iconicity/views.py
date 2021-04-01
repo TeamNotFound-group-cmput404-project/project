@@ -998,9 +998,11 @@ def mypost(request):
     new_list = []
     new_list += PostSerializer(postList, many=True).data
     new_list.reverse()
+    github_username = getUserProfile(request.user).github.split("/")[-1]
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
+        'github_username': github_username,
     }
     return render(request, 'Iconicity/my_post.html', context)
 
