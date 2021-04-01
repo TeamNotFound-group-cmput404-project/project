@@ -150,8 +150,6 @@ def mainPagePublic(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
     new_list.reverse()
-
-    # by Shway:
     curProfile = getUserProfile(request.user)
     context = {
         'posts': new_list,
@@ -185,7 +183,7 @@ def getAllFollowAuthorPosts(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
@@ -206,10 +204,12 @@ def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
         # public can only see your public posts
-        return list(Post.objects.filter(author=user.id, visibility="PUBLIC"))
+        print(user)
+        return list(Post.objects.filter(id=user['id'], visibility="PUBLIC"))
     elif visibility == "FRIENDS":
         # friends can see all your posts (public + friends posts)
-        return list(Post.objects.filter(author=user.id))
+        print(user)
+        return list(Post.objects.filter(author=user))
 
 def getPost(post):
     return Post.objects.filter(post_id=post.post_id).first()
@@ -325,12 +325,11 @@ def follow_someone(request):
             # cannot get the profile with followee_id locally
             print("Not local")
             # create a new friend request with the receiver the (external) followee_id
-            actor = json.dumps(GETProfileSerializer(curProfile).data) # prepare to send
+            actor = GETProfileSerializer(curProfile).data # prepare to send
             object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
-            object = json.dumps(object)
             print("follow someone's actor serialized: ", actor)
             print("follow someone's object serialized: ", object)
             # construct the new friend request:
@@ -415,10 +414,6 @@ def follow_back(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if item['type'] == 'follow':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
-        for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
@@ -453,10 +448,6 @@ def inbox_view(request):
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
-    for item in cur_inbox.items:
-        if item['type'] == 'follow':
-            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-            if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -502,10 +493,6 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for item in cur_inbox.items:
-            if item['type'] == 'follow':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -792,6 +779,7 @@ def mypost(request):
     }
     return render(request, 'Iconicity/my_post.html', context)
 
+# modified by Shway:
 def getAllFollowExternalAuthorPosts(currentUser):
     # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
     # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
@@ -803,26 +791,39 @@ def getAllFollowExternalAuthorPosts(currentUser):
         return []
     if userProfile:
         #print("in")
-        externalAuthorUrls = userProfile.get_external_follows()
-        if externalAuthorUrls != []:
+        allFollowers = userProfile.get_followers()
+        if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-
-            for each_url in externalAuthorUrls:
-                full_url = each_url
-                if each_url[-1]=="/":
-                    full_url += "posts/"
-                else:
-                    full_url += "/posts/"
-                the_user_name = auth_user
-                the_user_pass = auth_pass
-                if team10_host_url in each_url:
-                    the_user_name = team10_name
-                    the_user_pass = team10_pass
-                temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-                responseJsonlist = temp.json()
-
-                post_list += responseJsonlist
+            '''
+            for user in allFollowers:
+                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+                    full_url = user['url']
+                    if user['url'][-1] == "/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    # now check whether you are also his/hers followee.
+                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
+            '''
+            #print(friendUrlList)
+            for user in allFollowers:
+                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+                    full_url = user['url']
+                    if user['url'][-1]=="/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    the_user_name = auth_user
+                    the_user_pass = auth_pass
+                    if team10_host_url in full_url:
+                        the_user_name = team10_name
+                        the_user_pass = team10_pass
+                    temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
 
     return post_list
 
@@ -905,7 +906,6 @@ class AuthorById(APIView):
         return Response(serializer.data)
 
 def following(request):
-
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
@@ -938,39 +938,40 @@ def getUserFriend(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile and (currentUser in list(otherUserProfile.get_followers())):
             print("they are friends")
             friendList.append(user)
 
-
     return friendList
 
+# modified by Shway
 def getExternalUserFriends(currentUser):
     userProfile = getUserProfile(currentUser)
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
-    externalFollowers = userProfile.get_external_follows() # a list of urls
+    allFollowers = list(userProfile.get_followers()) # a list of followers
 
-    for each_url in externalFollowers:
-        full_url = each_url
-
-        if each_url[-1] == "/":
-            full_url += "followers/"
-        else:
-            full_url += "/followers/"
-
-        the_user_name = auth_user
-        the_user_pass = auth_pass
-        if team10_host_url in host_url:
-            the_user_name = team10_name
-            the_user_pass = team10_pass
-        # now check whether you are also his/hers followee.
-        temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-        friends = temp.json()['externalFollows']
-        if userProfile.url in friends:
-            friendUrlList.append(each_url)
-
+    for user in allFollowers:
+        if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
+            full_url = user['url']
+            if user['url'][-1] == "/":
+                full_url += "followers/"
+            else:
+                full_url += "/followers/"
+            # now check whether you are also his/hers followee.
+            the_user_name = auth_user
+            the_user_pass = auth_pass
+            if team10_host_url in full_url:
+                the_user_name = team10_name
+                the_user_pass = team10_pass
+            raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+            friends = raw.json()
+            for userInfo in friends['items']:
+                if userProfile.url == userInfo['url']:
+                    friendUrlList.append(user['url'])
+                    break
+    print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
 def friends(request):
@@ -1096,6 +1097,7 @@ class Inboxs(APIView):
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "like":
+                print("likelikelikelikelikelikelikelikelikelikelikelikelikelikelike")
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
                 print("url",post_url)
@@ -1145,6 +1147,7 @@ class Inboxs(APIView):
                         return Response(InboxSerializer(inbox_obj).data,status=204)
             
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
+                print("postpostpostpostpostpostpostpostpostpostpostpostpostpostpostpostpost")
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
                 inbox_obj.items.append(data_json)
@@ -1158,6 +1161,7 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == 'comment':
+                print("commentcommentcommentcommentcommentcommentcommentcommentcommentcomment")
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
@@ -1180,6 +1184,7 @@ class AllPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
+        print("AllPostsByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
@@ -1189,8 +1194,9 @@ class ExternalFollowersByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
+        print("ExternalFollowersByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
-        return Response(ExternalFollowersSerializer(authorProfile).data)
+        return Response(FollowersSerializer(authorProfile).data)
 
 class FriendPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]

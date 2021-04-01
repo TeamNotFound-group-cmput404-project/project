@@ -23,6 +23,16 @@
               <h4>{{ item.summary }}</h4>
             </div>
           {% endif %}
+          {% if item.type == "comment" %}
+            <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+              <h4>New Comment</h4>
+              <h5>{{ item.comment }}</h5>
+              <h6>Author Info:</h6>
+              <p>Name: {{ item.comment_author_name }}</p>
+              <p>Host link: {{ item.author.host }}</p>
+              <p>url: {{ item.author.url }}</p>
+            </div>
+          {% endif %}
           {% if item.type == "follow" %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
               <h4>{{ item.summary }}</h4>
