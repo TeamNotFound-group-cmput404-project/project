@@ -326,7 +326,7 @@ def follow_someone(request):
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
             print("this is the full followee_url: ", full_followee_url)
-            post_data = requests.post(full_followee_url, data=json.dumps({'obj':frd_request_serialized}),
+            post_data = requests.post(full_followee_url, data={'obj':json.dumps(frd_request_serialized)},
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
@@ -395,10 +395,6 @@ def follow_back(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if item['type'] == 'follow':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
-        for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
@@ -433,10 +429,6 @@ def inbox_view(request):
     print("found inbox with the id: ", full_id)
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
-    for item in cur_inbox.items:
-        if item['type'] == 'follow':
-            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-            if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -482,10 +474,6 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
-        for item in cur_inbox.items:
-            if item['type'] == 'follow':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
-                if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
