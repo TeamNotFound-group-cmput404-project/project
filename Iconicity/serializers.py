@@ -14,7 +14,7 @@ class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
         model = UserProfile
         fields = ('items',)
 
-    def get_externalFollows(self, obj):
+    def get_items(self, obj):
         return obj.get_followers()
 
 # https://www.django-rest-framework.org
