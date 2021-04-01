@@ -918,7 +918,7 @@ def getExternalUserFriends(currentUser):
                 if userProfile.url == userInfo['url']:
                     friendUrlList.append(user['url'])
                     break
-    print(friendUrlList)
+    print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
 def friends(request):
@@ -1126,7 +1126,7 @@ class AllPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        print(author_id)
+        print("AllPostsByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
@@ -1136,7 +1136,7 @@ class ExternalFollowersByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        print(author_id)
+        print("ExternalFollowersByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(FollowersSerializer(authorProfile).data)
 
