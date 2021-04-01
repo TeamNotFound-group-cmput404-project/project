@@ -734,6 +734,7 @@ def mypost(request):
     }
     return render(request, 'Iconicity/my_post.html', context)
 
+# modified by Shway:
 def getAllFollowExternalAuthorPosts(currentUser):
     # https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
     # https://vast-shore-25201.herokuapp.com/author/543a1266-23f5-4d60-a9a2-068ac0cb5686
@@ -745,22 +746,34 @@ def getAllFollowExternalAuthorPosts(currentUser):
         return []
     if userProfile:
         #print("in")
-        externalAuthorUrls = userProfile.get_external_follows()
-        if externalAuthorUrls != []:
+        allFollowers = userProfile.get_followers()
+        if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-
-            for each_url in externalAuthorUrls:
-                full_url = each_url
-                if each_url[-1]=="/":
-                    full_url += "posts/"
-                else:
-                    full_url += "/posts/"
-                temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-                responseJsonlist = temp.json()
-
-                post_list += responseJsonlist
-
+            '''
+            for user in allFollowers:
+                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+                    full_url = user['url']
+                    if user['url'][-1] == "/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    # now check whether you are also his/hers followee.
+                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
+            '''
+            print(friendUrlList)
+            for user in allFollowers:
+                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
+                    full_url = user['url']
+                    if user['url'][-1]=="/":
+                        full_url += "posts/"
+                    else:
+                        full_url += "/posts/"
+                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
+                    responseJsonlist = temp.json()
+                    post_list += responseJsonlist
     return post_list
 
 
@@ -842,7 +855,6 @@ class AuthorById(APIView):
         return Response(serializer.data)
 
 def following(request):
-
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
