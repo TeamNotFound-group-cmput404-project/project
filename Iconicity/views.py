@@ -795,20 +795,7 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            '''
-            for user in allFollowers:
-                if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
-                    full_url = user['url']
-                    if user['url'][-1] == "/":
-                        full_url += "posts/"
-                    else:
-                        full_url += "/posts/"
-                    # now check whether you are also his/hers followee.
-                    temp = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass))
-                    responseJsonlist = temp.json()
-                    post_list += responseJsonlist
-            '''
-            print("all",allFollowers)
+            print("all", allFollowers)
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
                     print("in")
@@ -870,7 +857,7 @@ def getAllExternalAuthors():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "author"
+            full_url = host_url + "auth/admin/logout/or"
         else:
             full_url = host_url + "/author"
         # for connecting to other teams:
@@ -915,7 +902,6 @@ def following(request):
     postList = getAllFollowAuthorPosts(request.user)
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-
     new_list += getAllFollowExternalAuthorPosts(request.user)
     for post in new_list:
         if 'image' in post:
