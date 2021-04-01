@@ -858,7 +858,7 @@ def getAllExternalAuthors():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "auth/admin/logout/or"
+            full_url = host_url + "author"
         else:
             full_url = host_url + "/author"
         # for connecting to other teams:
