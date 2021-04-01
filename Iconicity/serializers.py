@@ -20,6 +20,7 @@ class ExternalFollowersSerializer(rest_serializers.ModelSerializer):
 # https://www.django-rest-framework.org
 class PostSerializer(rest_serializers.ModelSerializer):
     post_id = rest_serializers.SerializerMethodField()
+    id = rest_serializers.SerializerMethodField()
     author = rest_serializers.SerializerMethodField()
     count = rest_serializers.SerializerMethodField()
     size = rest_serializers.SerializerMethodField()
@@ -33,7 +34,7 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('post_id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
+        fields = ('post_id', 'id', 'title', 'type', 'source', 'origin', 'description', 'contentType',
         'author', 'content', 'visibility', 'categories', 'unlisted','image','like','external_likes',
         'count', 'size', 'published', 'author', 'host','like_count','comments', 'author_display_name')
 
@@ -58,6 +59,9 @@ class PostSerializer(rest_serializers.ModelSerializer):
 
     def get_post_id(self, obj):
         return obj.post_id
+
+    def get_id(self, obj):
+        return obj.id
 
     def get_author(self, obj):
         return GETProfileSerializer(UserProfile.objects.filter(user=obj.author).first()).data

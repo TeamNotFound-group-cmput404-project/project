@@ -100,6 +100,7 @@ class Post(models.Model):
     # type field, default is post
     type = models.CharField(max_length=10, default="post")
 
+    # id field
     id = models.URLField(default="")
 
     # source field, default is ""
