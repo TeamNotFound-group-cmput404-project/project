@@ -400,9 +400,9 @@ def follow_back(request):
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
             if item['type'] == 'like':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
             if item['type'] == 'comment':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
@@ -443,9 +443,9 @@ def inbox_view(request):
             if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
             if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
         if item['type'] == 'like':
-            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
         if item['type'] == 'comment':
-            if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+            if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
     print("inbox_view cur_inbox: ", cur_inbox.items)
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -496,9 +496,9 @@ def remove_inbox_follow(request):
                 if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
                 if type(item['object']) is not dict: item['object'] = json.loads(item['object'])
             if item['type'] == 'like':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
             if item['type'] == 'comment':
-                if type(item['actor']) is not dict: item['actor'] = json.loads(item['actor'])
+                if type(item['author']) is not dict: item['author'] = json.loads(item['author'])
         for item in cur_inbox.items:
             if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
