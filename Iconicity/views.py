@@ -1160,6 +1160,8 @@ class Inboxs(APIView):
                         return Response(InboxSerializer(inbox_obj).data,status=204)
             
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
+                print("postpostpostpostpostpostpostpostpostpostpostpostpostpostpostpostpost")
+                print(data_json)
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
                 inbox_obj.items.append(data_json)
@@ -1168,12 +1170,15 @@ class Inboxs(APIView):
 
             elif data_json['type'] == "follow":
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
+                print(data_json)
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == 'comment':
+                print("commentcommentcommentcommentcommentcommentcommentcommentcommentcomment")
+                print(data_json)
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
