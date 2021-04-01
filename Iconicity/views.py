@@ -666,7 +666,7 @@ def like_view(request):
     like_serializer = LikeSerializer(like_obj).data
 
     response = requests.post(full_inbox_url,
-                            data=json.dumps(like_serializer), 
+                            data=like_serializer, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
     print("like inbox response",response)
     return redirect(redirect_path)
@@ -1280,7 +1280,7 @@ def post_comments(request):
                     comment_serializer = CommentSerializer(comment_obj).data
                     
                     response = requests.post(full_inbox_url,
-                            data=json.dumps(comment_serializer), 
+                            data=comment_serializer, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     print("response",response)
                     return redirect('public')
@@ -1327,7 +1327,7 @@ def post_comments(request):
                     print(comment_serializer)
 
                     response = requests.post(full_inbox_url,
-                            data=json.dumps(comment_serializer), 
+                            data=comment_serializer, 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
                     return redirect('public')
                     
