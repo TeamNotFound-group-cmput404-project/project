@@ -891,7 +891,7 @@ def getExternalUserFriends(currentUser):
     for user in allFollowers:
         if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
             full_url = user['url']
-            if each_url[-1] == "/":
+            if user['url'][-1] == "/":
                 full_url += "followers/"
             else:
                 full_url += "/followers/"
