@@ -202,7 +202,6 @@ def getUserProfile(currentUser):
 
 def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
-    print("getPosts(ALL): ", list(Post.objects.all())[0].author.id)
     if visibility == "PUBLIC":
         # public can only see your public posts
         print("getPosts(PUBLIC): ", user)
