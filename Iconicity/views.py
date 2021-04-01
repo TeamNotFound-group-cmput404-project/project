@@ -179,7 +179,7 @@ def getAllFollowAuthorPosts(currentUser):
     for user in allFollowedAuthors:
         # check whether they are friends.
         # means a two-direct-follow
-        otherUserProfile = UserProfile.objects.filter(user=user).first()
+        otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
         if otherUserProfile:
             if currentUser in list(otherUserProfile.get_followers()):
                 temp = getPosts(user, visibility="FRIENDS") # join the post_list
@@ -666,7 +666,7 @@ def like_view(request):
     like_serializer = LikeSerializer(like_obj).data
 
     response = requests.post(full_inbox_url,
-                            data={"obj":json.dumps(like_serializer)}, 
+                            data=json.dumps(like_serializer), 
                             auth=HTTPBasicAuth(auth_user, auth_pass))
     print("like inbox response",response)
     return redirect(redirect_path)
@@ -978,7 +978,7 @@ def getExternalUserFriends(currentUser):
     userProfile = getUserProfile(currentUser)
     friendUrlList = []
     # now check external followers. check whether they are bi-direction.
-    externalFollowers = userProfile.get_external_follows() # a list of urls
+    externalFollowers = userProfile.get_followers() # a list of urls
 
     for each_url in externalFollowers:
         full_url = each_url
