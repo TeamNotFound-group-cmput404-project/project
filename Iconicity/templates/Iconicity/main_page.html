@@ -132,30 +132,31 @@
       <br><br>
       {% for i in page_range %}
 
-<a style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+<a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
 
 {% endfor %}
       <!-- End of Pagination-->
       <script>
-        $('a').click(function(event){
+        $("a#page").click(function(event){
           event.preventDefault();
           var page_n = $(this).attr('href');
           console.log(this);
           // ajax
-              $.ajax(
-                {
-                      type: "POST",
-                      url:"{% url 'public' %}", // name of url
+              $.ajax({
+                  type: "POST",
+                  url:"{% url 'public' %}", // name of url
                       data : {    
                       page_n : page_n, //page_number
                       csrfmiddlewaretoken: '{{ csrf_token }}',
                   },
                   success: function (resp) {
                       //loop
-                      $('#posts').html('')
-                     $.each(resp.results, function(i, val) { d
+                    $('#posts').html('')
+                     $.each(resp.results, function(i, val) { 
                        //apending posts
-                      $('#posts').append('<h2>' + val.title + '</h2>')
+                       console.log(resp.results);
+                      $('#posts').append('<h1>' + val.title+ '</h1>'+'<h5>'+val.author_display_name+'</h5>'
+                      +'<p>'+val.content+'</p>')
                      });
                     
                   },
