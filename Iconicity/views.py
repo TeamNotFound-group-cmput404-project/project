@@ -2,6 +2,8 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -96,11 +98,11 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    
 
     externalPosts = getAllExternalPublicPosts()
-
-
+     
+    
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -141,11 +143,19 @@ def mainPagePublic(request):
             post['author_display_name'] = post['author']['displayName']
 
     new_list += externalPosts
+    print("new_list",new_list)
+    number = 5
+    pagen = Paginator(new_list,5)
+    print(pagen)        
+    # new_list.reverse()
+    first_page = pagen.page(1).object_list
 
-        
-    new_list.reverse()
-
-    # by Shway:
+    print("1",first_page)
+    page_range = pagen.page_range
+    print("page_range",page_range)
+    # print("object",Post.objects.all())
+    
+    
 
     curProfile = getUserProfile(request.user)
     '''
@@ -162,11 +172,18 @@ def mainPagePublic(request):
         externalFollowNames += requests.get(i, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()['display_name']
     '''
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': curProfile,
         #'externalFollowNames': externalFollowNames,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 
 
