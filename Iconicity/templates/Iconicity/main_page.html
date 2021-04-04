@@ -124,8 +124,72 @@
       <!-- This is the end of a post -->
       <div id="posts">
         {% for i in first_page %}
-        <h2>{{i.title}}</h2>
-       
+        <div class="w3-container w3-card w3-white w3-round w3-margin">
+        <h1>{{ i.title }}</h1>
+
+        <h5>By: {{ i.author_display_name}}</h5><br>
+
+        <hr class="w3-clear">
+
+        {% if i.contentType == "text/plain" %}
+          <p>{{ i.content }}</p>
+        {% endif %}
+        <div class="w3-row-padding" style="margin:0 -16px">
+          <div class="w3-half">
+            {% if i.image != '' and i.image != None %}
+              <img src="{{post.image}}">
+            {% endif %}
+          </div>
+        </div>
+        <hr class="w3-clear">
+
+        <!-- Below are the like, comment and repost buttons -->
+        <form action="{% url 'like_post_public' %}" method="POST">
+          {% csrf_token %}
+          {% if i.source != '' and i.source != None %}
+            <button class="button", 
+            style = "float:left;",type="submit", name="pk", value={{i.source}}>
+          {% else %}
+            <button class="button", 
+            style = "float:left;",type="submit", name="pk", value={{i.origin}}>
+          {% endif%}
+          <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+          </button>
+
+        </form>
+
+        <form action="{% url 'comment_form' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+              type="submit", 
+              style="float:left;",
+              name="ppid", 
+              value={{post.source}}>
+              <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+        </form>
+
+        <form action="{% url 'repost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value={{i.source}}>
+            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+
+        <form action="{% url 'repost_to_friend' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", style="float:left;", type="submit", name="pk", value={{i.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+        </form>
+        <br>
+        <p>{{i.like_count}} liked this post.</p>
+        {% for comment in i.comments %}  
+          {{ comment.comment_author_name }}:
+          {{ comment.comment }}
+          <br>
+        {% endfor %}
+        <br>
+      </div>
         {% endfor %}
     </div>
       <!-- Pagination-->
@@ -180,9 +244,10 @@ const csrf = getCookie('csrftoken');
        <p>${val.content }</p>
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
-          ${(val.source != '' && val.source != null ) ? 
-          "<button class = 'button',style = 'float:left;', type = 'submit',name = 'pk', value=${val.source}>": 
-          "<button class = 'button', style = 'float:left;'type = 'submit',name = 'pk', value=${val.origin}>"}
+          ${(val.source != '' && val.source != null )? 
+          '<button class = "button",style = "float:left;", type = "submit",name = "pk", value=${val.source}>': 
+            '<button class = "button",style = "float:left;", type = "submit",name = "pk", value=${val.origin}>'}
+            <input type="hidden" name=${csrf}>
           <i class="fa fa-heart-o" style="font-size:20px;"></i>
           </button>
         </form>
@@ -206,9 +271,9 @@ const csrf = getCookie('csrftoken');
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
           <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-        </form>`)
+        </form><br>
+        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}`)
                      });
-                    
                   },
                   error: function () {}
               }); // 

@@ -16,23 +16,6 @@ friend requests: https://www.youtube.com/watch?v=7-VNMGmEN54&list=PLgjw1dR712joF
 
 # By: Shway
 class UserProfileManager(models.Manager):
-    def get_all_available_profiles(self, sender):
-        # sender is of type User
-        profiles = UserProfile.objects.all().exclude(user = sender) # all other profiles except for me
-        my_profile = UserProfile.objects.get(user = sender) # my profile
-        # below are requests that are related to the current user:
-        queryset = FriendRequest.objects.filter(Q(actor=my_profile) | Q(object=my_profile))
-        #print(queryset)
-        accepted = set()
-        for frdReq in queryset:
-            if frdReq.status == 'accepted':
-                accepted.add(frdReq.receiver)
-                accepted.add(frdReq.sender)
-        #print(accepted)
-        available = [p for p in profiles if profiles not in accepted]
-        #print(available)
-        return available
-
     def get_all_profiles(self, exception):
         # curUser is of type User
         return UserProfile.objects.all().exclude(user = exception)
@@ -45,14 +28,14 @@ class UserProfile(models.Model):
     type = models.CharField(max_length=10, default="author")
 
     # user id field
-    uid = models.UUIDField(primary_key=True,
+    id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # user name field
-    display_name = models.CharField(max_length=max_name_length, default="")
+    displayName = models.CharField(max_length=max_name_length, default="")
 
     # user github link
     github = models.URLField(default="")
@@ -64,30 +47,39 @@ class UserProfile(models.Model):
     url = models.URLField(default="")
 
     # I'm following / friend
-    follow = models.ManyToManyField(User, related_name='following', blank=True)
-
-    # Who i'm following on other servers.
-    # Should be a dict of urls
-    externalFollows = models.JSONField(default=dict,max_length=5000)
+    #follow = models.ManyToManyField(User, related_name='following', blank=True)
+    follow = models.JSONField(default=dict, max_length=500)
 
     objects = UserProfileManager()
 
-    def get_external_follows(self):
-        # return a list of urls of the external followed authors.
-        if self.externalFollows == {} or self.externalFollows == []:
-            return []
-        else:
-            return self.externalFollows['urls']
-
     # By: Shway
+    def add_follow(self, item):
+        # here the item should be a json string
+        if self.follow == {}:
+            self.follow['type'] = 'followers'
+            self.follow['items'] = []
+        self.follow['items'].append(item)
+
+    def remove_follow_by_id(self, id):
+        # here the item should be a json string
+        for item in self.follow['items']:
+            if (item['id'] == id or item['url'] == id or
+                item['id'].split('/')[-1] == id or
+                item['url'].split('/')[-1] == id):
+                self.follow['items'].remove(item)
+
     def get_followers(self):
-        return self.follow.all()
+        # need to parse each item to use
+        if self.follow == {}:
+            self.follow['type'] = 'followers'
+            self.follow['items'] = []
+        return self.follow['items']
 
     def get_number_of_followers(self):
-        num = self.follow.all().count()
-        if not(self.externalFollows == {} or self.externalFollows == []):
-            num += len(self.externalFollows['urls'])
-        return num
+        if self.follow == {}:
+            self.follow['type'] = 'followers'
+            self.follow['items'] = []
+        return len(self.follow['items'])
 
     def __str__(self):
         return str(self.user)
@@ -107,6 +99,9 @@ class Post(models.Model):
 
     # type field, default is post
     type = models.CharField(max_length=10, default="post")
+
+    # id field
+    id = models.URLField(default="")
 
     # source field, default is ""
     # where did you get this post from?
@@ -191,40 +186,18 @@ class Post(models.Model):
     def __str__(self):
         return '%s' % (self.title)
 
-# By Shway:
-STATUS_CHOICES = (
-    ('sent', 'sent'),
-    ('accepted', 'accepted'),
-)
-
-
-class FriendRequestManager(models.Manager):
-    def friendRequests_received(self, receiver):
-        return FriendRequest.objects.filter(object=receiver, status='sent')
-
-    #FriendRequest.objects.friendRequests_received(curUserProfile)
-
 class FriendRequest(models.Model):
     # Type is set to follow
-    type = models.CharField(max_length=10, default="Follow")
+    type = models.CharField(max_length=10, default="follow")
 
     # Summary of following info
     summary = models.TextField(default="")
 
     # Sender of this friend request:
-    actor = models.URLField(default="",max_length=500)
-
-    # By: Shway
-    # For the receiver to choose to accept or reject:
-    status = models.CharField(default="sent", max_length=10, choices=STATUS_CHOICES)
+    actor = models.JSONField(default=dict, max_length=500)
 
     # Reciever of this friend request:
-    object = models.URLField(default="",max_length=500)
-
-    objects = FriendRequestManager()
-
-    def __str__(self):
-        return f"{self.actor}-->{self.object}: {self.summary}, status: {self.status}"
+    object = models.JSONField(default=dict, max_length=500)
 
 
 class Comment(models.Model):
@@ -259,7 +232,7 @@ class Like(models.Model):
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
                           editable=False)
-    type = models.CharField(max_length=10, default="Like")
+    type = models.CharField(max_length=10, default="like")
     context = models.URLField(default="")
     summary = models.TextField(default="")
 
@@ -267,13 +240,25 @@ class Like(models.Model):
     author = models.JSONField(default=dict,max_length=500)
     object = models.JSONField(default=dict,max_length=500)
 
+# by: Shway Wang:
+class InboxManager(models.Manager):
+    def add_new_item_to_author_inbox(self, item, url):
+        if len(Inbox.objects.filter(author = url)) == 0:
+            Inbox.objects.filter(author = url)[0].author = url
+        print("model here: ", Inbox.objects.filter(author = url)[0].author)
+        print("item: ", item)
+        Inbox.objects.filter(author = url)[0].items.append(item)
+        print("model here: ", Inbox.objects.filter(author = url)[0].items)
+
+
 class Inbox(models.Model):
     type = models.CharField(max_length=10, default="inbox")
     author = models.URLField(default="")
-    # stores a list of Post items to display,
+    # stores a list of mixed items to display,
     # better consider converting your Post list to json
     # if you wish to get the item list, just parse it then you will get
     items = models.JSONField(default=list,max_length=10000)
+    
 
 class ExternalServer(models.Model):
     host = models.URLField(default="",primary_key=True,)

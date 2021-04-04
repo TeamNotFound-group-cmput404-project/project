@@ -66,9 +66,9 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_following' %}" method="POST">
           {% csrf_token %}
-          {% if post.source != ''%}
+          {% if post.id != ''%}
             <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{post.source}}>
+            style = "float:left;",type="submit", name="pk", value={{post.id}}>
           {% else %}
             <button class="button", 
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
@@ -79,9 +79,9 @@
 
         <form action="{% url 'comment_form' %}" method="GET">
           {% csrf_token %}
-          {% if post.source != '' and post.source != None %}
+          {% if post.id != '' and post.id != None %}
             <button class="button", 
-            type="submit", name="pk", style="float:left;", value={{post.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+            type="submit", name="pk", style="float:left;", value={{post.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
           {% else %}
             <button class="button", 
             type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
@@ -92,14 +92,14 @@
           {% csrf_token %}
           <button class="button", 
             style = "float:left;",
-            type="submit", name="pk", value={{post.source}}>
-            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+            type="submit", name="pk", value={{post.id}}>
+            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
         </form>
         
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button", type="submit", name="pk", value={{post.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", type="submit", name="pk", value={{post.id}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
 
         <p>{{post.like_count}} liked this post.</p>

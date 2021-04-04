@@ -17,118 +17,122 @@
         <h1 class="w3-center w3-margin-top">No New Messages yet!</h1>
       {% else %}
         <h1 class="w3-center w3-margin-top">You have the following messages:</h1>
-        {% if not is_likes_empty %}
-          <h2 class="w3-left w3-margin-top">You have received likes:</h2><hr>
-          {% for like in likes %}
+        {% for item in inbox %}
+          {% if item.type == "like" %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-              <h4>{{ like.summary }}</h4>
+              <h4>{{ item.summary }}</h4>
             </div>
-          {% endfor %}
-        {% endif %}
-        {% if not is_follows_empty %}
-          <h2 class="w3-left w3-margin-top">Your new followers:</h2><hr>
-          {% for follow in follows %}
+          {% endif %}
+          {% if item.type == "comment" %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-              <h4>{{ follow.summary }}</h4>
-              <p>Github link: {{ follow.actor.github }}</p>
-              <p>Host link: {{ follow.actor.host }}</p>
-              <p>url: {{ follow.actor.url }}</p>
+              <h4>New Comment</h4>
+              <h5>{{ item.comment }}</h5>
+              <h6>Author Info:</h6>
+              <p>Name: {{ item.comment_author_name }}</p>
+              <p>Host link: {{ item.author.host }}</p>
+              <p>url: {{ item.author.url }}</p>
+            </div>
+          {% endif %}
+          {% if item.type == "follow" %}
+            <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+              <h4>{{ item.summary }}</h4>
+              <p>Github link: {{ item.actor.github }}</p>
+              <p>Host link: {{ item.actor.host }}</p>
+              <p>url: {{ item.actor.url }}</p>
               <!--{% csrf_token %}-->
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='accept_uid' value='{{ follow.uid }}'>View Profile</button>
+              name='accept_id' value='{{ item.id }}'>View Profile</button>
 
               <!--For to follow this user back-->
               <form action="{% url 'follow_back' %}" method='POST'>
                 {% csrf_token %}
-                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
-                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
+                <input type="hidden" name="followee_host" value="{{ item.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ item.actor.github }}">
+                <input type="hidden" name="followee_displayName" value="{{ item.actor.displayName }}">
+                <input type="hidden" name="followee_url" value="{{ item.actor.url }}">
                 <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-                name='followee_uid' value="{{ follow.actor.uid }}">Follow back(or accept friend request to be friends)</button>
+                name='followee_id' value="{{ item.actor.id }}">Follow back(or accept friend request to be friends)</button>
               </form>
 
               <!--For to remove this message-->
               <form action="{% url 'remove_inbox_follow' %}" method='POST'>
                 {% csrf_token %}
-                <input type="hidden" name="followee_host" value="{{ follow.actor.host }}">
-                <input type="hidden" name="followee_github" value="{{ follow.actor.github }}">
-                <input type="hidden" name="followee_display_name" value="{{ follow.actor.display_name }}">
+                <input type="hidden" name="followee_host" value="{{ item.actor.host }}">
+                <input type="hidden" name="followee_github" value="{{ item.actor.github }}">
+                <input type="hidden" name="followee_displayName" value="{{ item.actor.displayName }}">
                 <button type='submit' class="w3-button w3-theme-r1 w3-margin-bottom"
-                name='followee_uid' value="{{ follow.actor.uid }}">Remove Message</button>
+                name='followee_id' value="{{ item.actor.id }}">Remove Message</button>
               </form>
             </div>
-          {% endfor %}
-        {% endif %}
-        {% if not is_posts_empty %}
-          <h2 class="w3-left w3-margin-top">There have been new posts:</h2><hr>
-          {% for post in posts %}
+          {% endif %}
+          {% if item.type == "post" %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-            <h1>{{ post.title }}</h1><br>
-            <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
-            <!-- <span class="w3-right w3-opacity">1 min</span> -->
-            <h5>By: {{ post.author_display_name}}</h5><br>
-            <hr class="w3-clear">
-            {% if post.contentType == "text/plain" %}
-              <p>{{ post.content }}</p>
-            {% endif %}
-            {% if post.contentType == "text/markdown" %}
-              <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
-            {% endif %}
-            <!-- Below are images -->
-            <div class="w3-row-padding" style="margin:0 -16px">
-              <div class="w3-half">
-                {% if post.image != '' and post.image != None %}
-                  <img src="{{ post.image }}">
-                {% endif %}
+              <h1>{{ post.title }}</h1><br>
+              <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
+              <!-- <span class="w3-right w3-opacity">1 min</span> -->
+              <h5>By: {{ post.author_displayName}}</h5><br>
+              <hr class="w3-clear">
+              {% if post.contentType == "text/plain" %}
+                <p>{{ post.content }}</p>
+              {% endif %}
+              {% if post.contentType == "text/markdown" %}
+                <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+              {% endif %}
+              <!-- Below are images -->
+              <div class="w3-row-padding" style="margin:0 -16px">
+                <div class="w3-half">
+                  {% if post.image != '' and post.image != None %}
+                    <img src="{{ post.image }}">
+                  {% endif %}
+                </div>
               </div>
-            </div>
-            <hr class="w3-clear">
-            <!-- Below are the like, comment and repost buttons -->
-            <form action="{% url 'like_post_public' %}" method="POST">
-              {% csrf_token %}
-              {% if post.source != '' and post.source != None %}
+              <hr class="w3-clear">
+              <!-- Below are the like, comment and repost buttons -->
+              <form action="{% url 'like_post_public' %}" method="POST">
+                {% csrf_token %}
+                {% if post.id != '' and post.id != None %}
+                  <button class="button", 
+                  style = "float:left;",type="submit", name="pk", value={{post.id}}>
+                {% else %}
+                  <button class="button", 
+                  style = "float:left;",type="submit", name="pk", value={{post.origin}}>
+                {% endif%}
+                <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+                </button>
+              </form>
+              <form action="{% url 'comment_form' %}" method="GET">
+                {% csrf_token %}
+                {% if post.id != '' and post.id != None %}
+                  <button class="button", 
+                  type="submit", name="pk", style="float:left;", value={{post.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+                {% else %}
+                  <button class="button", 
+                  type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+                {% endif%}
+              </form>
+              <form action="{% url 'repost' %}" method="POST">
+                {% csrf_token %}
                 <button class="button", 
-                style = "float:left;",type="submit", name="pk", value={{post.source}}>
-              {% else %}
-                <button class="button", 
-                style = "float:left;",type="submit", name="pk", value={{post.origin}}>
-              {% endif%}
-              <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-              </button>
-            </form>
-            <form action="{% url 'comment_form' %}" method="GET">
-              {% csrf_token %}
-              {% if post.source != '' and post.source != None %}
-                <button class="button", 
-                type="submit", name="pk", style="float:left;", value={{post.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-              {% else %}
-                <button class="button", 
-                type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-              {% endif%}
-            </form>
-            <form action="{% url 'repost' %}" method="POST">
-              {% csrf_token %}
-              <button class="button", 
-                style = "float:left;",
-                type="submit", name="pk", value={{post.pk}}>
-                <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
-              </button>
-            </form>
-            <form action="{% url 'repost_to_friend' %}" method="POST">
-              {% csrf_token %}
-              <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-            </form>
-            <br>
-            <p>{{post.like_count}} liked this post.</p>
-            {% for comment in post.comments %}  
-              {{ comment.comment_author_name }}:
-              {{ comment.comment }}
+                  style = "float:left;",
+                  type="submit", name="pk", value={{post.pk}}>
+                  <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
+                </button>
+              </form>
+              <form action="{% url 'repost_to_friend' %}" method="POST">
+                {% csrf_token %}
+                <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+              </form>
               <br>
-            {% endfor %}
-            <br>
-          </div>
-          {% endfor %}
-        {% endif %}
+              <p>{{post.like_count}} liked this post.</p>
+              {% for comment in post.comments %}  
+                {{ comment.comment_author_name }}:
+                {{ comment.comment }}
+                <br>
+              {% endfor %}
+              <br>
+            </div>
+          {% endif %}
+        {% endfor %}
       {% endif %}
       <!-- This is the end of a post -->
 
