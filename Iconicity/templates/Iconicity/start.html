@@ -1,0 +1,102 @@
+<!-- https://dcodemania.com/post/tabbed-style-login-registration-form-css3-jquery -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="author" content="Sahil Kumar" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tabbed Style Login & Registration Form Using CSS3 & jQuery</title>
+    <link href="https://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/start.css' %}"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'javascript/start.js' %}"></script>
+  </head>
+
+  <body>
+    
+    <div class = "header">
+      <h1>Iconicity</h1>
+      <h2 id="logo-img" alt="Logo image"></h2>
+    </div>
+
+
+    <div id="start">
+      <!-- Tab Buttons -->
+
+      <div id="tab-btn">
+        <a class="login-tab active">Sign In</a>
+        <a class="register-tab">Sign Up</a>
+      </div>
+
+      <!-- Login Form -->
+      <div class="login-box">
+        <h2>Get Started!</h2>
+        <form method='POST'>
+          {% csrf_token %}
+          <div class="field">
+            <label for="{{ login_form.username.id_for_label }}" class="label">
+              Username
+            </label>
+            <div class="control">
+              {{ login_form.username }}
+            </div>
+            <p class="help is-danger">{{ login_form.username.errors }}</p>
+          </div>
+        
+          <div class="field">
+            <label for="{{ login_form.password.id_for_label }}" class="">
+              Password
+            </label>
+            <div class="control">
+              {{ login_form.password}}
+            </div>
+            <p class="help is-danger">{{ login_form.password.errors }}</p>
+          </div>
+          
+          <div class = "signin">
+            <a href="main">
+            <button class = button1>sign in </button>
+            </a>
+          </div>
+    
+        </form>
+      </div>
+      
+      <!-- Registration Form -->
+      <div class="register-box">
+        <h2>Register With Us!</h2>
+        
+        
+        <form method="post">
+          {% csrf_token %}
+          {% for field in signup_form %}
+            <p>
+              {{ field.label_tag }}
+              {{ field }}
+              <div class = "help">{{ field.help_text }}</div>
+              {% for error in field.errors %}
+              <div class = "error">{{ error}}</div>
+              {% endfor %}
+            </p>
+          {% endfor %}
+          
+          <div class = "signin">
+            <a href="main">
+            <button class = button1>sign up </button>
+            </a>
+          </div>
+
+          <div class = "button">
+            <input type="submit" id="signup" value = "sign up"></input>
+          </div>
+          
+        </form>
+
+
+
+      </div>
+    </div>
+  </body>
+</html>
