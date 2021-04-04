@@ -9,7 +9,7 @@ urlpatterns = [
 	path('', views.LoginView.as_view(), name = 'login'),
 	path('logout', views.logout_view, name = 'logout'),
 	path('signup',views.signup,name = 'signup'),
-
+    path('ajax', views.ajax,name = "ajax"),
 	# need to fix this part later
 	path('friends/like', views.like_view, name="like_post_friend"),
 	path('mypost/like', views.like_view, name="like_post_mypost"),
@@ -20,7 +20,7 @@ urlpatterns = [
 	path('repost_to_friend', views.repost_to_friend, name='repost_to_friend'),
 	path('profile',views.profile,name = "profile"),
 	path('mypost', views.mypost, name = 'mypost'),
-	path('public/',views.mainPagePublic,name = "public"),
+	path('public',views.mainPagePublic,name = "public"),
 	path('friends', views.friends, name = 'friends'),
 	path('following',views.following,name = "follow"),
 	path('post_form', views.AddPostView.as_view(), name="post_form"),

@@ -33,6 +33,8 @@ import base64
 import uuid
 #https://thecodinginterface.com/blog/django-auth-part1/
 
+def ajax(request):
+    return render(request,"Iconicity/hello.html")
 
 def logout_view(request):
     # in use, support log out

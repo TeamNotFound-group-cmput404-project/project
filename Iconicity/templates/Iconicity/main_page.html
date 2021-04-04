@@ -137,26 +137,76 @@
 {% endfor %}
       <!-- End of Pagination-->
       <script>
+        function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrf = getCookie('csrftoken');
         $("a#page").click(function(event){
           event.preventDefault();
           var page_n = $(this).attr('href');
-          console.log(this);
+          
           // ajax
               $.ajax({
                   type: "POST",
-                  url:"{% url 'public' %}", // name of url
+                      url:"{% url 'public' %}", // name of url
                       data : {    
                       page_n : page_n, //page_number
                       csrfmiddlewaretoken: '{{ csrf_token }}',
                   },
                   success: function (resp) {
+                   
                       //loop
                     $('#posts').html('')
                      $.each(resp.results, function(i, val) { 
                        //apending posts
-                       console.log(resp.results);
-                      $('#posts').append('<h1>' + val.title+ '</h1>'+'<h5>'+val.author_display_name+'</h5>'
-                      +'<p>'+val.content+'</p>')
+                       console.log(val);
+                      $('#posts').append(`<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+        <h1>${val.title}</h1>
+
+        <h5>By:${val.author_display_name}</h5><br>
+
+       <p>${val.content }</p>
+        <form action="{% url 'like_post_public' %}" method="POST">
+          {% csrf_token %}
+          ${(val.source != '' && val.source != null ) ? 
+          "<button class = 'button',style = 'float:left;', type = 'submit',name = 'pk', value=${val.source}>": 
+          "<button class = 'button', style = 'float:left;'type = 'submit',name = 'pk', value=${val.origin}>"}
+          <i class="fa fa-heart-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'comment_form' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+              type="submit", 
+              style="float:left;",
+              name="ppid", 
+              value=${val.source}>
+              <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+        </form>
+        <form action="{% url 'repost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value=${val.source}>
+            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'repost_to_friend' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+        </form>`)
                      });
                     
                   },
