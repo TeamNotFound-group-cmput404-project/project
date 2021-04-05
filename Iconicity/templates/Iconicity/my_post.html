@@ -82,7 +82,7 @@
           <form action="{% url 'like_post_mypost' %}" method="POST">
             {% csrf_token %}
             <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{post.source}}>
+            style = "float:left;",type="submit", name="pk", value={{post.id}}>
             <i class="fa fa-heart-o" style="font-size:20px;" ></i>
             </button>
           </form>
@@ -91,14 +91,14 @@
             {% csrf_token %}
             <button class="button", 
               style = "float:left;",
-              type="submit", name="pk", value={{post.source}}>
+              type="submit", name="pk", value={{post.id}}>
               <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
             </button>
           </form>
           
           <form action="{% url 'delete' %}" method="POST">
             {% csrf_token %}
-            <button class="button", type="submit", name="pk",  value={{post.source}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+            <button class="button", type="submit", name="pk",  value={{post.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
           </form>
 
           <p>{{post.like_count}} liked this post.</p>

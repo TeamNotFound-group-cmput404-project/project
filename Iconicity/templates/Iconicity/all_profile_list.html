@@ -21,36 +21,34 @@
       {% else %}
         <h1 class="w3-center w3-margin-top">Here Is Everyone Reachable:</h1>
         {% for profile in profiles %}
-        <div class="w3-container w3-card w3-white w3-round w3-margin">
-          <div>
-            <img class="w3-left w3-circle w3-margin-right" src="{% static 'images/shwaypic.jpg' %}"
-            style="width:120px" alt="Icon">
-          </div>
-          <h4>{{ profile.display_name }}</h4><br>
+        <div class="profile">
+          <h4>{{ profile.displayName }}</h4>
+          <console class="log" style = "margin-left:20px;">>>>>>>>>>>>>>>>>>>></console>
           <p>Github link: {{ profile.github }}</p>
           <p>Host link: {{ profile.host }}</p>
           <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
           <!-- Now for the two buttons for adding and removing friends, also the notification if -->
           <!-- this person already has sent you a friend request -->
           <!-- Case 0: Follow and unfollow buttons -->
-          {% if profile.user in follows or profile.uid in external_follows%}
+          {% if profile.id in follows or profile.url in follows%}
             <form action="{% url 'unfollow_someone' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='followee_uid' value="{{ profile.uid }}">Unfollow</button>
+              name='followee_id' value="{{ profile.id }}">Unfollow</button>
             </form>
           {% endif %}
-          {% if profile.user not in follows and profile.uid not in external_follows%}
+          {% if profile.id not in follows and profile.url not in follows%}
             <form action="{% url 'follow_someone' %}" method='POST'>
               {% csrf_token %}
               <input type="hidden" name="followee_host" value="{{ profile.host }}">
               <input type="hidden" name="followee_github" value="{{ profile.github }}">
-              <input type="hidden" name="followee_display_name" value="{{ profile.display_name }}">
+              <input type="hidden" name="followee_displayName" value="{{ profile.displayName }}">
+              <input type="hidden" name="followee_url" value="{{ profile.url }}">
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='followee_uid' value="{{ profile.uid }}">Follow</button>
+              name='followee_id' value="{{ profile.id }}" style ="margin-left:20px;width:20%;">Follow</button>
             </form>
           {% endif %}
-          <p style="color:blue;">If this user follows you back, you are automatically friends with each other!</p>
+          <p style="color:gray;margin-left:20px;">If this user follows you back, you are automatically friends with each other!</p>
           
           <!-- Case 1: Send friend request -->
           <!--
@@ -58,7 +56,7 @@
             <form action="{% url 'send_friendRequest' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='profile_uid' value="{{ profile.uid }}">Add to friends</button>
+              name='profile_uid' value="{{ profile.id }}">Add to friends</button>
             </form>
           {% endif %}-->
           <!-- Case 2: This person has sent you a friend request already -->
@@ -72,7 +70,7 @@
             <form action="{% url 'remove_friend' %}" method='POST'>
               {% csrf_token %}
               <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='profile_uid' value='{{ profile.uid }}'>Remove from friends</button>
+              name='profile_uid' value='{{ profile.id }}'>Remove from friends</button>
             </form>
           {% endif %}-->
         </div>
@@ -80,19 +78,7 @@
       {% endif %}
 
       <!-- Pagination-->
-      <br><br>
-      <div class="center">
-        <div class="pagination">
-        <a href="#">&laquo;</a>
-        <a href="#" class="active">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">4</a>
-        <a href="#">5</a>
-        <a href="#">6</a>
-        <a href="#">&raquo;</a>
-        </div>
-      </div>
+      
       <!-- End of Pagination-->
 
     <!-- End Middle Column -->

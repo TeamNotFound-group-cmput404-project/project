@@ -48,9 +48,8 @@
       <!-- Shway Wang added the for loop here -->
       {% for post in posts %}
       <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>{{ post.title }}</h1><br>
-        <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
-        <!-- <span class="w3-right w3-opacity">1 min</span> -->
+        <h1>{{ post.title }}</h1>
+
         <h5>By: {{ post.author_display_name}}</h5><br>
 
         <hr class="w3-clear">
@@ -76,9 +75,9 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
-          {% if post.source != '' and post.source != None %}
+          {% if post.id != '' and post.id != None %}
             <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{post.source}}>
+            style = "float:left;",type="submit", name="pk", value={{post.id}}>
           {% else %}
             <button class="button", 
             style = "float:left;",type="submit", name="pk", value={{post.origin}}>
@@ -93,7 +92,7 @@
               type="submit", 
               style="float:left;",
               name="ppid", 
-              value={{post.source}}>
+              value={{post.id}}>
               <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
         </form>
 
@@ -101,14 +100,14 @@
           {% csrf_token %}
           <button class="button", 
             style = "float:left;",
-            type="submit", name="pk", value={{post.source}}>
+            type="submit", name="pk", value={{post.id}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
         </form>
 
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value={{post.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", style="float:left;", type="submit", name="pk", value={{post.id}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
         <br>
         <p>{{post.like_count}} liked this post.</p>
@@ -141,15 +140,12 @@
       <!-- Profile -->
       <div class="w3-card w3-round w3-white" >
         <div class="w3-container">
-          <h4 class="w3-center w3-margin-top">Follower List of {{ request.user }}:</h4>
+          <h4 class="w3-center w3-margin-top">Follow List of {{ request.user }}:</h4>
           <hr>
           {% for friend in UserProfile.get_followers %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
+          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
           {% endfor %}
-          {% for friend in UserProfile.get_external_follows %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend }}</p>
-          {% endfor %}
-          <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} followers.</h5>
+          <h5 class="w3-center w3-margin-top">You are following {{ UserProfile.get_number_of_followers }} user(s).</h5>
         </div>
       </div>
     </div>
