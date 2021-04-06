@@ -24,23 +24,20 @@
           rel="stylesheet"
           href="https://cdn.rawgit.com/IonicaBizau/github-calendar/gh-pages/dist/github-calendar.css"
         />
-        
-        <!-- Prepare a container for your calendar. -->
         <div class="calendar">
-            <!-- Loading stuff -->
-            If this takes too long, the github url is invalid.
-        </div>
-
-        <script>
-            new GitHubCalendar(".calendar", "{{ github_username }}");
-            var calendar = document.getElementsByClassName("calendar");
-            calendar[0].style.border = "none";
-        </script>
-        <br>
-
-        
+          <!-- Loading stuff -->
+          If this takes too long, the github url is invalid.
       </div>
+
+      <script>
+          new GitHubCalendar(".calendar", "{{ github_username }}");
+          var calendar = document.getElementsByClassName("calendar");
+          calendar[0].style.border = "none";
+      </script>
+      <br>
     </div>
+    </div>
+   
     
     <div class="w3-col m9" style="margin-left: 12%;">
       <br>  
@@ -49,71 +46,141 @@
           <div class="w3-container w3-padding">
             <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
           </div>
-        </div>
-
-        <!-- This is the beginning of a post -->
-        <!-- Shway Wang added the for loop here -->
-        {% for post in posts %}
-        <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-          <h1>{{ post.title }}</h1><br>
-          <h5>By: {{ post.author_display_name}}</h5><br>
-          <hr class="w3-clear">
-          
-          {% if post.contentType == "text/plain" %}
-            <p>{{ post.content }}</p>
-          {% endif %}
-
-          {% if post.contentType == "text/markdown" %}
-            <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
-          {% endif %}
-
-          <!-- Below are images -->
-          <div class="w3-row-padding" style="margin:0 -16px">
-            <div class="w3-half">
-              {% if post.image != '' and post.image != None %}
-                <img src="{{ post.image }}">
-              {% endif %}
-            </div>
-
           </div>
+        
+
+     
+      <div id="posts">
+        {% for i in first_page %}
+        <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+          <h1>{{ i.title }}</h1><br>
+          <h5>By: {{ i.author_display_name}}</h5><br>
           <hr class="w3-clear">
-
-          <!-- Below are the like, comment and repost buttons -->
-          <form action="{% url 'like_post_mypost' %}" method="POST">
-            {% csrf_token %}
-            <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{post.id}}>
-            <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-            </button>
-          </form>
-
-          <form action="{% url 'update_post' %}" method="POST">
-            {% csrf_token %}
-            <button class="button", 
-              style = "float:left;",
-              type="submit", name="pk", value={{post.id}}>
-              <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
-            </button>
-          </form>
-          
-          <form action="{% url 'delete' %}" method="POST">
-            {% csrf_token %}
-            <button class="button", type="submit", name="pk",  value={{post.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
-          </form>
-
-          <p>{{post.like_count}} liked this post.</p>
-          {% for comment in post.comments %}  
-            {{ comment.comment_author_name }}:
-            {{ comment.comment }}
-            <br>
-          {% endfor %}
-          <br/>
+        {% if i.contentType == "text/plain" %}
+          <p>{{ i.content }}</p>
+        {% endif %}
+        <div class="w3-row-padding" style="margin:0 -16px">
+          <div class="w3-half">
+            {% if i.image != '' and i.image != None %}
+              <img src="{{i.image}}">
+            {% endif %}
+          </div>
         </div>
+        <hr class="w3-clear">
 
+        <!-- Below are the like, comment and repost buttons -->
+        <form action="{% url 'like_post_mypost' %}" method="POST">
+          {% csrf_token %}
+
+          <button class="button", 
+          style = "float:left;",type="submit", name="pk", value={{i.id}}>
+          <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+          </button>
+        </form>
+        <form action="{% url 'update_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value={{i.id}}>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'delete' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", type="submit", name="pk",  value={{i.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+        </form>
+        <br>
+        <p>{{i.like_count}} liked this post.</p>
+        {% for comment in i.comments %}  
+          {{ comment.comment_author_name }}:
+          {{ comment.comment }}
+          <br>
         {% endfor %}
-        <script>showInMarkdown();</script>
-        <!-- This is the end of a post -->
-      </div>
+        <br>
+      
+        {% endfor %}
+    </div>
+      <!-- Pagination-->
+      <br><br>
+      {% for i in page_range %}
+<a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+{% endfor %}
+      <script>showInMarkdown();</script>
+      <!-- This is the end of a post -->
+
+      <script>
+        function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrf = getCookie('csrftoken');
+        $("a#page").click(function(event){
+          event.preventDefault();
+          var page_n = $(this).attr('href');
+          
+          // ajax
+              $.ajax({
+                  type: "POST",
+                      url:"{% url 'public' %}", // name of url
+                      data : {    
+                      page_n : page_n, //page_number
+                      csrfmiddlewaretoken: '{{ csrf_token }}',
+                  },
+                  success: function (resp) {
+                      //loop
+                    $('#posts').html('')
+                     $.each(resp.results, function(i, val) { 
+                       //apending posts
+                       console.log(val);
+                      $('#posts').append(`<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+        <h1>${val.title}</h1>
+
+        <h5>By:${val.author_display_name}</h5><br>
+
+       <p>${val.content }</p>
+       <form action="{% url 'like_post_mypost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left", 
+            type = "submit",
+            name = "pk", 
+            value=${val.source}> 
+            <i class="fa fa-heart-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'update_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value={{val.id}}>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'delete' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", type="submit", name="pk",  value={{val.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+        </form>
+        <br>
+        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}`)
+                     });
+                  },
+                  error: function () {}
+              }); // 
+      
+      });    
+      </script>   
+    <!-- End Middle Column -->
     </div>
     <!-- Added here by Shway-->
 
@@ -121,6 +188,8 @@
     <!-- End Grid -->
 <!-- End Page Container -->
 </div>
+</div>
+
 <br>
 
 

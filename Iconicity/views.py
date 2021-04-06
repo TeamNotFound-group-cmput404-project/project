@@ -2,6 +2,8 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -31,6 +33,8 @@ import base64
 import uuid
 #https://thecodinginterface.com/blog/django-auth-part1/
 
+def ajax(request):
+    return render(request,"Iconicity/hello.html")
 
 def logout_view(request):
     # in use, support log out
@@ -115,11 +119,11 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    
 
     externalPosts = getAllExternalPublicPosts()
-
-
+     
+    
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -181,13 +185,32 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+   
+
+    print("new_list",new_list)
+    number = 5
+    pagen = Paginator(new_list,5)
+    print(pagen)        
+    # new_list.reverse()
+    first_page = pagen.page(1).object_list
+
+    print("1",first_page)
+    page_range = pagen.page_range
+    print("page_range",page_range)
+    # print("object",Post.objects.all())
     curProfile = getUserProfile(request.user)
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -804,13 +827,26 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
+
     github_username = getUserProfile(request.user).github.split("/")[-1]
+
     context = {
-        'posts': new_list,
+        # 'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
         'github_username': github_username,
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/my_post.html', context)
 
 # modified by Shway:
@@ -1003,12 +1039,23 @@ def following(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+    # new_list.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
@@ -1156,13 +1203,23 @@ def friends(request):
                 abs_imgpath = imghost + '.com' + post['image']
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
-    postList.reverse()
+    # postList.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': postList,
+        # 'posts': postList,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': userProfile,
         'myself': str(userProfile.url)
     }
-
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):
