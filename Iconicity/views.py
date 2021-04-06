@@ -179,10 +179,6 @@ def mainPagePublic(request):
     page_range = pagen.page_range
     print("page_range",page_range)
     # print("object",Post.objects.all())
-    
-    
-
-
     curProfile = getUserProfile(request.user)
     context = {
         'pagen':pagen,
@@ -812,11 +808,21 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': new_list,
+        # 'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/my_post.html', context)
 
 # modified by Shway:
@@ -1009,12 +1015,23 @@ def following(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+    # new_list.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
@@ -1162,13 +1179,23 @@ def friends(request):
                 abs_imgpath = imghost + '.com' + post['image']
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
-    postList.reverse()
+    # postList.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': postList,
+        # 'posts': postList,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': userProfile,
         'myself': str(userProfile.url)
     }
-
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):

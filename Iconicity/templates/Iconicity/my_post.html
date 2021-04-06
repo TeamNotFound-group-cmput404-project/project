@@ -18,12 +18,9 @@
     <!-- Middle Column -->
     <!-- By: Zhiqi Zhou-->
     <div class="w3-col m7" style = "margin-bottom: 80px;">
-
       <div class="w3-row-padding">
         <div class="w3-col m12">
-
             <div class="w3-card w3-round w3-white">
-
               <!-- What's Good-->
               <div class="w3-container w3-padding">
                 <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
@@ -94,26 +91,144 @@
         <br/>
       </div>
       {% endfor %}
+     
+      <div id="posts">
+        {% for i in first_page %}
+        <div class="w3-container w3-card w3-white w3-round w3-margin">
+        <h1>{{ i.title }}</h1>
 
+        <h5>By: {{ i.author_display_name}}</h5><br>
+
+        <hr class="w3-clear">
+
+        {% if i.contentType == "text/plain" %}
+          <p>{{ i.content }}</p>
+        {% endif %}
+        <div class="w3-row-padding" style="margin:0 -16px">
+          <div class="w3-half">
+            {% if i.image != '' and i.image != None %}
+              <img src="{{i.image}}">
+            {% endif %}
+          </div>
+        </div>
+        <hr class="w3-clear">
+
+        <!-- Below are the like, comment and repost buttons -->
+        <form action="{% url 'like_post_mypost' %}" method="POST">
+          {% csrf_token %}
+
+          <button class="button", 
+          style = "float:left;",type="submit", name="pk", value={{i.id}}>
+          <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+          </button>
+      
+          
+        </form>
+        <form action="{% url 'update_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value={{i.id}}>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'delete' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", type="submit", name="pk",  value={{i.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+        </form>
+
+        <br>
+        <p>{{i.like_count}} liked this post.</p>
+        {% for comment in i.comments %}  
+          {{ comment.comment_author_name }}:
+          {{ comment.comment }}
+          <br>
+        {% endfor %}
+        <br>
+      </div>
+        {% endfor %}
+    </div>
+      <!-- Pagination-->
+      <br><br>
+      {% for i in page_range %}
+<a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+
+{% endfor %}
       <script>showInMarkdown();</script>
       <!-- This is the end of a post -->
 
-      <!-- Pagination-->
-      <!-- <br><br>
-      <div class="center">
-        <div class="pagination">
-        <a href="#">&laquo;</a>
-        <a href="#" class="active">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">4</a>
-        <a href="#">5</a>
-        <a href="#">6</a>
-        <a href="#">&raquo;</a>
-        </div>
-      </div> -->
-      <!-- End of Pagination-->
+      <script>
+        function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrf = getCookie('csrftoken');
+        $("a#page").click(function(event){
+          event.preventDefault();
+          var page_n = $(this).attr('href');
+          
+          // ajax
+              $.ajax({
+                  type: "POST",
+                      url:"{% url 'public' %}", // name of url
+                      data : {    
+                      page_n : page_n, //page_number
+                      csrfmiddlewaretoken: '{{ csrf_token }}',
+                  },
+                  success: function (resp) {
+                      //loop
+                    $('#posts').html('')
+                     $.each(resp.results, function(i, val) { 
+                       //apending posts
+                       console.log(val);
+                      $('#posts').append(`<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+        <h1>${val.title}</h1>
 
+        <h5>By:${val.author_display_name}</h5><br>
+
+       <p>${val.content }</p>
+       <form action="{% url 'like_post_mypost' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left", 
+            type = "submit",
+            name = "pk", 
+            value=${val.source}> 
+            <i class="fa fa-heart-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'update_post' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", 
+            style = "float:left;",
+            type="submit", name="pk", value={{val.id}}>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+          </button>
+        </form>
+        <form action="{% url 'delete' %}" method="POST">
+          {% csrf_token %}
+          <button class="button", type="submit", name="pk",  value={{val.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+        </form>
+        <br>
+        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}`)
+                     });
+                  },
+                  error: function () {}
+              }); // 
+      
+      });    
+      </script>   
     <!-- End Middle Column -->
     </div>
 
