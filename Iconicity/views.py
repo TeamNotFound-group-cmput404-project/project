@@ -805,9 +805,11 @@ def mypost(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
     new_list.reverse()
+    github_username = getUserProfile(request.user).github.split("/")[-1]
     context = {
         'posts': new_list,
         'UserProfile': getUserProfile(request.user),
+        'github_username': github_username,
     }
     return render(request, 'Iconicity/my_post.html', context)
 

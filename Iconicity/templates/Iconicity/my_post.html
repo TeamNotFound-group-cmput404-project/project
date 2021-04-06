@@ -3,125 +3,122 @@
 {% block content %}
 <!-- Page Container -->
 <!-- By: Zhiqi Zhou-->
-<div class="w3-container w3-content" style="max-width:1400px;margin-top:80px">
+<div class="w3-container w3-content" style="max-width:2000px; margin-top:80px">
   <!-- The Grid -->
-  <div class="w3-row">
-    <!-- Left Column -->
-    <div class="w3-col m3">
-      <!-- Profile -->
-
-    <br>
-
-    <!-- End Left Column -->
-    </div>
-
     <!-- Middle Column -->
     <!-- By: Zhiqi Zhou-->
-    <div class="w3-col m7" style = "margin-bottom: 80px;">
+    <div class="w3-col m15 center">
+      <div class="w3-card w3-round w3-white">
+        <br>
+        <svg viewBox="64 64 896 896" focusable="false" data-icon="github" width="1.5em" height="1.5em" fill="currentColor" aria-hidden="true"><path d="M511.6 76.3C264.3 76.2 64 276.4 64 523.5 64 718.9 189.3 885 363.8 946c23.5 5.9 19.9-10.8 19.9-22.2v-77.5c-135.7 15.9-141.2-73.9-150.3-88.9C215 726 171.5 718 184.5 703c30.9-15.9 62.4 4 98.9 57.9 26.4 39.1 77.9 32.5 104 26 5.7-23.5 17.9-44.5 34.7-60.8-140.6-25.2-199.2-111-199.2-213 0-49.5 16.3-95 48.3-131.7-20.4-60.5 1.9-112.3 4.9-120 58.1-5.2 118.5 41.6 123.2 45.3 33-8.9 70.7-13.6 112.9-13.6 42.4 0 80.2 4.9 113.5 13.9 11.3-8.6 67.3-48.8 121.3-43.9 2.9 7.7 24.7 58.3 5.5 118 32.4 36.8 48.9 82.7 48.9 132.3 0 102.2-59 188.1-200 212.9a127.5 127.5 0 0138.1 91v112.5c.8 9 0 17.9 15 17.9 177.1-59.7 304.6-227 304.6-424.1 0-247.2-200.4-447.3-447.5-447.3z"></path></svg>
+        <br>
+        <b style="font-size: 20px;">My Github Activity</b>
+        <p>{{ github_username }}</p>
+        <script
+          src="https://cdn.rawgit.com/IonicaBizau/github-calendar/gh-pages/dist/github-calendar.min.js"
+        >
+        </script>
 
-      <div class="w3-row-padding">
-        <div class="w3-col m12">
+        <!-- Optionally, include the theme (if you don't want to struggle to write the CSS) -->
+        <link
+          rel="stylesheet"
+          href="https://cdn.rawgit.com/IonicaBizau/github-calendar/gh-pages/dist/github-calendar.css"
+        />
+        
+        <!-- Prepare a container for your calendar. -->
+        <div class="calendar">
+            <!-- Loading stuff -->
+            If this takes too long, the github url is invalid.
+        </div>
 
-            <div class="w3-card w3-round w3-white">
+        <script>
+            new GitHubCalendar(".calendar", "{{ github_username }}");
+            var calendar = document.getElementsByClassName("calendar");
+            calendar[0].style.border = "none";
+        </script>
+        <br>
 
-              <!-- What's Good-->
-              <div class="w3-container w3-padding">
-                <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
-              </div>
+        
+      </div>
+    </div>
+    
+    <div class="w3-col m9" style="margin-left: 12%;">
+      <br>  
+      <div class="w3-row-padding;">
+        <div class="w3-card w3-round w3-white">
+          <div class="w3-container w3-padding">
+            <a href="{% url 'post_form' %}" class="fa fa-pencil w3-button w3-theme" > Create a Post</a>
+          </div>
+        </div>
 
+        <!-- This is the beginning of a post -->
+        <!-- Shway Wang added the for loop here -->
+        {% for post in posts %}
+        <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+          <h1>{{ post.title }}</h1><br>
+          <h5>By: {{ post.author_display_name}}</h5><br>
+          <hr class="w3-clear">
+          
+          {% if post.contentType == "text/plain" %}
+            <p>{{ post.content }}</p>
+          {% endif %}
+
+          {% if post.contentType == "text/markdown" %}
+            <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+          {% endif %}
+
+          <!-- Below are images -->
+          <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-half">
+              {% if post.image != '' and post.image != None %}
+                <img src="{{ post.image }}">
+              {% endif %}
             </div>
 
-        </div>
-      </div>
-
-      <!-- This is the beginning of a post -->
-      <!-- Shway Wang added the for loop here -->
-      {% for post in posts %}
-      <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>{{ post.title }}</h1><br>
-        <h5>By: {{ post.author_display_name}}</h5><br>
-        <hr class="w3-clear">
-        
-        {% if post.contentType == "text/plain" %}
-          <p>{{ post.content }}</p>
-        {% endif %}
-
-        {% if post.contentType == "text/markdown" %}
-          <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
-        {% endif %}
-
-        <!-- Below are images -->
-        <div class="w3-row-padding" style="margin:0 -16px">
-          <div class="w3-half">
-            {% if post.image != '' and post.image != None %}
-              <img src="{{ post.image }}">
-            {% endif %}
           </div>
+          <hr class="w3-clear">
 
-        </div>
-        <hr class="w3-clear">
+          <!-- Below are the like, comment and repost buttons -->
+          <form action="{% url 'like_post_mypost' %}" method="POST">
+            {% csrf_token %}
+            <button class="button", 
+            style = "float:left;",type="submit", name="pk", value={{post.id}}>
+            <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+            </button>
+          </form>
 
-        <!-- Below are the like, comment and repost buttons -->
-        <form action="{% url 'like_post_mypost' %}" method="POST">
-          {% csrf_token %}
-
-          <button class="button", 
-          style = "float:left;",type="submit", name="pk", value={{post.id}}>
-          <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-          </button>
-      
+          <form action="{% url 'update_post' %}" method="POST">
+            {% csrf_token %}
+            <button class="button", 
+              style = "float:left;",
+              type="submit", name="pk", value={{post.id}}>
+              <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+            </button>
+          </form>
           
-        </form>
-        <form action="{% url 'update_post' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-            style = "float:left;",
-            type="submit", name="pk", value={{post.id}}>
-            <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
-          </button>
-        </form>
-        <form action="{% url 'delete' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", type="submit", name="pk",  value={{post.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
-        </form>
+          <form action="{% url 'delete' %}" method="POST">
+            {% csrf_token %}
+            <button class="button", type="submit", name="pk",  value={{post.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+          </form>
 
-        <p>{{post.like_count}} liked this post.</p>
-        {% for comment in post.comments %}  
-          {{ comment.comment_author_name }}:
-          {{ comment.comment }}
-          <br>
-        {% endfor %}
-        <br/>
-      </div>
-      {% endfor %}
-
-      <script>showInMarkdown();</script>
-      <!-- This is the end of a post -->
-
-      <!-- Pagination-->
-      <!-- <br><br>
-      <div class="center">
-        <div class="pagination">
-        <a href="#">&laquo;</a>
-        <a href="#" class="active">1</a>
-        <a href="#">2</a>
-        <a href="#">3</a>
-        <a href="#">4</a>
-        <a href="#">5</a>
-        <a href="#">6</a>
-        <a href="#">&raquo;</a>
+          <p>{{post.like_count}} liked this post.</p>
+          {% for comment in post.comments %}  
+            {{ comment.comment_author_name }}:
+            {{ comment.comment }}
+            <br>
+          {% endfor %}
+          <br/>
         </div>
-      </div> -->
-      <!-- End of Pagination-->
 
-    <!-- End Middle Column -->
+        {% endfor %}
+        <script>showInMarkdown();</script>
+        <!-- This is the end of a post -->
+      </div>
     </div>
-
     <!-- Added here by Shway-->
 
 
-  <!-- End Grid -->
-  </div>
+    <!-- End Grid -->
 <!-- End Page Container -->
 </div>
 <br>
