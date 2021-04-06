@@ -8,8 +8,9 @@ from django.conf.urls.static import static
 urlpatterns = [
 	path('', views.LoginView.as_view(), name = 'login'),
 	path('logout', views.logout_view, name = 'logout'),
-	path('signup',views.signup,name = 'signup'),
-    path('ajax', views.ajax,name = "ajax"),
+
+	path('',views.signup,name = 'signup'),
+
 	# need to fix this part later
 	path('friends/like', views.like_view, name="like_post_friend"),
 	path('mypost/like', views.like_view, name="like_post_mypost"),

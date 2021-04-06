@@ -46,33 +46,52 @@ def logout_view(request):
 
 class LoginView(View):
     def get(self, request):
+        print("get", request)
         if not request.user.is_anonymous:
             return redirect(reverse('public'))
 
-        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+        return render(request, 'Iconicity/start.html', { 'login_form':  AuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
     def post(self,request):
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
+        print("post", request)
+        login_form = AuthenticationForm(request, data=request.POST)
+        signup_form = SignUpForm(request.POST)
+        if login_form.is_valid():
+            print("login")
             try:
-                form.clean()
+                login_form.clean()
             except ValidationError:
                 return render(
                     request,
-                    'Iconicity/login.html',
-                    { 'form': form, 'invalid_creds': True }
+                    'Iconicity/start.html',
+                    { 'login_form': login_form, 'invalid_creds': True, 'signup_form':signup_form  }
                 )
 
-            login(request, form.get_user())
+            login(request, login_form.get_user())
 
             return redirect(reverse('public'))
+        
+        elif signup_form.is_valid():
+            print("sign up")
+            signup_form.save()
+            username = signup_form.cleaned_data.get('username')
+            raw_password = signup_form.cleaned_data.get('password1')
+            User = authenticate(username=username, password=raw_password)
+            Github = signup_form.cleaned_data.get('github')
+            host = request.get_host()
+            scheme = request.scheme
+            createUserProfileAndInbox(scheme, username, User, Github, host)
 
-        return render(request, 'Iconicity/login.html', { 'form': form })
+            login(request, User)
+            return redirect('public')
+
+        return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
 
 def signup(request):
+    print("signup", request)
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -89,7 +108,7 @@ def signup(request):
             return redirect('public')
     else:
         form = SignUpForm()
-    return render(request, 'Iconicity/signup.html', {'form': form})
+    return render(request, 'Iconicity/start.html', {'signup_form': form})
 
 
 @login_required
@@ -808,16 +827,21 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+
     number = 5
     pagen = Paginator(new_list,5)
     first_page = pagen.page(1).object_list
     page_range = pagen.page_range
+
+    github_username = getUserProfile(request.user).github.split("/")[-1]
+
     context = {
         # 'posts': new_list,
         'pagen':pagen,
         'first_page':first_page,
         'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
+        'github_username': github_username,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
