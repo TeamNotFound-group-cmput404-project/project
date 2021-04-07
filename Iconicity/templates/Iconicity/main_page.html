@@ -47,7 +47,6 @@
       <!-- This is the beginning of a post -->
       <!-- Shway Wang added the for loop here -->
       
-      <!-- <script>showInMarkdown();</script> -->
       <!-- This is the end of a post -->
       <div id="posts">
         {% for i in first_page %}
@@ -61,6 +60,11 @@
         {% if i.contentType == "text/plain" %}
           <p>{{ i.content }}</p>
         {% endif %}
+
+        {% if post.contentType == "text/markdown" %}
+          <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+        {% endif %}
+
         <div class="w3-row-padding" style="margin:0 -16px">
           <div class="w3-half">
             {% if i.image != '' and i.image != None %}
@@ -119,12 +123,13 @@
       </div>
         {% endfor %}
     </div>
+    <script>showInMarkdown();</script>
       <!-- Pagination-->
       <br><br>
-      {% for i in page_range %}
-<a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
 
-{% endfor %}
+      {% for i in page_range %}
+      <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+      {% endfor %}
       <!-- End of Pagination-->
       <script>
         function getCookie(name) {
