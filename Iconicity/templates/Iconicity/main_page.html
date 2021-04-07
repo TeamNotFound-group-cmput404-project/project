@@ -51,18 +51,19 @@
       <div id="posts">
         {% for i in first_page %}
         <div class="w3-container w3-card w3-white w3-round w3-margin">
+        <br>
         <h1>{{ i.title }}</h1>
 
-        <h5>By: {{ i.author_display_name}}</h5><br>
-
+        <h5>By: {{ i.author_display_name}}</h5>
+        <br>
         <hr class="w3-clear">
 
         {% if i.contentType == "text/plain" %}
           <p>{{ i.content }}</p>
         {% endif %}
 
-        {% if post.contentType == "text/markdown" %}
-          <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+        {% if i.contentType == "text/markdown" %}
+          <p class="toMarkdown" id="{{ i.post_id }}">{{ i.content }}</p>
         {% endif %}
 
         <div class="w3-row-padding" style="margin:0 -16px">
@@ -153,63 +154,90 @@ const csrf = getCookie('csrftoken');
           var page_n = $(this).attr('href');
           
           // ajax
-              $.ajax({
-                  type: "POST",
-                      url:"{% url 'public' %}", // name of url
-                      data : {    
-                      page_n : page_n, //page_number
-                      csrfmiddlewaretoken: '{{ csrf_token }}',
-                  },
-                  success: function (resp) {
-                      //loop
-                    $('#posts').html('')
-                     $.each(resp.results, function(i, val) { 
-                       //apending posts
-                       console.log(val);
-                      $('#posts').append(`<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-        <h1>${val.title}</h1>
+          $.ajax({
+            type: "POST",
+                url:"{% url 'public' %}", // name of url
+                data : {    
+                page_n : page_n, //page_number
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            success: function (resp) {
+              //loop
+              $('#posts').html('')
+              $.each(resp.results, function(i, val) { 
+                //apending posts
+                console.log(val);
+                
+                var markdown_trans = `<p>${val.content}</p>`;
 
-        <h5>By:${val.author_display_name}</h5><br>
+                if (val.contentType == "text/markdown"){
+                  markdown_trans = `<p class="toMarkdown" id=${val.post_id}>${val.content}</p>`;
+                }                 
 
-       <p>${val.content }</p>
-       <form action="{% url 'like_post_public' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-            style = "float:left", 
-            type = "submit",
-            name = "pk", 
-            value=${val.source}> 
-            <i class="fa fa-heart-o" style="font-size:20px;"></i>
-          </button>
-        </form>
-        <form action="{% url 'comment_form' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-              type="submit", 
-              style="float:left;",
-              name="ppid", 
-              value=${val.source}>
-              <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-        </form>
-        <form action="{% url 'repost' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-            style = "float:left;",
-            type="submit", name="pk", value=${val.source}>
-            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
-          </button>
-        </form>
-        <form action="{% url 'repost_to_friend' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-        </form><br>
-        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}`)
-                     });
-                  },
-                  error: function () {}
-              }); // 
+
+                $('#posts').append(`
+
+                  <div class="w3-container w3-card w3-white w3-round w3-margin">
+                  <br>
+                  <h1>${val.title}</h1>
+
+                  <h5>By:${val.author_display_name}</h5><br>
+                  <hr class="w3-clear">
+
+                  <p>${ markdown_trans }</p>
+
+                  <hr class="w3-clear">
+
+                  <form action="{% url 'like_post_public' %}" method="POST">
+                      {% csrf_token %}
+                      <button class="button", 
+                        style = "float:left", 
+                        type = "submit",
+                        name = "pk", 
+                        value=${val.source}> 
+                        <i class="fa fa-heart-o" style="font-size:20px;"></i>
+                      </button>
+                  </form>
+
+                  <form action="{% url 'comment_form' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", 
+                        type="submit", 
+                        style="float:left;",
+                        name="ppid", 
+                        value=${val.source}>
+                        <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+                  </form>
+
+                  <form action="{% url 'repost' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", 
+                      style = "float:left;",
+                      type="submit", name="pk", value=${val.source}>
+                      <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
+                    </button>
+                  </form>
+
+                  <form action="{% url 'repost_to_friend' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+                  </form><br>
+                  <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}
+                  
+                `)
+                showInMarkdown();
+              });
+              
       
-      });    
+            },
+              
+            error: function () {}
+
+          }); // 
+
+
+      
+        });    
       </script>   
     <!-- End Middle Column -->
     </div>
