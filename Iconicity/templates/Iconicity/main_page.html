@@ -188,10 +188,10 @@ const csrf = getCookie('csrftoken');
               $.each(resp.results, function(i, val) { 
                 //apending posts
                 // console.log(val);
-                var markdown_trans = `<p>${val.content}</p>`;
+                var post_content = `<p>${val.content}</p>`;
 
                 if (val.contentType == "text/markdown"){
-                  markdown_trans = `<p class="toMarkdown" id=${val.post_id}>${val.content}</p>`;
+                  post_content = `<p class="toMarkdown" id=${val.post_id}>${val.content}</p>`;
                 }                 
 
                 var image = ``;
@@ -213,10 +213,10 @@ const csrf = getCookie('csrftoken');
                   <br>
                   <h1>${val.title}</h1>
 
-                  <h5>By:${val.author_display_name}</h5><br>
+                  <h5>By: ${val.author_display_name}</h5><br>
                   <hr class="w3-clear">
 
-                  <p>${ markdown_trans }</p>
+                  <p>${ post_content }</p>
 
                   ${image}
 
@@ -268,9 +268,10 @@ const csrf = getCookie('csrftoken');
               
             error: function () {}
 
-          }); // 
+          });
 
-
+          // Scroll to the top of the page 
+          window.scrollTo(0, 0);
       
         });    
       </script>   
