@@ -125,12 +125,23 @@
         {% endfor %}
     </div>
     <script>showInMarkdown();</script>
-      <!-- Pagination-->
-      <br><br>
+    
+    <!-- Pagination-->
+    <br>
 
-      {% for i in page_range %}
-      <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
-      {% endfor %}
+    <div class="center">
+      <div class="pagination">
+        {% for i in page_range %}
+          <!-- Initialize coloring on pagination -->
+          {% if i == 1 %}
+          <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+          {% else %}
+          <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+      
       <!-- End of Pagination-->
       <script>
         function getCookie(name) {
@@ -152,6 +163,16 @@ const csrf = getCookie('csrftoken');
         $("a#page").click(function(event){
           event.preventDefault();
           var page_n = $(this).attr('href');
+
+          // Remove highlight on the other pages
+          var all_pages = document.querySelectorAll('[id=page]');
+          for (let i of all_pages){
+              i.className = null;
+          }
+
+          // Hightlight the active page
+          var current_page = $(`a[href=${page_n}]`)[0];
+          current_page.className = "active"
           
           // ajax
           $.ajax({
@@ -166,8 +187,7 @@ const csrf = getCookie('csrftoken');
               $('#posts').html('')
               $.each(resp.results, function(i, val) { 
                 //apending posts
-                console.log(val);
-                
+                // console.log(val);
                 var markdown_trans = `<p>${val.content}</p>`;
 
                 if (val.contentType == "text/markdown"){
