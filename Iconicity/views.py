@@ -2,6 +2,8 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -31,6 +33,8 @@ import base64
 import uuid
 #https://thecodinginterface.com/blog/django-auth-part1/
 
+def ajax(request):
+    return render(request,"Iconicity/hello.html")
 
 def logout_view(request):
     # in use, support log out
@@ -42,33 +46,52 @@ def logout_view(request):
 
 class LoginView(View):
     def get(self, request):
+        print("get", request)
         if not request.user.is_anonymous:
             return redirect(reverse('public'))
 
-        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+        return render(request, 'Iconicity/start.html', { 'login_form':  AuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
     def post(self,request):
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
+        print("post", request)
+        login_form = AuthenticationForm(request, data=request.POST)
+        signup_form = SignUpForm(request.POST)
+        if login_form.is_valid():
+            print("login")
             try:
-                form.clean()
+                login_form.clean()
             except ValidationError:
                 return render(
                     request,
-                    'Iconicity/login.html',
-                    { 'form': form, 'invalid_creds': True }
+                    'Iconicity/start.html',
+                    { 'login_form': login_form, 'invalid_creds': True, 'signup_form':signup_form  }
                 )
 
-            login(request, form.get_user())
+            login(request, login_form.get_user())
 
             return redirect(reverse('public'))
+        
+        elif signup_form.is_valid():
+            print("sign up")
+            signup_form.save()
+            username = signup_form.cleaned_data.get('username')
+            raw_password = signup_form.cleaned_data.get('password1')
+            User = authenticate(username=username, password=raw_password)
+            Github = signup_form.cleaned_data.get('github')
+            host = request.get_host()
+            scheme = request.scheme
+            createUserProfileAndInbox(scheme, username, User, Github, host)
 
-        return render(request, 'Iconicity/login.html', { 'form': form })
+            login(request, User)
+            return redirect('public')
+
+        return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
 
 def signup(request):
+    print("signup", request)
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -85,7 +108,7 @@ def signup(request):
             return redirect('public')
     else:
         form = SignUpForm()
-    return render(request, 'Iconicity/signup.html', {'form': form})
+    return render(request, 'Iconicity/start.html', {'signup_form': form})
 
 
 @login_required
@@ -96,11 +119,11 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    
 
     externalPosts = getAllExternalPublicPosts()
-
-
+     
+    
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -139,7 +162,20 @@ def mainPagePublic(request):
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
             print("inside")
             post['author_display_name'] = post['author']['displayName']
+        
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
 
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
 
     new_list += externalPosts
     for post in new_list:
@@ -149,13 +185,32 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+   
+
+    print("new_list",new_list)
+    number = 5
+    pagen = Paginator(new_list,5)
+    print(pagen)        
+    # new_list.reverse()
+    first_page = pagen.page(1).object_list
+
+    print("1",first_page)
+    page_range = pagen.page_range
+    print("page_range",page_range)
+    # print("object",Post.objects.all())
     curProfile = getUserProfile(request.user)
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -272,9 +327,6 @@ class AddPostView(CreateView):
             form.source = form.origin
             form.id = form.source
             form.save()
-            print(form.image)
-            print('------------------')
-            print(form.id)
             return redirect('public')
 
         else:
@@ -567,7 +619,7 @@ def like_view(request):
     like_obj.object = pk_raw
     the_user_name = auth_user
     the_user_pass = auth_pass
-    print
+    
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
@@ -781,11 +833,26 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
+
+    github_username = getUserProfile(request.user).github.split("/")[-1]
+
     context = {
-        'posts': new_list,
+        # 'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
+        'github_username': github_username,
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/my_post.html', context)
 
 # modified by Shway:
@@ -822,8 +889,12 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     print(temp)
                     responseJsonlist = temp.json()
-                    post_list += responseJsonlist
-
+                    print(responseJsonlist)
+                    if team10_host_url in full_url:
+                        post_list += responseJsonlist['posts']
+                    else:
+                        post_list += responseJsonlist
+    print(post_list)
     return post_list
 
 
@@ -913,6 +984,60 @@ def following(request):
     new_list = []
     new_list += PostSerializer(postList, many=True).data
     new_list += getAllFollowExternalAuthorPosts(request.user)
+    print(getAllFollowExternalAuthorPosts(request.user))
+    for post in new_list:
+        # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+        if post["contentType"] == "text/plain":
+            # means the content part is all plain text, not image
+            try:
+                image_field = post['image']
+
+            except Exception:
+                # means this post has no image field, set image field to None.
+                post['image'] = ""
+
+            else:
+                pass
+
+        elif post["contentType"] =="image/png;base64":
+            # means it's a image in the content
+            # means this post has no image field, probably this is from external server.
+            # in this case, we will save the image to local and use the absolute
+            # path to set a new image field.
+            
+            post_id = [i for i in post['id'].split('/') if i][-1]
+            file_name = post_id+".png"
+            folder_path = "/media/images/"
+            path = folder_path+file_name
+            # first, check this image exists.
+            
+            if os.path.exists("Iconicity"+path):
+                post['image'] = path
+            else:
+                print("create new file")
+                # then write the dump file to an image file.
+                with open("Iconicity"+path, "wb") as fh:
+                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                post['image'] = path
+        if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
+            print("inside")
+            post['author_display_name'] = post['author']['displayName']
+                
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
+
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
+
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -920,12 +1045,23 @@ def following(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+    # new_list.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
@@ -957,21 +1093,29 @@ def getExternalUserFriends(currentUser):
         if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
             full_url = user['url']
             if user['url'][-1] == "/":
-                full_url += "followers/"
+                full_url += "followers"
             else:
-                full_url += "/followers/"
+                full_url += "/followers"
             # now check whether you are also his/hers followee.
             the_user_name = auth_user
             the_user_pass = auth_pass
             if team10_host_url in full_url:
                 the_user_name = team10_name
                 the_user_pass = team10_pass
-            raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-            friends = raw.json()
-            for userInfo in friends['items']:
-                if userProfile.url == userInfo['url']:
-                    friendUrlList.append(user['url'])
-                    break
+            print('url: ', full_url)
+            print('user name: ', the_user_name)
+            try:
+                raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
+                print('raw: ', raw)
+                friends = raw.json()
+            except Exception as e:
+                print("error in other servers' API")
+            else:
+                for userInfo in friends['items']:
+                    if userProfile.url == userInfo['url']:
+                        friendUrlList.append(user['url'])
+                        break
     print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
@@ -1005,19 +1149,82 @@ def friends(request):
             postList += posts
     postList += new_list  
     for post in new_list:
+        # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+        if post["contentType"] == "text/plain":
+            # means the content part is all plain text, not image
+            try:
+                image_field = post['image']
+
+            except Exception:
+                # means this post has no image field, set image field to None.
+                post['image'] = ""
+
+            else:
+                pass
+
+        elif post["contentType"] =="image/png;base64":
+            # means it's a image in the content
+            # means this post has no image field, probably this is from external server.
+            # in this case, we will save the image to local and use the absolute
+            # path to set a new image field.
+            
+            post_id = [i for i in post['id'].split('/') if i][-1]
+            file_name = post_id+".png"
+            folder_path = "/media/images/"
+            path = folder_path+file_name
+            # first, check this image exists.
+            
+            if os.path.exists("Iconicity"+path):
+                post['image'] = path
+            else:
+                print("create new file")
+                # then write the dump file to an image file.
+                with open("Iconicity"+path, "wb") as fh:
+                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                post['image'] = path
+        if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
+            print("inside")
+            post['author_display_name'] = post['author']['displayName']
+                
+        if post["comments"] is not None:
+            for comment in post["comments"]:
+                if "comment_author_name" not in comment:
+                    comment["comment_author_name"] = comment["author"]["displayName"]
+
+        if team10_host_url in post["id"]:
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes"
+            else:
+                like_url = post["id"] + "/likes"
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
+
+    for post in new_list:
         if post['image'] is not None:
             if "socialdistributionproject" not in post['author']['host']:
                 imghost = post['origin'].split('.com')[0]
                 abs_imgpath = imghost + '.com' + post['image']
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
-    postList.reverse()
+    # postList.reverse()
+    number = 5
+    pagen = Paginator(new_list,5)
+    first_page = pagen.page(1).object_list
+    page_range = pagen.page_range
     context = {
-        'posts': postList,
+        # 'posts': postList,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': userProfile,
         'myself': str(userProfile.url)
     }
-
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):
@@ -1091,6 +1298,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
+        print(request.data['obj'])
+        print(type(request.data['obj']))
         data_json = json.loads(request.data['obj'])
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
