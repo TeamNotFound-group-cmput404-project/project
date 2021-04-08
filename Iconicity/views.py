@@ -451,12 +451,18 @@ def inbox_view(request):
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
     print("inbox_view cur_inbox: ", cur_inbox.items)
+    content = cur_inbox.items
+    
+    # DEBUG
+    
+
+
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
     # put information to the context
     context = {
         'is_all_empty': is_all_empty,
-        'inbox': cur_inbox.items}
+        'inbox': content}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, to remove a follow notification from the inbox
@@ -932,7 +938,6 @@ def getUserFriend(currentUser):
         # means a two-direct-follow
         if len(UserProfile.objects.filter(url=user['url'])) != 0:
             otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
-            # DEBUG
             friends = otherUserProfile.get_followers()
             for userInfo in friends:
                 if userProfile.url == userInfo['url']:
@@ -1151,6 +1156,7 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "follow":
+                print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
