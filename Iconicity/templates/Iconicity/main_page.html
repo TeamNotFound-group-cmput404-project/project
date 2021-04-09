@@ -133,7 +133,7 @@
       <div class="pagination">
         {% for i in page_range %}
           <!-- Initialize coloring on pagination -->
-          {% if i == 1 %}
+          {% if i == curr_page %}
           <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
           {% else %}
           <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
