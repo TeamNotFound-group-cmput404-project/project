@@ -134,9 +134,9 @@
         {% for i in page_range %}
           <!-- Initialize coloring on pagination -->
           {% if i == curr_page %}
-          <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+          <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
           {% else %}
-          <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{i}}">{{i}}</a>
+          <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
           {% endif %}
         {% endfor %}
       </div>
@@ -160,10 +160,11 @@
     return cookieValue;
 }
 const csrf = getCookie('csrftoken');
+
         $("a#page").click(function(event){
           event.preventDefault();
-          var page_n = $(this).attr('href');
-
+          var page_n =$(this).attr('href');
+         
           // Remove highlight on the other pages
           var all_pages = document.querySelectorAll('[id=page]');
           for (let i of all_pages){
@@ -190,14 +191,12 @@ const csrf = getCookie('csrftoken');
                 // console.log(val);
                 var post_content = `<p>${val.content}</p>`;
 
-                if (val.contentType == "text/markdown"){
-                  post_content = `<p class="toMarkdown" id=${val.post_id}>${val.content}</p>`;
-                }                 
+                            
 
                 var image = ``;
+               
 
-                console.log(val.image);
-
+              
                 if (val.image != '' && val.image != null){
                   image = `<div class="w3-row-padding" style="margin:0 -16px">
                             <div class="w3-half">
@@ -205,8 +204,22 @@ const csrf = getCookie('csrftoken');
                             </div>
                           </div>`
                 }
+                if( val.contentType=="text/plain"){
+                  post_content = `<p>${val.content}</p>`
+                }
 
-
+                if( val.contentType=="text/markdown"){
+                  post_content = `<p class="toMarkdown" id="${ val.post_id }">${val.content }</p>`
+                }
+                var button = ``;
+                if(val.id != ''&& val.id != null){
+                  button = `<button class="button", 
+            style = "float:left;",type="submit", name="pk", value=${val.id}>`
+                }else{
+                  button = `<button class="button", 
+            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                }
+        
                 $('#posts').append(`
 
                   <div class="w3-container w3-card w3-white w3-round w3-margin">
@@ -216,19 +229,15 @@ const csrf = getCookie('csrftoken');
                   <h5>By: ${val.author_display_name}</h5><br>
                   <hr class="w3-clear">
 
-                  <p>${ post_content }</p>
-
+                  ${ post_content }
+                 
                   ${image}
 
                   <hr class="w3-clear">
 
                   <form action="{% url 'like_post_public' %}" method="POST">
                       {% csrf_token %}
-                      <button class="button", 
-                        style = "float:left", 
-                        type = "submit",
-                        name = "pk", 
-                        value=${val.source}> 
+                      ${button}
                         <i class="fa fa-heart-o" style="font-size:20px;"></i>
                       </button>
                   </form>

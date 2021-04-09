@@ -207,7 +207,7 @@ def mainPagePublic(request):
     for post in new_list:
         post_id_list.append(str(post['post_id']))
     
-    print(post_id_list)
+    # print(post_id_list)
 
     # If the main page is requested after commenting of liking
     try:
@@ -680,7 +680,11 @@ def like_view(request):
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
-    print("like inbox response",response)
+    # print("like inbox response",response)
+    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+    request.session['curr_post_id'] = pk_raw
+    print(pk_raw)
+    # END FROM
     return redirect(redirect_path)
 
 
@@ -860,10 +864,30 @@ def mypost(request):
 
     number = 5
     pagen = Paginator(new_list,5)
-    first_page = pagen.page(1).object_list
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
     page_range = pagen.page_range
-
+    
     github_username = getUserProfile(request.user).github.split("/")[-1]
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
 
     context = {
         # 'posts': new_list,
@@ -872,6 +896,7 @@ def mypost(request):
         'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
         'github_username': github_username,
+        'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1354,7 +1379,7 @@ class Inboxs(APIView):
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items.append(like_json)
                     inbox_obj.save()
-                    print("here2")
+                    print("here2", post_obj)
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
