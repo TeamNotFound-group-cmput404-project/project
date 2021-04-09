@@ -31,6 +31,7 @@ from rest_framework.permissions import IsAuthenticated
 from requests.auth import HTTPBasicAuth
 import base64
 import uuid
+from math import ceil
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def ajax(request):
@@ -186,18 +187,46 @@ def mainPagePublic(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
    
+    # sort the posts from latest to oldest
+    new_list.reverse()
 
-    print("new_list",new_list)
+    # Each page shows 5 posts
     number = 5
-    pagen = Paginator(new_list,5)
-    print(pagen)        
-    # new_list.reverse()
-    first_page = pagen.page(1).object_list
 
-    print("1",first_page)
+    # Paginator
+    pagen = Paginator(new_list,5)
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+    
     page_range = pagen.page_range
-    print("page_range",page_range)
-    # print("object",Post.objects.all())
     curProfile = getUserProfile(request.user)
     context = {
         'pagen':pagen,
@@ -206,6 +235,7 @@ def mainPagePublic(request):
         # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
+        'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -650,7 +680,11 @@ def like_view(request):
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
-    print("like inbox response",response)
+    # print("like inbox response",response)
+    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+    request.session['curr_post_id'] = pk_raw
+    print(pk_raw)
+    # END FROM
     return redirect(redirect_path)
 
 
@@ -819,7 +853,7 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-    print("mypost: ", new_list)
+    # print("mypost: ", new_list)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -830,10 +864,30 @@ def mypost(request):
 
     number = 5
     pagen = Paginator(new_list,5)
-    first_page = pagen.page(1).object_list
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
     page_range = pagen.page_range
-
+    
     github_username = getUserProfile(request.user).github.split("/")[-1]
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
 
     context = {
         # 'posts': new_list,
@@ -842,6 +896,7 @@ def mypost(request):
         'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
         'github_username': github_username,
+        'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1324,7 +1379,7 @@ class Inboxs(APIView):
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items.append(like_json)
                     inbox_obj.save()
-                    print("here2")
+                    print("here2", post_obj)
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
@@ -1420,6 +1475,10 @@ def post_comments(request):
 
 
     pk_raw = request.POST.get('pk')
+    for key, value in request.POST.items():
+        print('%s: %s' % (key, value) ) 
+    print("ppid: ", ppid)
+
     currentUserProfile = UserProfile.objects.get(user=request.user)
 
     author_json = requests.get(currentUserProfile.url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
@@ -1497,7 +1556,6 @@ def post_comments(request):
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
-                    print("response",response)
                     return redirect('public')
                     
                 else:
@@ -1553,6 +1611,10 @@ def post_comments(request):
                         response = requests.post(full_inbox_url,
                                 data=json.dumps(comment_serializer), 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
+                    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+                    request.session['curr_post_id'] = pk_raw
+                    # END FROM
                     return redirect('public')
                     
                 else:
