@@ -207,7 +207,7 @@ def mainPagePublic(request):
     for post in new_list:
         post_id_list.append(str(post['post_id']))
     
-    print(post_id_list)
+    # print(post_id_list)
 
     # If the main page is requested after commenting of liking
     try:
@@ -680,7 +680,11 @@ def like_view(request):
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
-    print("like inbox response",response)
+    # print("like inbox response",response)
+    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+    request.session['curr_post_id'] = pk_raw
+    print(pk_raw)
+    # END FROM
     return redirect(redirect_path)
 
 
