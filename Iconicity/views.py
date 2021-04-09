@@ -1094,10 +1094,46 @@ def following(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    # new_list.reverse()
+
+    # sort the posts from latest to oldest
+    new_list.reverse()
+
+    # Each page shows 5 posts
     number = 5
+
+    # Paginator
     pagen = Paginator(new_list,5)
-    first_page = pagen.page(1).object_list
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+
     page_range = pagen.page_range
     context = {
         'pagen':pagen,
@@ -1106,6 +1142,7 @@ def following(request):
         # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
+        'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1258,10 +1295,46 @@ def friends(request):
                 abs_imgpath = imghost + '.com' + post['image']
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
-    # postList.reverse()
+
+    # sort the posts from latest to oldest
+    new_list.reverse()
+
+    # Each page shows 5 posts
     number = 5
+
+    # Paginator
     pagen = Paginator(new_list,5)
-    first_page = pagen.page(1).object_list
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+
     page_range = pagen.page_range
     context = {
         # 'posts': postList,
@@ -1269,7 +1342,8 @@ def friends(request):
         'first_page':first_page,
         'page_range':page_range,
         'UserProfile': userProfile,
-        'myself': str(userProfile.url)
+        'myself': str(userProfile.url),
+        'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1555,7 +1629,10 @@ def post_comments(request):
                                 data=json.dumps(comment_serializer), 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
-
+                    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+                    request.session['curr_post_id'] = pk_raw
+                    # END FROM
+                    print("request.session: ", request.session)
                     return redirect('public')
                     
                 else:
@@ -1615,6 +1692,7 @@ def post_comments(request):
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
                     # END FROM
+                    print("request.session: ", request.session.items())
                     return redirect('public')
                     
                 else:
