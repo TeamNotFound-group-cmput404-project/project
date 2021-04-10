@@ -616,7 +616,6 @@ class SendPrivatePostView(CreateView):
                 if full_receiver_url[-1] == '/': full_receiver_url += "inbox"
                 else: full_receiver_url += '/inbox'
                 # send the private post to the external server's inbox
-                print("this is the full followee_url: ", full_receiver_url)
                 post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
                     auth = HTTPBasicAuth(auth_user, auth_pass))
                 print("data responded: ", post_data)
@@ -624,7 +623,6 @@ class SendPrivatePostView(CreateView):
 
         else:
             form = PostsCreateForm(request.POST)
-            print(form.errors)
             context = {'form': form, 'receiver_host': receiver_host, 'receiver_github': receiver_github,
             'receiver_displayName': receiver_displayName, 'receiver_id': receiver_id, 'receiver_url': receiver_url}
             return render(request, template, context)

@@ -67,69 +67,39 @@
           {% endif %}
           {% if item.type == "post" %}
             <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-              <h1>{{ post.title }}</h1><br>
+              <h1>{{ item.title }}</h1><br>
               <!-- <img src="/w3images/avatar2.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px"> -->
               <!-- <span class="w3-right w3-opacity">1 min</span> -->
-              <h5>By: {{ post.author_displayName}}</h5><br>
+              <h5>By: {{ item.author.displayName}}</h5><br>
               <hr class="w3-clear">
-              {% if post.contentType == "text/plain" %}
-                <p>{{ post.content }}</p>
+              {% if item.contentType == "text/plain" %}
+                <p>{{ item.content }}</p>
               {% endif %}
-              {% if post.contentType == "text/markdown" %}
-                <p class="toMarkdown" id="{{ post.post_id }}">{{ post.content }}</p>
+              {% if item.contentType == "text/markdown" %}
+                <p class="toMarkdown" id="{{ item.post_id }}">{{ item.content }}</p>
               {% endif %}
               <!-- Below are images -->
               <div class="w3-row-padding" style="margin:0 -16px">
                 <div class="w3-half">
-                  {% if post.image != '' and post.image != None %}
-                    <img src="{{ post.image }}">
+                  {% if item.image != '' and item.image != None %}
+                    <img src="{{ item.image }}">
                   {% endif %}
                 </div>
               </div>
               <hr class="w3-clear">
               <!-- Below are the like, comment and repost buttons -->
-              <form action="{% url 'like_post_public' %}" method="POST">
-                {% csrf_token %}
-                {% if post.id != '' and post.id != None %}
-                  <button class="button", 
-                  style = "float:left;",type="submit", name="pk", value={{post.id}}>
-                {% else %}
-                  <button class="button", 
-                  style = "float:left;",type="submit", name="pk", value={{post.origin}}>
-                {% endif%}
-                <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-                </button>
-              </form>
-              <form action="{% url 'comment_form' %}" method="GET">
-                {% csrf_token %}
-                {% if post.id != '' and post.id != None %}
-                  <button class="button", 
-                  type="submit", name="pk", style="float:left;", value={{post.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-                {% else %}
-                  <button class="button", 
-                  type="submit", name="pk", style="float:left;", value={{post.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-                {% endif%}
-              </form>
               <form action="{% url 'repost' %}" method="POST">
                 {% csrf_token %}
-                <button class="button", 
+                <button class="button",
                   style = "float:left;",
-                  type="submit", name="pk", value={{post.pk}}>
+                  type="submit", name="pk", value={{item.source}}>
                   <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
                 </button>
               </form>
               <form action="{% url 'repost_to_friend' %}" method="POST">
                 {% csrf_token %}
-                <button class="button", style="float:left;", type="submit", name="pk", value={{post.pk}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+                <button class="button", style="float:left;", type="submit", name="pk", value={{item.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
               </form>
-              <br>
-              <p>{{post.like_count}} liked this post.</p>
-              {% for comment in post.comments %}  
-                {{ comment.comment_author_name }}:
-                {{ comment.comment }}
-                <br>
-              {% endfor %}
-              <br>
             </div>
           {% endif %}
         {% endfor %}
