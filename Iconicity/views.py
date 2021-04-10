@@ -751,6 +751,7 @@ def repost(request):
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
+    print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     post = json.loads(get_json_response.text)[0]
     print("response_dict",post)

@@ -87,19 +87,6 @@
                 </div>
               </div>
               <hr class="w3-clear">
-              <!-- Below are the like, comment and repost buttons -->
-              <form action="{% url 'repost' %}" method="POST">
-                {% csrf_token %}
-                <button class="button",
-                  style = "float:left;",
-                  type="submit", name="pk", value={{item.source}}>
-                  <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
-                </button>
-              </form>
-              <form action="{% url 'repost_to_friend' %}" method="POST">
-                {% csrf_token %}
-                <button class="button", style="float:left;", type="submit", name="pk", value={{item.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-              </form>
             </div>
           {% endif %}
         {% endfor %}
