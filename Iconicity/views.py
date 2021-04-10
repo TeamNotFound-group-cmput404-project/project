@@ -382,11 +382,6 @@ def follow_someone(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("id ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         summary = curProfile.displayName + " wants to follow " + followee_displayName
@@ -402,7 +397,6 @@ def follow_someone(request):
             newFrdRequest = FriendRequestSerializer(newFrdRequest).data
             cur_inbox = Inbox.objects.get(author=followee_url)
             cur_inbox.items.append(newFrdRequest)
-            print("follow some one new inbox: ", cur_inbox.items)
             cur_inbox.save()
         except Exception as e: # external
             # cannot get the profile with followee_id locally
@@ -413,8 +407,6 @@ def follow_someone(request):
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
-            print("follow someone's actor serialized: ", actor)
-            print("follow someone's object serialized: ", object)
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
@@ -458,11 +450,6 @@ def follow_back(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("uid ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow attribute:
@@ -533,10 +520,6 @@ def inbox_view(request):
     inbox_size = len(cur_inbox.items)
     print("inbox_view cur_inbox: ", cur_inbox.items)
     content = cur_inbox.items
-    
-    # DEBUG
-    
-
 
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
@@ -555,12 +538,6 @@ def remove_inbox_follow(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("uid ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
-        
         # save the new uid into current user's follow attribute:
         curProfile = getUserProfile(request.user)
         print("inbox_view current profile: ", curProfile)
@@ -591,6 +568,78 @@ def remove_inbox_follow(request):
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
+
+# Shway, the private post view page
+class SendPrivatePostView(CreateView):
+    model = Post
+    template= "/Iconicity/private_post_form.html"
+    def post(self, request):
+        # receive data from front-end
+        receiver_host = request.GET.get('receiver_host')
+        receiver_github = request.GET.get('receiver_github')
+        receiver_displayName = request.GET.get('receiver_displayName')
+        receiver_id = request.GET.get('receiver_id')
+        receiver_url = request.GET.get('receiver_url')
+        form = PostsCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.author = request.user
+            userProfile = UserProfile.objects.get(user=request.user)
+            form.origin = (str(request.scheme) + "://"
+                                               + str(request.get_host())
+                                               + '/author/'
+                                               + str(userProfile.pk)
+                                               + '/posts/'
+                                               + str(form.post_id))
+            form.source = form.origin
+            form.id = form.source
+            # get the serialized private post:
+            serializedPost = PostSerializer(form).data
+
+            try:
+                receiver_profile = UserProfile.objects.get(id = receiver_id)
+                # send the private post to the local inbox:
+                receiver_inbox = Inbox.objects.get(author = receiver_url)
+                print('send private post view receiver_inbox: ', receiver_inbox)
+                receiver_inbox.items.append(serializedPost)
+                receiver_inbox.save()
+            except Exception as e:
+                # cannot get the profile with followee_id locally
+                print("Not local")
+                # API from the other server
+                full_receiver_url = ''
+                if receiver_id.startswith('http'): full_receiver_url = receiver_id
+                else: full_receiver_url = str(request.scheme) + "://" + receiver_id
+                # should send to inbox:
+                if full_receiver_url[-1] == '/': full_receiver_url += "inbox"
+                else: full_receiver_url += '/inbox'
+                # send the private post to the external server's inbox
+                print("this is the full followee_url: ", full_receiver_url)
+                post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
+                    auth = HTTPBasicAuth(auth_user, auth_pass))
+                print("data responded: ", post_data)
+            return redirect('all_profiles')
+
+        else:
+            form = PostsCreateForm(request.POST)
+            print(form.errors)
+            context = {'form': form, 'receiver_host': receiver_host, 'receiver_github': receiver_github,
+            'receiver_displayName': receiver_displayName, 'receiver_id': receiver_id, 'receiver_url': receiver_url}
+            return render(request, template, context)
+
+    def get(self, request):
+        # receive data from front-end
+        receiver_host = request.GET.get('receiver_host')
+        receiver_github = request.GET.get('receiver_github')
+        receiver_displayName = request.GET.get('receiver_displayName')
+        receiver_id = request.GET.get('receiver_id')
+        receiver_url = request.GET.get('receiver_url')
+        # make the context object
+        context = {'form': PostsCreateForm, 'receiver_host': receiver_host, 'receiver_github': receiver_github,
+        'receiver_displayName': receiver_displayName, 'receiver_id': receiver_id, 'receiver_url': receiver_url}
+        # get current user profile
+        curProfile = UserProfile.objects.get(user = request.user)
+        return render(request, 'Iconicity/private_post_form.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
 class UserProfileListView(ListView):
