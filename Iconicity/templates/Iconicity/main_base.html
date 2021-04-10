@@ -11,7 +11,7 @@
 <!-- Showdown -->
 <script language="JavaScript" type="text/javascript" src="static/javascript/main.js"></script>
 <script src="https://cdn.rawgit.com/showdownjs/showdown/1.0.1/dist/showdown.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
 <script
   src="https://code.jquery.com/jquery-3.4.1.min.js"
   integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -29,21 +29,22 @@
 <!-- By: Zhiqi Zhou-->
 <div class="w3-top">
   <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
-   <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+   <!-- <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a> -->
    <!-- Public Post Button -->
-   <a href="public" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Public"><i class="fa fa-globe"></i></a>
+   <a href="public" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" data-toggle="tabajax" title="Public"><i class="fa fa-globe"></i></a>
 
    <!-- Friends Post Button -->
-   <a href="friends" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Friends"><i class="fa fa-users"></i></a>
+   
+   <a href="friends" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" data-toggle="tabajax" title="Friends"><i class="fa fa-users"></i></a>
 
    <!-- Following Post Button -->
-   <a href="following" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Following"><i class="fa fa-star"></i></a>
+   <a href="following" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" data-toggle="tabajax" title="Following"><i class="fa fa-star"></i></a>
 
    <!-- My Post Button -->
-   <a href="mypost" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="My Post"><i class="fa fa-user"></i></a>
+   <a href="mypost" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" data-toggle="tabajax" title="My Post"><i class="fa fa-user"></i></a>
 
    <!-- Notification Button -->
-   <a href="inbox" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Inbox"><i class="fa fa-bell"></i></a>
+   <a href="inbox" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" data-toggle="tabajax" title="Inbox"><i class="fa fa-bell"></i></a>
 
 
 
@@ -78,30 +79,69 @@
 </div>
 {% block content %}{% endblock %}
 
+<script>
+//   $('[data-toggle="tabajax"]').click(function(e) {
+//     e.preventDefault(); 
+    
+//     var $this = $(this),
+//         loadurl = $this.attr('href');
+        
+      
+       
+//     // $.get(loadurl, function(data) {
+//     //     $(targ).html(data);
+//     // });
+//     console.log(loadurl);
+//     $('#page-content').hide();
+//     $('#page-content2').load(loadurl);
+
+    
+//     return false;
+// });
+$(document).ready(function () {
+  
+  $('[data-toggle="tabajax"]').click(function(e){ //step 1
+  
+    e.preventDefault(); //prevent default action, step2
+    var url = $(this).attr('href'); //get the url, step 2
+ 
+    $.ajax({ //step 3
+      url: url,
+      //your other options
+      success: function(response){ //on success
+        
+        $('#page-content').hide();
+        $('#page-content2').load(url);
+
+      }
+    });
+  });
+});
+</script>
 
 <script>
 // Accordion
-function myFunction(id) {
-  var x = document.getElementById(id);
-  if (x.className.indexOf("w3-show") == -1) {
-    x.className += " w3-show";
-    x.previousElementSibling.className += "";
-  } else {
-    x.className = x.className.replace("w3-show", "");
-    x.previousElementSibling.className =
-    x.previousElementSibling.className.replace("", "");
-  }
-}
+// function myFunction(id) {
+//   var x = document.getElementById(id);
+//   if (x.className.indexOf("w3-show") == -1) {
+//     x.className += " w3-show";
+//     x.previousElementSibling.className += "";
+//   } else {
+//     x.className = x.className.replace("w3-show", "");
+//     x.previousElementSibling.className =
+//     x.previousElementSibling.className.replace("", "");
+//   }
+// }
 
 // Used to toggle the menu on smaller screens when clicking on the menu button
-function openNav() {
-  var x = document.getElementById("navDemo");
-  if (x.className.indexOf("w3-show") == -1) {
-    x.className += " w3-show";
-  } else {
-    x.className = x.className.replace(" w3-show", "");
-  }
-}
+// function openNav() {
+//   var x = document.getElementById("navDemo");
+//   if (x.className.indexOf("w3-show") == -1) {
+//     x.className += " w3-show";
+//   } else {
+//     x.className = x.className.replace(" w3-show", "");
+//   }
+// }
 
 // FROM: https://stackoverflow.com/questions/12368910/html-display-image-after-selecting-filename
 
