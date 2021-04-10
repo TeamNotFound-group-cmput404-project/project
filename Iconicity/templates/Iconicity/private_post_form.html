@@ -1,0 +1,26 @@
+{% extends 'Iconicity/main_base.html'%}
+{% load static %}
+{% block content %}
+<!-- Page Container -->
+<!-- By: Shway Wang-->
+<div class="w3-container w3-content">
+    <!-- Middle Column -->
+    <!-- By: Shway Wang-->
+        <br><br><br><br><br><br><br><br>
+        <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
+            <h1>Sending a Private Blog Post to {{ receiver_displayName }}</h1>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p}}
+                <input type="hidden" name="receiver_host" value="{{ receiver_host }}">
+                <input type="hidden" name="receiver_github" value="{{ receiver_github }}">
+                <input type="hidden" name="receiver_displayName" value="{{ receiver_displayName }}">
+                <input type="hidden" name="receiver_url" value="{{ receiver_url }}">
+                <button type='submit' name='receiver_id' value='{{ receiver_id }}'>Send Private Post</button>
+            </form>
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        </div>
+<!-- End Page Container -->
+</div>
+<br>
+{% endblock %}

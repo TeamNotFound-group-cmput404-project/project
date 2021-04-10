@@ -12,14 +12,11 @@
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p}}
-                <button>Post</button>
+                <button type='submit' name='followee_id' value="normalPost">Post</button>
              </form>
-
-          <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         </div>
-
 <!-- End Page Container -->
 </div>
 <br>
-
 {% endblock %}
