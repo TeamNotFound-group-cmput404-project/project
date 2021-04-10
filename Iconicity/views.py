@@ -593,14 +593,16 @@ class SendPrivatePostView(CreateView):
                                                + str(form.post_id))
             form.source = form.origin
             form.id = form.source
+            # to get rid of the UUID and replace with its string form:
+            form.post_id = str(form.post_id)
             # get the serialized private post:
             serializedPost = PostSerializer(form).data
 
             try:
-                receiver_profile = UserProfile.objects.get(id = receiver_id)
+                # test to see if local:
+                UserProfile.objects.get(id = receiver_id)
                 # send the private post to the local inbox:
                 receiver_inbox = Inbox.objects.get(author = receiver_url)
-                print('send private post view receiver_inbox: ', receiver_inbox)
                 receiver_inbox.items.append(serializedPost)
                 receiver_inbox.save()
             except Exception as e:
