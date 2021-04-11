@@ -180,6 +180,8 @@ def mainPagePublic(request):
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
+        post['post_id'] = post['id'].split('/')[-1]
+
     new_list += externalPosts
     for post in new_list:
         if 'image' in post:
