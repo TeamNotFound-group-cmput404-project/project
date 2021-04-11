@@ -460,7 +460,11 @@ def follow_someone(request):
             else: full_followee_url += '/inbox'
             # post the friend request to the external server's inbox
             print("this is the full followee_url: ", full_followee_url)
+            '''
             post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
+                auth=HTTPBasicAuth(auth_user, auth_pass))
+            '''
+            post_data = requests.post(full_followee_url, data={json.dumps(frd_request_serialized)},
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
@@ -1517,7 +1521,8 @@ class Inboxs(APIView):
     def post(self, request, author_id):
         print(request.data['obj'])
         print(type(request.data['obj']))
-        data_json = json.loads(request.data['obj'])
+        #data_json = json.loads(request.data['obj'])
+        data_json = json.loads(request.data)
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
