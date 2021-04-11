@@ -451,6 +451,7 @@ def follow_someone(request):
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
+            #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             # API from the other server
             full_followee_url = ''
@@ -462,6 +463,10 @@ def follow_someone(request):
             # post the friend request to the external server's inbox
             print("this is the full followee_url: ", full_followee_url)
             # send the requests:
+            '''
+            post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
+                auth=HTTPBasicAuth(auth_user, auth_pass))
+            '''
             post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
