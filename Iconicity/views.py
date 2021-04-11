@@ -803,7 +803,10 @@ def repost(request):
     print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     temp = get_json_response.text
-    post = json.loads(temp)[0]
+    # modified by Shway:
+    post = None
+    if team10_host_url in pk_raw: post = json.loads(temp)
+    else: post = json.loads(temp)[0]
     print("response_dict",post)
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'PUBLIC', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
