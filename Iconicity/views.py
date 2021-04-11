@@ -1688,23 +1688,28 @@ def post_comments(request):
                     #form.post = post_id
                     #form.author = currentUserProfile.url
                     #form.save()
+                    
+                    comment_obj = Comment()
+                    comment_obj.comment = form.cleaned_data['comment']
+                    comment_obj.author = author_json
+                    comment_obj.post = pk_raw
+                    comment_serializer = CommentSerializer(comment_obj).data
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
-                    
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
-                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
+                            json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
-
-
                     else:
                         response = requests.post(pk_raw+"/comments/",
-                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
+                            json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
                     print("response",response)
+
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
@@ -1732,14 +1737,9 @@ def post_comments(request):
                         the_user_name = team10_name
                         the_user_pass = team10_pass
  
-                    if team10_host_url not in pk_raw:
-                        response = requests.post(full_inbox_url,
-                                json = comment_serializer, 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
-                    else:
-                         response = requests.post(full_inbox_url,
-                                json = comment_serializer, 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                    response = requests.post(full_inbox_url,
+                            json = comment_serializer, 
+                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
