@@ -599,6 +599,7 @@ def like_view(request):
         the_user_name = team10_name
         the_user_pass = team10_pass
     if team10_host_url not in pk_raw:
+        print(json.dumps(like_serializer))
         response = requests.post(full_inbox_url,
                                 data={"obj":json.dumps(like_serializer)}, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
@@ -764,8 +765,6 @@ def profile(request):
     }
     return render(request,'Iconicity/profile.html', context)
 
-def public(request):
-    return render(request,'Iconicity/public.html')
 
 def mypost(request):
 
