@@ -1,6 +1,6 @@
 # by: Shway Wang
 import requests, json
-from .models import Author, Post, Comment, PostCategory, InboxItem, Followers
+from .models import *
 
 def AuthorJSONer(author):
     """
