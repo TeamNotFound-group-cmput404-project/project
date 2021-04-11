@@ -803,7 +803,7 @@ def repost(request):
     print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     temp = get_json_response.text
-    # modified by Shway:
+    # modified by Shway to fit team 10:
     post = None
     if team10_host_url in pk_raw: post = json.loads(temp)
     else: post = json.loads(temp)[0]
@@ -812,12 +812,13 @@ def repost(request):
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
-    img_path = post['image']
-    if img_path is not None:
-        img_path_dict = img_path.split("/")
-        new_path = ""
-        for i in range(2, len(img_path_dict)):
-            new_path = new_path + "/" + img_path_dict[i]
+    if team10_host_url not in pk_raw:
+        img_path = post['image']
+        if img_path is not None:
+            img_path_dict = img_path.split("/")
+            new_path = ""
+            for i in range(2, len(img_path_dict)):
+                new_path = new_path + "/" + img_path_dict[i]
     
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
