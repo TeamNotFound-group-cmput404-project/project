@@ -1,0 +1,135 @@
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  font-family: "Cabin";
+}
+body {
+  margin: 150px;
+  justify-items: center;
+  background-color: #ffffff;
+  display: grid;
+  justify-items: center;
+  box-sizing:border-box;
+
+}
+#start {
+  max-width: 95%;
+  width: 500px;
+}
+#tab-btn {
+  display: flex;
+}
+.login-tab,
+.register-tab {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: #fff;
+  font-size: 25px;
+  padding: 10px;
+}
+.active {
+  background-color: #eee;
+  color: #000;
+}
+.login-box,
+.register-box {
+  width: 100%;
+  background-color: #eee;
+  padding: 20px 30px 30px 30px;
+  box-shadow: 2px 2px 5px #555;
+}
+.register-box {
+  display: none;
+}
+
+.sub-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  background-color: #f44336;
+  color: #fff;
+  cursor: pointer;
+  border-bottom: 5px solid #444;
+}
+.sub-btn:focus {
+  outline: none;
+}
+.sub-btn:active {
+  border: none;
+  margin-top: 5px;
+}
+
+
+#logo-img {
+  background: url(../images/logo.png) no-repeat;
+  top: -50px;
+  left:8%;
+  width: 150px;
+  height: 150px;
+}
+
+h1{
+  position: relative;
+  width: 524px;
+  height: 60px;
+  left: 8%;
+  display: grid;
+  top: 40px;
+  justify-items: center;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 70px;
+  line-height: 103px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+h2{
+  position: relative;
+  width: 300px;
+  height: 69px;
+  display: grid;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 25px;
+  line-height: 30px;
+  color: rgba(209, 140, 140, 0.5);
+  
+  }
+
+.button1{
+  width:100%;
+  margin-top:10px;
+  margin:10px 0;
+  display:inline-block;
+  color: #fdfbfb;
+  height:33px;
+  background-color: #F87575;
+  font-family: Roboto;
+  font-style: italic;
+  font-weight: bold;
+  border-radius: 20px;
+  font-size: 20px;
+
+}
+
+input{
+  width: 100%;
+  padding: 15px 16px;
+  margin: 7px 0;
+  align-items: center;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  color: #555151;
+  background-color: #e0dcdc
+  }

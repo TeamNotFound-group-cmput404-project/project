@@ -2,6 +2,8 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -29,8 +31,11 @@ from rest_framework.permissions import IsAuthenticated
 from requests.auth import HTTPBasicAuth
 import base64
 import uuid
+from math import ceil
 #https://thecodinginterface.com/blog/django-auth-part1/
 
+def ajax(request):
+    return render(request,"Iconicity/hello.html")
 
 def logout_view(request):
     # in use, support log out
@@ -42,33 +47,52 @@ def logout_view(request):
 
 class LoginView(View):
     def get(self, request):
+        print("get", request)
         if not request.user.is_anonymous:
             return redirect(reverse('public'))
 
-        return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
+        return render(request, 'Iconicity/start.html', { 'login_form':  AuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
     def post(self,request):
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
+        print("post", request)
+        login_form = AuthenticationForm(request, data=request.POST)
+        signup_form = SignUpForm(request.POST)
+        if login_form.is_valid():
+            print("login")
             try:
-                form.clean()
+                login_form.clean()
             except ValidationError:
                 return render(
                     request,
-                    'Iconicity/login.html',
-                    { 'form': form, 'invalid_creds': True }
+                    'Iconicity/start.html',
+                    { 'login_form': login_form, 'invalid_creds': True, 'signup_form':signup_form  }
                 )
 
-            login(request, form.get_user())
+            login(request, login_form.get_user())
 
             return redirect(reverse('public'))
+        
+        elif signup_form.is_valid():
+            print("sign up")
+            signup_form.save()
+            username = signup_form.cleaned_data.get('username')
+            raw_password = signup_form.cleaned_data.get('password1')
+            User = authenticate(username=username, password=raw_password)
+            Github = signup_form.cleaned_data.get('github')
+            host = request.get_host()
+            scheme = request.scheme
+            createUserProfileAndInbox(scheme, username, User, Github, host)
 
-        return render(request, 'Iconicity/login.html', { 'form': form })
+            login(request, User)
+            return redirect('public')
+
+        return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
 
 def signup(request):
+    print("signup", request)
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -85,7 +109,7 @@ def signup(request):
             return redirect('public')
     else:
         form = SignUpForm()
-    return render(request, 'Iconicity/signup.html', {'form': form})
+    return render(request, 'Iconicity/start.html', {'signup_form': form})
 
 
 @login_required
@@ -96,11 +120,11 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    
 
     externalPosts = getAllExternalPublicPosts()
-
-
+     
+    
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -162,13 +186,61 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+   
+    # sort the posts from latest to oldest
     new_list.reverse()
+
+    # Each page shows 5 posts
+    number = 5
+
+    # Paginator
+    pagen = Paginator(new_list,5)
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+    
+    page_range = pagen.page_range
     curProfile = getUserProfile(request.user)
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
+        'curr_page': curr_page,
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -274,7 +346,6 @@ class AddPostView(CreateView):
             form = form.save(commit=False)
             form.author = request.user
             userProfile = UserProfile.objects.get(user=request.user)
-            # https://iconicity-test-a.herokuapp.com/author/b168fc3-a41f-4537-adbe-9e698420574f/posts/aee8e63f-5792-439e-87f3-3239cce3df98
             form.save()
             form.origin = (str(request.scheme) + "://"
                                                + str(request.get_host())
@@ -311,11 +382,6 @@ def follow_someone(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("id ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         summary = curProfile.displayName + " wants to follow " + followee_displayName
@@ -331,7 +397,6 @@ def follow_someone(request):
             newFrdRequest = FriendRequestSerializer(newFrdRequest).data
             cur_inbox = Inbox.objects.get(author=followee_url)
             cur_inbox.items.append(newFrdRequest)
-            print("follow some one new inbox: ", cur_inbox.items)
             cur_inbox.save()
         except Exception as e: # external
             # cannot get the profile with followee_id locally
@@ -342,8 +407,6 @@ def follow_someone(request):
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
-            print("follow someone's actor serialized: ", actor)
-            print("follow someone's object serialized: ", object)
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
@@ -387,11 +450,6 @@ def follow_back(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("uid ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
         # get current user profile
         curProfile = UserProfile.objects.get(user = request.user)
         # save the new uid into current user's follow attribute:
@@ -461,12 +519,14 @@ def inbox_view(request):
     # to see if the result is empty
     inbox_size = len(cur_inbox.items)
     print("inbox_view cur_inbox: ", cur_inbox.items)
+    content = cur_inbox.items
+
     is_all_empty = False
     if inbox_size == 0: is_all_empty = True
     # put information to the context
     context = {
         'is_all_empty': is_all_empty,
-        'inbox': cur_inbox.items}
+        'inbox': content}
     return render(request, 'Iconicity/inbox.html', context)
 
 # by Shway, to remove a follow notification from the inbox
@@ -478,12 +538,6 @@ def remove_inbox_follow(request):
         followee_displayName = request.POST.get('followee_displayName')
         followee_id = request.POST.get('followee_id')
         followee_url = request.POST.get('followee_url')
-        print("uid ", followee_id)
-        print("host ", followee_host)
-        print("gihtub ", followee_github)
-        print("displayName ", followee_displayName)
-        print("url ", followee_url)
-        
         # save the new uid into current user's follow attribute:
         curProfile = getUserProfile(request.user)
         print("inbox_view current profile: ", curProfile)
@@ -514,6 +568,78 @@ def remove_inbox_follow(request):
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
     return redirect('public')
+
+# Shway, the private post view page
+class SendPrivatePostView(CreateView):
+    model = Post
+    template= "/Iconicity/private_post_form.html"
+    def post(self, request):
+        # receive data from front-end
+        receiver_host = request.GET.get('receiver_host')
+        receiver_github = request.GET.get('receiver_github')
+        receiver_displayName = request.GET.get('receiver_displayName')
+        receiver_id = request.GET.get('receiver_id')
+        receiver_url = request.GET.get('receiver_url')
+        form = PostsCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.author = request.user
+            userProfile = UserProfile.objects.get(user=request.user)
+            form.origin = (str(request.scheme) + "://"
+                                               + str(request.get_host())
+                                               + '/author/'
+                                               + str(userProfile.pk)
+                                               + '/posts/'
+                                               + str(form.post_id))
+            form.source = form.origin
+            form.id = form.source
+            # to get rid of the UUID and replace with its string form:
+            form.post_id = str(form.post_id)
+            # get the serialized private post:
+            serializedPost = PostSerializer(form).data
+
+            try:
+                # test to see if local:
+                UserProfile.objects.get(id = receiver_id)
+                # send the private post to the local inbox:
+                receiver_inbox = Inbox.objects.get(author = receiver_url)
+                receiver_inbox.items.append(serializedPost)
+                receiver_inbox.save()
+            except Exception as e:
+                # cannot get the profile with followee_id locally
+                print("Not local")
+                # API from the other server
+                full_receiver_url = ''
+                if receiver_id.startswith('http'): full_receiver_url = receiver_id
+                else: full_receiver_url = str(request.scheme) + "://" + receiver_id
+                # should send to inbox:
+                if full_receiver_url[-1] == '/': full_receiver_url += "inbox"
+                else: full_receiver_url += '/inbox'
+                # send the private post to the external server's inbox
+                post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
+                    auth = HTTPBasicAuth(auth_user, auth_pass))
+                print("data responded: ", post_data)
+            return redirect('all_profiles')
+
+        else:
+            form = PostsCreateForm(request.POST)
+            context = {'form': form, 'receiver_host': receiver_host, 'receiver_github': receiver_github,
+            'receiver_displayName': receiver_displayName, 'receiver_id': receiver_id, 'receiver_url': receiver_url}
+            return render(request, template, context)
+
+    def get(self, request):
+        # receive data from front-end
+        receiver_host = request.GET.get('receiver_host')
+        receiver_github = request.GET.get('receiver_github')
+        receiver_displayName = request.GET.get('receiver_displayName')
+        receiver_id = request.GET.get('receiver_id')
+        receiver_url = request.GET.get('receiver_url')
+        # make the context object
+        context = {'form': PostsCreateForm, 'receiver_host': receiver_host, 'receiver_github': receiver_github,
+        'receiver_displayName': receiver_displayName, 'receiver_id': receiver_id, 'receiver_url': receiver_url}
+        # get current user profile
+        curProfile = UserProfile.objects.get(user = request.user)
+        return render(request, 'Iconicity/private_post_form.html', context)
 
 # by Shway, this view below shows the list of all profiles except for the current user
 class UserProfileListView(ListView):
@@ -609,7 +735,11 @@ def like_view(request):
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
-    print("like inbox response",response)
+    # print("like inbox response",response)
+    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+    request.session['curr_post_id'] = pk_raw
+    print(pk_raw)
+    # END FROM
     return redirect(redirect_path)
 
 
@@ -622,6 +752,7 @@ def repost(request):
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
+    print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     post = json.loads(get_json_response.text)[0]
     print("response_dict",post)
@@ -776,7 +907,7 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-    print("mypost: ", new_list)
+    # print("mypost: ", new_list)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -784,11 +915,47 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-    new_list.reverse()
+
+    number = 5
+    pagen = Paginator(new_list,5)
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+    page_range = pagen.page_range
+    
+    github_username = getUserProfile(request.user).github.split("/")[-1]
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+
     context = {
-        'posts': new_list,
+        # 'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
+        'github_username': github_username,
+        'curr_page': curr_page,
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request, 'Iconicity/my_post.html', context)
 
 # modified by Shway:
@@ -981,12 +1148,60 @@ def following(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+
+    # sort the posts from latest to oldest
     new_list.reverse()
+
+    # Each page shows 5 posts
+    number = 5
+
+    # Paginator
+    pagen = Paginator(new_list,5)
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+
+    page_range = pagen.page_range
     context = {
-        'posts': new_list,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
+        'curr_page': curr_page,
     }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/follow.html', context)
 
 def getUserFriend(currentUser):
@@ -999,7 +1214,6 @@ def getUserFriend(currentUser):
         # means a two-direct-follow
         if len(UserProfile.objects.filter(url=user['url'])) != 0:
             otherUserProfile = UserProfile.objects.filter(url=user['url']).first()
-            # DEBUG
             friends = otherUserProfile.get_followers()
             for userInfo in friends:
                 if userProfile.url == userInfo['url']:
@@ -1134,13 +1348,60 @@ def friends(request):
                 abs_imgpath = imghost + '.com' + post['image']
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
-    postList.reverse()
-    context = {
-        'posts': postList,
-        'UserProfile': userProfile,
-        'myself': str(userProfile.url)
-    }
 
+    # sort the posts from latest to oldest
+    new_list.reverse()
+
+    # Each page shows 5 posts
+    number = 5
+
+    # Paginator
+    pagen = Paginator(new_list,5)
+
+    # Current page is 1 by default
+    curr_page = 1
+    first_page = pagen.page(curr_page).object_list
+
+    print("Iterate the new_list:")
+
+    # Get a list of post id
+    post_id_list = []
+    for post in new_list:
+        post_id_list.append(str(post['post_id']))
+    
+    # print(post_id_list)
+
+    # If the main page is requested after commenting of liking
+    try:
+        request.session['curr_post_id']
+    except:
+        pass
+    else:
+        curr_post_id = request.session['curr_post_id']
+        if curr_post_id:
+            curr_post_id = request.session['curr_post_id'].split('/')[-1]
+            print("curr_post_id:", curr_post_id)
+            if curr_post_id in post_id_list:
+                index = post_id_list.index(curr_post_id) + 1
+                print(index)
+                curr_page = int(ceil(index / number))
+                first_page = pagen.page(curr_page).object_list
+                request.session['curr_post_id'] = None
+
+    page_range = pagen.page_range
+    context = {
+        # 'posts': postList,
+        'pagen':pagen,
+        'first_page':first_page,
+        'page_range':page_range,
+        'UserProfile': userProfile,
+        'myself': str(userProfile.url),
+        'curr_page': curr_page,
+    }
+    if request.method == "POST":
+        page_n = request.POST.get('page_n',None)
+        results = list(pagen.page(page_n).object_list)
+        return JsonResponse({"results":results})
     return render(request,'Iconicity/friends.html', context)
 
 class Posts(APIView):
@@ -1245,7 +1506,7 @@ class Inboxs(APIView):
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items.append(like_json)
                     inbox_obj.save()
-                    print("here2")
+                    print("here2", post_obj)
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
@@ -1281,6 +1542,7 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == "follow":
+                print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
@@ -1341,6 +1603,10 @@ def post_comments(request):
 
 
     pk_raw = request.POST.get('pk')
+    for key, value in request.POST.items():
+        print('%s: %s' % (key, value) ) 
+    print("ppid: ", ppid)
+
     currentUserProfile = UserProfile.objects.get(user=request.user)
 
     author_json = requests.get(currentUserProfile.url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
@@ -1417,8 +1683,10 @@ def post_comments(request):
                                 data=json.dumps(comment_serializer), 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
-
-                    print("response",response)
+                    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+                    request.session['curr_post_id'] = pk_raw
+                    # END FROM
+                    print("request.session: ", request.session)
                     return redirect('public')
                     
                 else:
@@ -1474,6 +1742,11 @@ def post_comments(request):
                         response = requests.post(full_inbox_url,
                                 data=json.dumps(comment_serializer), 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
+                    # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
+                    request.session['curr_post_id'] = pk_raw
+                    # END FROM
+                    print("request.session: ", request.session.items())
                     return redirect('public')
                     
                 else:
