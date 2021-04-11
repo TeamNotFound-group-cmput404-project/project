@@ -854,13 +854,19 @@ def repost_to_friend(request):
         the_user_pass = team10_pass
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     print(json.loads(get_json_response.text))
-    post = json.loads(get_json_response.text)[0]
+
+    # modified here by Shway
+    post = None
+    if team10_host_url in pk_raw: post = json.loads(get_json_response.text)
+    else: post = json.loads(get_json_response.text)[0]
 
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'FRIENDS', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
-    img_path = post['image']
+    img_path = None
+    if team10_host_url not in pk_raw:
+        img_path = post['image']
     if img_path is not None:
         img_path_dict = img_path.split("/")
         new_path = ""
