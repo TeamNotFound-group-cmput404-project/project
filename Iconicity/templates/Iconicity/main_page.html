@@ -213,23 +213,23 @@ const csrf = getCookie('csrftoken');
                 }
                 var button = ``;
                 
-                if(val.id != ''&& val.id != null){
-                  button = `<button class="button", 
-                            style = "float:left;"
-                            type="submit"
-                            name="pk"
-                            value=${val.id}>
-                            <i class="fa fa-heart-o" style="font-size:20px;"></i>
-                            </button>`
-                }else{
-                  button = `<button class="button"  
-                            style = "float:left;"
-                            type="submit" 
-                            name="pk" 
-                            value=${val.origin}>
-                            <i class="fa fa-heart-o" style="font-size:20px;"></i>
-                            </button>`
-                }
+                // if(val.id != ''&& val.id != null){
+                //   button = `<button class="button", 
+                //             style = "float:left;"
+                //             type="submit"
+                //             name="pk"
+                //             value=${val.id}>
+                //             <i class="fa fa-heart-o" style="font-size:20px;"></i></button>`
+                            
+                // }else{
+                //   button = `<button class="button"  
+                //             style = "float:left;"
+                //             type="submit" 
+                //             name="pk" 
+                //             value=${val.origin}>
+                //             <i class="fa fa-heart-o" style="font-size:20px;"></i>
+                //             </button>`
+                // }
         
                 $('#posts').append(`
 
@@ -248,7 +248,12 @@ const csrf = getCookie('csrftoken');
 
                   <form action="{% url 'like_post_public' %}" method="POST">
                       {% csrf_token %}
-                      ${button}
+                      <button class="button", 
+                      style = "float:left;"
+                      type="submit"
+                      name="pk"
+                      value=${val.id}>
+                      <i class="fa fa-heart-o" style="font-size:20px;"></i></button>
                         
                   </form>
 
