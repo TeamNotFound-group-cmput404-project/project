@@ -812,6 +812,7 @@ def repost(request):
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
+    img_path = None
     if team10_host_url not in pk_raw:
         img_path = post['image']
         if img_path is not None:
@@ -819,7 +820,6 @@ def repost(request):
             new_path = ""
             for i in range(2, len(img_path_dict)):
                 new_path = new_path + "/" + img_path_dict[i]
-    
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
         post_form.origin = post['origin']
