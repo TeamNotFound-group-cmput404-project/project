@@ -266,3 +266,5 @@ class ExternalServer(models.Model):
     def get_host(self):
         return self.host
 
+class SignUpConfirm(models.Model):
+    boolean = models.BooleanField(default=False)

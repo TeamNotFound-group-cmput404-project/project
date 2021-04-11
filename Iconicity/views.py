@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.contrib import messages
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.core import serializers as core_serializers
 import json, os
@@ -44,24 +45,48 @@ def logout_view(request):
         logout(request)
         return redirect(reverse('login'))
 
+# citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
+
+def createPreferenceObject():
+    confirm = None
+    try:
+        confirm = SignUpConfirm.objects.all()
+        assert confirm != None and list(confirm) != [],"raise"
+    except Exception:
+        # means we don't have this settings
+        obj = SignUpConfirm()
+        obj.save()
+        return obj.boolean
+    else:
+        temp = list(confirm)[0].boolean
+        return temp
+class PickyAuthenticationForm(AuthenticationForm):
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            raise ValidationError(
+                _("This account is inactive."),
+                code='inactive',
+            )
 
 class LoginView(View):
     def get(self, request):
         print("get", request)
-        if not request.user.is_anonymous:
+        if not request.user.is_anonymous and request.user.is_active:
             return redirect(reverse('public'))
 
-        return render(request, 'Iconicity/start.html', { 'login_form':  AuthenticationForm, 'signup_form': SignUpForm(request.POST) })
+        return render(request, 'Iconicity/start.html', { 'login_form':  PickyAuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
     def post(self,request):
         print("post", request)
-        login_form = AuthenticationForm(request, data=request.POST)
+        login_form = PickyAuthenticationForm(request, data=request.POST)
         signup_form = SignUpForm(request.POST)
         if login_form.is_valid():
             print("login")
             try:
                 login_form.clean()
             except ValidationError:
+                messages.error(request,'Username or password not correct\n or your account is not verified by the admin.')
+
                 return render(
                     request,
                     'Iconicity/start.html',
@@ -74,17 +99,29 @@ class LoginView(View):
         
         elif signup_form.is_valid():
             print("sign up")
-            signup_form.save()
+            boolean = createPreferenceObject()
+            print("boolean",boolean)
+            user = signup_form.save(commit=False)
+            if boolean:
+                # this means the signup needs to be activated by the admin
+                user.is_active = False
+            else:
+                user.is_active = True
+            print(user.is_active)
+            user.save()
             username = signup_form.cleaned_data.get('username')
             raw_password = signup_form.cleaned_data.get('password1')
-            User = authenticate(username=username, password=raw_password)
+            User = user
             Github = signup_form.cleaned_data.get('github')
             host = request.get_host()
             scheme = request.scheme
             createUserProfileAndInbox(scheme, username, User, Github, host)
-
-            login(request, User)
-            return redirect('public')
+            if user.is_active:
+                login(request, user)
+                return redirect('public')
+            else:
+                messages.error(request,'Your account is not verified by the admin.')
+                return redirect(reverse('login'))
 
         return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
@@ -120,7 +157,6 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-    
 
     externalPosts = getAllExternalPublicPosts()
      
@@ -188,7 +224,7 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
-   
+    
     # sort the posts from latest to oldest
     new_list.reverse()
 
@@ -206,7 +242,9 @@ def mainPagePublic(request):
 
     # Get a list of post id
     post_id_list = []
+    
     for post in new_list:
+        print("post",post)
         post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
@@ -727,6 +765,7 @@ def like_view(request):
         the_user_name = team10_name
         the_user_pass = team10_pass
     if team10_host_url not in pk_raw:
+        print(json.dumps(like_serializer))
         response = requests.post(full_inbox_url,
                                 data={"obj":json.dumps(like_serializer)}, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
@@ -897,8 +936,6 @@ def profile(request):
     }
     return render(request,'Iconicity/profile.html', context)
 
-def public(request):
-    return render(request,'Iconicity/public.html')
 
 def mypost(request):
 
