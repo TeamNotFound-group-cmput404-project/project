@@ -33,7 +33,6 @@ from requests.auth import HTTPBasicAuth
 import base64
 import uuid
 from math import ceil
-from .jsonConverters import *
 #https://thecodinginterface.com/blog/django-auth-part1/
 
 def ajax(request):
@@ -469,7 +468,7 @@ def follow_someone(request):
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             '''
 
-            post_data = requests.post(full_followee_url, json=frd_request_serialized,
+            post_data = requests.post(full_followee_url, json = frd_request_serialized,
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
@@ -665,7 +664,7 @@ class SendPrivatePostView(CreateView):
                 if full_receiver_url[-1] == '/': full_receiver_url += "inbox/"
                 else: full_receiver_url += '/inbox/'
                 # send the private post to the external server's inbox
-                post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
+                post_data = requests.post(full_receiver_url, json = serializedPost,
                     auth = HTTPBasicAuth(auth_user, auth_pass))
                 print("data responded: ", post_data)
             return redirect('all_profiles')
@@ -776,11 +775,11 @@ def like_view(request):
     if team10_host_url not in pk_raw:
         print(json.dumps(like_serializer))
         response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(like_serializer)}, 
+                                json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
     else:
         response = requests.post(full_inbox_url,
-                                data=json.dumps(like_serializer), 
+                                json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
@@ -1724,11 +1723,11 @@ def post_comments(request):
  
                     if team10_host_url not in pk_raw:
                         response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(comment_serializer)}, 
+                                json = comment_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     else:
                          response = requests.post(full_inbox_url,
-                                data=json.dumps(comment_serializer), 
+                                json = comment_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
@@ -1784,12 +1783,12 @@ def post_comments(request):
                         the_user_pass = team10_pass
                     if team10_host_url not in pk_raw:
                         response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(comment_serializer)}, 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                                json = comment_serializer, 
+                                auth = HTTPBasicAuth(the_user_name, the_user_pass))
                     else:
                         response = requests.post(full_inbox_url,
-                                data=json.dumps(comment_serializer), 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                                json = comment_serializer, 
+                                auth = HTTPBasicAuth(the_user_name, the_user_pass))
 
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
