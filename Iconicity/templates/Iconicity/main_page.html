@@ -212,14 +212,17 @@ const csrf = getCookie('csrftoken');
                   post_content = `<p class="toMarkdown" id="${ val.post_id }">${val.content }</p>`
                 }
                 var button = ``;
+                
                 if(val.id != ''&& val.id != null){
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.id}>`
-                  console.log("here1")
+                            style = "float:left;",type="submit", name="pk", value=${val.id}>
+                            <i class="fa fa-heart-o" style="font-size:20px;"></i>
+                            </button>`
                 }else{
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
-                  console.log("here2")
+                            style = "float:left;",type="submit", name="pk", value=${val.origin}>
+                            <i class="fa fa-heart-o" style="font-size:20px;"></i>
+                            </button>`
                 }
         
                 $('#posts').append(`
@@ -240,8 +243,7 @@ const csrf = getCookie('csrftoken');
                   <form action="{% url 'like_post_public' %}" method="POST">
                       {% csrf_token %}
                       ${button}
-                        <i class="fa fa-heart-o" style="font-size:20px;"></i>
-                      </button>
+                        
                   </form>
 
                   <form action="{% url 'comment_form' %}" method="POST">
