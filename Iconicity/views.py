@@ -1519,8 +1519,8 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        print(request.data['obj'])
-        print(type(request.data['obj']))
+        #print(request.data['obj'])
+        #print(type(request.data['obj']))
         #data_json = json.loads(request.data['obj'])
         #data_json = json.loads(request.data)
         data_json = request.data
