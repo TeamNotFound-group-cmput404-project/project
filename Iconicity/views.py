@@ -2,6 +2,7 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.urls import resolve
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from rest_framework.views import APIView
@@ -120,8 +121,9 @@ def mainPagePublic(request):
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-    
-
+    current_url = resolve(request.path_info).url_name
+   
+    print("url",request.GET.get('href'))
     externalPosts = getAllExternalPublicPosts()
      
     
@@ -149,7 +151,11 @@ def mainPagePublic(request):
             post_id = [i for i in post['id'].split('/') if i][-1]
             file_name = post_id+".png"
             folder_path = "/media/images/"
-            path = folder_path+file_name
+            if os.path.isdir("Iconicity"+folder_path):
+                path = folder_path+file_name
+            else:
+                os.mkdir("Iconicity"+folder_path)
+                path = folder_path+file_name
             # first, check this image exists.
             
             if os.path.exists("Iconicity"+path):
@@ -242,6 +248,9 @@ def mainPagePublic(request):
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
         results = list(pagen.page(page_n).object_list)
+        print("---------")
+        print(results)
+        print("---------")
         return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 

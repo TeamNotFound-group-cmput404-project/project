@@ -164,7 +164,7 @@ const csrf = getCookie('csrftoken');
         $("a#page").click(function(event){
           event.preventDefault();
           var page_n =$(this).attr('href');
-         
+          console.log(page_n);
           // Remove highlight on the other pages
           var all_pages = document.querySelectorAll('[id=page]');
           for (let i of all_pages){
@@ -178,8 +178,9 @@ const csrf = getCookie('csrftoken');
           // ajax
           $.ajax({
             type: "POST",
-                url:"{% url 'public' %}", // name of url
+                // url:"{% url 'public' %}", // name of url
                 data : {    
+                href: this.href,
                 page_n : page_n, //page_number
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             },
