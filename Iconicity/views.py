@@ -458,8 +458,8 @@ def follow_someone(request):
             if followee_id.startswith('http'): full_followee_url = followee_id
             else: full_followee_url = str(request.scheme) + "://" + followee_id
             # should send to inbox:
-            if full_followee_url[-1] == '/': full_followee_url += "inbox"
-            else: full_followee_url += '/inbox'
+            if full_followee_url[-1] == '/': full_followee_url += "inbox/"
+            else: full_followee_url += '/inbox/'
             # post the friend request to the external server's inbox
             print("this is the full followee_url: ", full_followee_url)
             # send the requests:
@@ -660,8 +660,8 @@ class SendPrivatePostView(CreateView):
                 if receiver_id.startswith('http'): full_receiver_url = receiver_id
                 else: full_receiver_url = str(request.scheme) + "://" + receiver_id
                 # should send to inbox:
-                if full_receiver_url[-1] == '/': full_receiver_url += "inbox"
-                else: full_receiver_url += '/inbox'
+                if full_receiver_url[-1] == '/': full_receiver_url += "inbox/"
+                else: full_receiver_url += '/inbox/'
                 # send the private post to the external server's inbox
                 post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
                     auth = HTTPBasicAuth(auth_user, auth_pass))
@@ -759,7 +759,7 @@ def like_view(request):
     full_inbox_url = post_author_url
     if post_author_url[-1] != "/":
         full_inbox_url += "/"
-    full_inbox_url += 'inbox'
+    full_inbox_url += 'inbox/'
     print("inbox url",full_inbox_url)
 
 
@@ -1683,13 +1683,13 @@ def post_comments(request):
                         the_user_pass = team10_pass
                     
                     if pk_raw[-1] == "/":
-                        response = requests.post(pk_raw+"comments",
+                        response = requests.post(pk_raw+"comments/",
                             data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
                     else:
-                        response = requests.post(pk_raw+"/comments",
+                        response = requests.post(pk_raw+"/comments/",
                             data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
                     print("response",response)
@@ -1706,7 +1706,7 @@ def post_comments(request):
                     full_inbox_url = post_author_url
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
-                    full_inbox_url += 'inbox'
+                    full_inbox_url += 'inbox/'
                     
                     
                     comment_obj = Comment()
@@ -1766,7 +1766,7 @@ def post_comments(request):
                     full_inbox_url = post_author_url
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
-                    full_inbox_url += 'inbox'
+                    full_inbox_url += 'inbox/'
                     print(author_json)
                     print(type(author_json))
                     comment_obj = Comment()
