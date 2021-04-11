@@ -464,7 +464,7 @@ def follow_someone(request):
             post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             '''
-            post_data = requests.post(full_followee_url, data=json.dumps(frd_request_serialized),
+            post_data = requests.post(full_followee_url, data=frd_request_serialized,
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
@@ -1522,7 +1522,8 @@ class Inboxs(APIView):
         print(request.data['obj'])
         print(type(request.data['obj']))
         #data_json = json.loads(request.data['obj'])
-        data_json = json.loads(request.data)
+        #data_json = json.loads(request.data)
+        data_json = request.data
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
