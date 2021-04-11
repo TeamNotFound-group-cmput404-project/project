@@ -132,7 +132,9 @@ input{
   border: 1px solid #ccc;
   box-sizing: border-box;
   color: #555151;
-  background-color: #e0dcdc
+  background-color: #e0dcdc;
+  font-size: 14px;
+  font-family: Arial, Helvetica, sans-serif;
   }
 
 input:focus{
