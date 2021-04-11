@@ -215,12 +215,18 @@ const csrf = getCookie('csrftoken');
                 
                 if(val.id != ''&& val.id != null){
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.id}>
+                            style = "float:left;"
+                            type="submit"
+                            name="pk"
+                            value=${val.id}>
                             <i class="fa fa-heart-o" style="font-size:20px;"></i>
                             </button>`
                 }else{
-                  button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.origin}>
+                  button = `<button class="button"  
+                            style = "float:left;"
+                            type="submit" 
+                            name="pk" 
+                            value=${val.origin}>
                             <i class="fa fa-heart-o" style="font-size:20px;"></i>
                             </button>`
                 }
