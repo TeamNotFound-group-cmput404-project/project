@@ -151,7 +151,11 @@ def mainPagePublic(request):
             post_id = [i for i in post['id'].split('/') if i][-1]
             file_name = post_id+".png"
             folder_path = "/media/images/"
-            path = folder_path+file_name
+            if os.path.isdir("Iconicity"+folder_path):
+                path = folder_path+file_name
+            else:
+                os.mkdir("Iconicity"+folder_path)
+                path = folder_path+file_name
             # first, check this image exists.
             
             if os.path.exists("Iconicity"+path):
