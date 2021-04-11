@@ -464,7 +464,7 @@ def follow_someone(request):
             post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             '''
-            post_data = requests.post(full_followee_url, data={json.dumps(frd_request_serialized)},
+            post_data = requests.post(full_followee_url, data=json.dumps(frd_request_serialized),
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
