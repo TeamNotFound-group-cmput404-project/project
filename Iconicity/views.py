@@ -802,7 +802,8 @@ def repost(request):
         the_user_pass = team10_pass
     print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-    post = json.loads(get_json_response.text)[0]
+    temp = get_json_response.text
+    post = json.loads(temp)[0]
     print("response_dict",post)
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'PUBLIC', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
