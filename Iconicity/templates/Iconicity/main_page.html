@@ -214,10 +214,12 @@ const csrf = getCookie('csrftoken');
                 var button = ``;
                 if(val.id != ''&& val.id != null){
                   button = `<button class="button", 
-            style = "float:left;",type="submit", name="pk", value=${val.id}>`
+                            style = "float:left;",type="submit", name="pk", value=${val.id}>`
+                  console.log("here1")
                 }else{
                   button = `<button class="button", 
-            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                  console.log("here2")
                 }
         
                 $('#posts').append(`
