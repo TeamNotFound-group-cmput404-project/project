@@ -1104,10 +1104,18 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     responseJsonlist = temp.json()
 
                     if team10_host_url in full_url:
-                        post_list += responseJsonlist['posts']
+                        post = responseJsonlist['posts']
                     else:
-                        post_list += responseJsonlist
-    print(post_list)
+                        post = responseJsonlist
+
+                    new_one = []
+                    for i in post:
+                        if i['visibility'] != "PUBLIC":
+                            continue
+                        else:
+                            new_one.append(i)
+                    post_list += new_one
+    
     return post_list
 
 
