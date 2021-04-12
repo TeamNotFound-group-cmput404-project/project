@@ -183,7 +183,7 @@ def mainPagePublic(request):
     new_list = [] 
     time_check1 = datetime.datetime.now()
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    print("new_list",new_list)
     externalPosts = getAllExternalPublicPosts()
     time_check2 = datetime.datetime.now()
     print("timecheck2",time_check2-time_check1)
@@ -1624,7 +1624,13 @@ class Inboxs(APIView):
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
                     # means it's local like author              
                     # means add this man's id to the like list.
-                    post_obj.like.add(local_author_profile.user)
+                    if post_obj.external_likes == {}:
+                        post_obj.external_likes['urls'] = []
+                    external_author_url = data_json["author"]["url"]
+                    post_obj.external_likes['urls'].append(external_author_url)
+                    print("external",post_obj.external_likes['urls'])
+                    print("new like user",local_author_profile.user)
+                    #post_obj.like.add(local_author_profile.user)
                     like_obj = Like()
                     like_obj.context= data_json["context"]
                     like_obj.object = data_json["object"]
@@ -1640,9 +1646,10 @@ class Inboxs(APIView):
                 else:
                     # means it's a external author
                     external_author_url = data_json["author"]["url"]
-                    if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
-                        # means add this man's id to the external like list.
+                    if post_obj.external_likes == {}:
                         post_obj.external_likes['urls'] = []
+                    if post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                        # means add this man's id to the external like list.
                         post_obj.external_likes['urls'].append(external_author_url)
                         like_obj = Like()
                         like_obj.context= data_json["context"]
