@@ -1686,9 +1686,10 @@ class FriendPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        authorProfile = UserProfile.objects.get(pk=author_id)
-        friendPosts = Post.objects.filter(author=authorProfile.user)
-        return Response(PostSerializer(friendPosts, many=True).data)
+        authorProfile = UserProfile.objects.get(pk = author_id)
+        friendPosts = Post.objects.filter(author = authorProfile.user)
+        print("FriendPostsByAuthor friendPosts: ", friendposts)
+        return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
