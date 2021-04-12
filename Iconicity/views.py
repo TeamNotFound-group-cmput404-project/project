@@ -1361,6 +1361,7 @@ def friends(request):
     # get all the posts posted by the current user
     postList = []
     friends_test = getUserFriend(request.user)
+    print("friends friends test: ", friends_test)
     tmp_list = []
     for user in friends_test:
         tmp_list += getPosts(user, visibility="FRIENDS")
