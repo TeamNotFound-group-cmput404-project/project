@@ -1486,7 +1486,7 @@ def friends(request):
                 curr_page = int(ceil(index / number))
                 first_page = pagen.page(curr_page).object_list
                 request.session['curr_post_id'] = None
-
+    print("friends first_page: ", first_page)
     page_range = pagen.page_range
     context = {
         # 'posts': postList,
