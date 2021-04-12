@@ -1734,17 +1734,18 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
+    print("post_comments ppid: ", ppid)
     #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
-        
         context = {'form123': CommentsCreateForm(), "url": ppid}
         return render(request, 'Iconicity/comment_form.html', context)
 
 
     pk_raw = request.POST.get('pk')
+    print("hereherehereherehereherehereherehereherehereherehere")
     for key, value in request.POST.items():
-        print('%s: %s' % (key, value) ) 
-    print("ppid: ", ppid)
+        print('post_comments iterative: %s: %s' % (key, value) ) 
+    
 
     currentUserProfile = UserProfile.objects.get(user=request.user)
 
@@ -1752,7 +1753,7 @@ def post_comments(request):
 
     post = None
     pk_new = None
-    print("pk_raw",pk_raw)
+    print("post_comment pk_raw: ",pk_raw)
     if pk_raw:
         if '/' in pk_raw:
             try:
@@ -1776,7 +1777,7 @@ def post_comments(request):
                     # modified here by Shway:
                     # comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
-                    comment_serializer['post_id'] = comment_serializer['id']
+                    #comment_serializer['post_id'] = comment_serializer['id']
                     print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
