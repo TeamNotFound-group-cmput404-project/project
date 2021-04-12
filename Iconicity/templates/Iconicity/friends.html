@@ -35,88 +35,87 @@
       <!-- Shway Wang added the for loop here -->
       <div id="posts">
         {% for i in first_page %}
-        <div class="w3-container w3-card w3-white w3-round w3-margin">
-        <br>
-        <h1>{{ i.title }}</h1>
+          <div class="w3-container w3-card w3-white w3-round w3-margin">
+          <br>
+          <h1>{{ i.title }}</h1>
 
-        <h5>By: {{i.author_display_name}}</h5>
-        <br>
-        <hr class="w3-clear">
+          <h5>By: {{i.author_display_name}}</h5>
+          <br>
+          <hr class="w3-clear">
 
-        {% if i.contentType == "text/plain" %}
-          <p>{{ i.content }}</p>
-        {% endif %}
+          {% if i.contentType == "text/plain" %}
+            <p>{{ i.content }}</p>
+          {% endif %}
 
-        {% if i.contentType == "text/markdown" %}
-          <p class="toMarkdown" id="{{ i.post_id }}">{{ i.content }}</p>
-        {% endif %}
+          {% if i.contentType == "text/markdown" %}
+            <p class="toMarkdown" id="{{ i.post_id }}">{{ i.content }}</p>
+          {% endif %}
 
-        <div class="w3-row-padding" style="margin:0 -16px">
-          <div class="w3-half">
-            {% if i.image != '' and i.image != None %}
-              <img src="{{i.image}}">
-            {% endif %}
+          <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-half">
+              {% if i.image != '' and i.image != None %}
+                <img src="{{i.image}}">
+              {% endif %}
+            </div>
           </div>
-        </div>
-        <hr class="w3-clear">
+          <hr class="w3-clear">
 
-        <!-- Below are the like, comment and repost buttons -->
-        <form action="{% url 'like_post_friend' %}" method="POST">
-          {% csrf_token %}
+          <!-- Below are the like, comment and repost buttons -->
+          <form action="{% url 'like_post_friend' %}" method="POST">
+            {% csrf_token %}
+            {% if i.id != '' and i.id != None %}
+              <button class="button", 
+              style = "float:left;",type="submit", name="pk", value={{i.id}}>
+            {% else %}
+              <button class="button", 
+              style = "float:left;",type="submit", name="pk", value={{i.origin}}>
+            {% endif%}
+            <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+            </button>
+          </form>
+          
+          <form action="{% url 'comment_form' %}" method="GET">
+            {% csrf_token %}
+            {% if i.id != '' and i.id != None %}
+              <button class="button", 
+              type="submit", name="pk", style="float:left;", value={{i.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+            {% else %}
+              <button class="button", 
+              type="submit", name="pk", style="float:left;", value={{i.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+            {% endif%}
+          </form>
 
-          {% if i.id != '' and i.id != None %}
+          <form action="{% url 'repost' %}" method="POST">
+            {% csrf_token %}
             <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{i.id}}>
-          {% else %}
-            <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{i.origin}}>
-          {% endif%}
-          <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-          </button>
-        </form>
-        
-        <form action="{% url 'comment_form' %}" method="GET">
-          {% csrf_token %}
-          {% if i.id != '' and i.id != None %}
-            <button class="button", 
-            type="submit", name="pk", style="float:left;", value={{i.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-          {% else %}
-            <button class="button", 
-            type="submit", name="pk", style="float:left;", value={{i.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
-          {% endif%}
-        </form>
+              style = "float:left;",
+              type="submit", name="pk", value={{i.id}}>
+              <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
+            </button>
+          </form>
+          <form action="{% url 'repost_to_friend' %}" method="POST">
+            {% csrf_token %}
+            <button class="button", type="submit", name="pk", value={{i.id}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          </form>
 
-        <form action="{% url 'repost' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", 
-            style = "float:left;",
-            type="submit", name="pk", value={{i.id}}>
-            <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
-          </button>
-        </form>
-        <form action="{% url 'repost_to_friend' %}" method="POST">
-          {% csrf_token %}
-          <button class="button", type="submit", name="pk", value={{i.id}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
-        </form>
-
-        <p>{{i.like_count}} liked this post.</p>
-       
-        <!-- Show Comments at Bottom-->
-        {% for comment in i.comments %}
-          {% if i.visibility != 'PUBLIC' %}
-            {% if myself == comment.author %}
+          <p>{{i.like_count}} liked this post.</p>
+         
+          <!-- Show Comments at Bottom-->
+          {% for comment in i.comments %}
+            {% if i.visibility != 'PUBLIC' %}
+              {% if myself == comment.author %}
+                {{ comment.comment_author_name }}:
+                {{ comment.comment }}
+                <br>
+              {% endif %}
+            {% else %}
               {{ comment.comment_author_name }}:
               {{ comment.comment }}
               <br>
             {% endif %}
-          {% else %}
-            {{ comment.comment_author_name }}:
-            {{ comment.comment }}
-            <br>
-          {% endif %}
-        {% endfor %}
-        <br>
-        </div>
+          {% endfor %}
+          <br>
+          </div>
         {% endfor %}
     </div>
       <script>showInMarkdown();</script>
@@ -126,11 +125,11 @@
         <div class="pagination">
           {% for i in page_range %}
             <!-- Initialize coloring on pagination -->
-            {% if i == curr_page %}
-            <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
-            {% else %}
+            <!-- {% if i == curr_page %} -->
+            <!-- <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a> -->
+            <!-- {% else %} -->
             <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
-            {% endif %}
+            <!-- {% endif %} -->
           {% endfor %}
         </div>
       </div>
