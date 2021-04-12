@@ -1227,7 +1227,8 @@ def following(request):
     # Get a list of post id
     post_id_list = []
     for post in new_list:
-        post_id_list.append(str(post['post_id']))
+        if team10_host_url not in post['id']:
+            post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
 
