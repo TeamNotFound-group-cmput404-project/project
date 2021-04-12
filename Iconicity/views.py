@@ -1771,6 +1771,7 @@ def post_comments(request):
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    print('post_comments pk_raw: ', pk_raw)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
