@@ -246,18 +246,17 @@ def mainPagePublic(request):
 
         if team10_host_url in post["id"]:
 
-            post['like_count'] = 0
-            if counter == 0:
+
                 
-                if post["id"].endswith("/"):
-                    like_url = post["id"] + "likes/"
-                else:
-                    like_url = post["id"] + "/likes/"
+            if post["id"].endswith("/"):
+                like_url = post["id"] + "likes/"
+            else:
+                like_url = post["id"] + "/likes/"
 
-                temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
 
-                like_list = temp.json()['likes']
-                post['like_count'] = len(like_list)
+            like_list = temp.json()['likes']
+            post['like_count'] = len(like_list)
             
             
 
