@@ -33,6 +33,7 @@ from rest_framework.permissions import IsAuthenticated
 from requests.auth import HTTPBasicAuth
 import base64
 import uuid
+import datetime
 from math import ceil
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -180,10 +181,14 @@ def mainPagePublic(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
+    time_check1 = datetime.datetime.now()
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
 
     externalPosts = getAllExternalPublicPosts()
-
+    time_check2 = datetime.datetime.now()
+    print("timecheck2",time_check2-time_check1)
+    
+    counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -234,16 +239,23 @@ def mainPagePublic(request):
                     comment["comment_author_name"] = comment["author"]["displayName"]
 
         if team10_host_url in post["id"]:
-            if post["id"].endswith("/"):
-                like_url = post["id"] + "likes/"
-            else:
-                like_url = post["id"] + "/likes/"
-            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
-            print("mainPagePublic temp: ", temp.json())
-            like_list = temp.json()['likes']
-            post['like_count'] = len(like_list)
+            post['like_count'] = 0
+            if counter == 0:
+                
+                if post["id"].endswith("/"):
+                    like_url = post["id"] + "likes/"
+                else:
+                    like_url = post["id"] + "/likes/"
+
+                temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+
+                like_list = temp.json()['likes']
+                post['like_count'] = len(like_list)
+
+
 
         post['post_id'] = post['id'].split('/')[-1]
+        counter +=1
 
     new_list += externalPosts
     for post in new_list:
@@ -253,9 +265,11 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+    time_check15 = datetime.datetime.now()
     
+    print("before_reverse_check",time_check15-time_check1)
     # sort the posts from latest to oldest
-    new_list.reverse()
+    #new_list.reverse()
 
     # Each page shows 5 posts
     number = 5
@@ -312,6 +326,8 @@ def mainPagePublic(request):
         print(results)
         print("---------")
         return JsonResponse({"results":results})
+    time_check3 = datetime.datetime.now()
+    print("full_time_check",time_check3-time_check1)
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -1074,10 +1090,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            print("all", allFollowers)
+
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
-                    print("in")
+
                     full_url = user['url']
                     if user['url'][-1]=="/":
                         full_url += "posts/"
@@ -1088,11 +1104,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     if team10_host_url in full_url:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
-                    print("getAllFollowExternalAuthorPosts: ", full_url)
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-                    print(temp)
+
                     responseJsonlist = temp.json()
-                    print(responseJsonlist)
+
                     if team10_host_url in full_url:
                         post_list += responseJsonlist['posts']
                     else:
@@ -1151,7 +1166,6 @@ def getAllExternalAuthors():
             the_user_name = team10_name
             the_user_pass = team10_pass
             full_url += "s/"
-        print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if temp.status_code < 400:
             if team10_host_url in host_url:
