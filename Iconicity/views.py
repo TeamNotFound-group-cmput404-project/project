@@ -245,27 +245,16 @@ def mainPagePublic(request):
                     comment["comment_author_name"] = comment["author"]["displayName"]
 
         if team10_host_url in post["id"]:
-
-
-                
             if post["id"].endswith("/"):
                 like_url = post["id"] + "likes/"
             else:
                 like_url = post["id"] + "/likes/"
-
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
-
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
-            
-            
-
-
-
         post['post_id'] = post['id'].split('/')[-1]
         print("post_id",post['post_id'])
         counter +=1
-
     new_list += externalPosts
     for post in new_list:
         if 'image' in post:
@@ -1153,12 +1142,13 @@ def getAllExternalPublicPosts():
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-        
+        print("getAllExternalPublicPosts full_url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if team10_host_url in host_url:
             posts = temp.json()['posts']
         else:
             posts = temp.json()
+        print("getAllExternalPublicPosts posts: ", posts)
         new_one = []
         for i in posts:
             if i['visibility'] != "PUBLIC":
@@ -1783,12 +1773,17 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
+                    # modified here by Shway:
+                    # comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
+                    comment_serializer['post_id'] = comment_serializer['id']
+                    print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    print('post_comments pk_raw: ', pk_raw)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
@@ -1820,6 +1815,8 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
+                    # modified here by Shway:
+                    # comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
                     the_user_name = auth_user
                     the_user_pass = auth_pass
