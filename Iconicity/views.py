@@ -1708,11 +1708,11 @@ def post_comments(request):
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
-                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                            auth = HTTPBasicAuth(the_user_name, the_user_pass))
                     else:
                         response = requests.post(pk_raw+"/comments/",
                             json = comment_serializer, 
-                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                            auth = HTTPBasicAuth(the_user_name, the_user_pass))
 
                     print("response",response)
 
