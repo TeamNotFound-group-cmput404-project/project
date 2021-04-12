@@ -245,27 +245,16 @@ def mainPagePublic(request):
                     comment["comment_author_name"] = comment["author"]["displayName"]
 
         if team10_host_url in post["id"]:
-
-
-                
             if post["id"].endswith("/"):
                 like_url = post["id"] + "likes/"
             else:
                 like_url = post["id"] + "/likes/"
-
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
-
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
-            
-            
-
-
-
         post['post_id'] = post['id'].split('/')[-1]
         print("post_id",post['post_id'])
         counter +=1
-
     new_list += externalPosts
     for post in new_list:
         if 'image' in post:
