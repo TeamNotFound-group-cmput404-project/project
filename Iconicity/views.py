@@ -1116,7 +1116,7 @@ def getAllExternalPublicPosts():
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-        
+        print("getAllExternalPublicPosts full_url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if team10_host_url in host_url:
             posts = temp.json()['posts']
