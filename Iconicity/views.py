@@ -191,6 +191,11 @@ def mainPagePublic(request):
     counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+        
+        if post["id"].endswith("/"):
+            
+            post["id"] = "%s"%post["id"][:-1]
+
 
         if post["contentType"] == "text/plain":
             # means the content part is all plain text, not image
@@ -239,6 +244,7 @@ def mainPagePublic(request):
                     comment["comment_author_name"] = comment["author"]["displayName"]
 
         if team10_host_url in post["id"]:
+
             post['like_count'] = 0
             if counter == 0:
                 
@@ -251,6 +257,8 @@ def mainPagePublic(request):
 
                 like_list = temp.json()['likes']
                 post['like_count'] = len(like_list)
+            
+            
 
 
 
