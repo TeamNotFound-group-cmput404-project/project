@@ -1113,11 +1113,12 @@ def getAllExternalAuthors():
             full_url += "s"
         print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-        if team10_host_url in host_url:
-            authors = temp.json()['authors']
-        else:
-            authors = temp.json()
-        allAuthors += authors
+        if temp.status < 400:
+            if team10_host_url in host_url:
+                authors = temp.json()['authors']
+            else:
+                authors = temp.json()
+            allAuthors += authors
     return allAuthors
 
 class AllAuthors(APIView):
