@@ -1688,7 +1688,7 @@ class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk = author_id)
         friendPosts = Post.objects.filter(author = authorProfile.user)
-        print("FriendPostsByAuthor friendPosts: ", friendposts)
+        print("FriendPostsByAuthor friendPosts: ", friendPosts)
         return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
