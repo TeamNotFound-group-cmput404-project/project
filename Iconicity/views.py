@@ -159,8 +159,7 @@ def mainPagePublic(request):
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
 
     externalPosts = getAllExternalPublicPosts()
-     
-    
+
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -244,7 +243,6 @@ def mainPagePublic(request):
     post_id_list = []
     
     for post in new_list:
-        print("post",post)
         post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
@@ -741,11 +739,12 @@ def like_view(request):
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
+    print("team10",team10_host_url)
     print("pk_raw",pk_raw)
     print(the_user_name)
     print(the_user_pass)
     post_info = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()
-    print(post_info)
+
     if isinstance(post_info, list) or isinstance(post_info, tuple):
         post_info = post_info[0]
     post_author_url = post_info['author']['url']
@@ -753,10 +752,6 @@ def like_view(request):
     if post_author_url[-1] != "/":
         full_inbox_url += "/"
     full_inbox_url += 'inbox'
-    print("inbox url",full_inbox_url)
-
-
-    print("like object",like_obj.object)
     
     like_serializer = LikeSerializer(like_obj).data
     the_user_name = auth_user
@@ -770,10 +765,19 @@ def like_view(request):
                                 data={"obj":json.dumps(like_serializer)}, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
     else:
+        print("team10")
+        print(the_user_name,the_user_pass)
+        print(json.dumps(like_serializer))
+        print(full_inbox_url)
+        temp12 = json.loads(json.dumps(like_serializer))
+        temp12['type'] = 'Like'
+        print("sendout",temp12)
         response = requests.post(full_inbox_url,
-                                data=json.dumps(like_serializer), 
+                                data=temp12, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
-
+        print("response",response)
+        
+    # author/{AUTHOR_ID}/posts/{POST_ID}/comments/ endpoint
 
     # print("like inbox response",response)
     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
