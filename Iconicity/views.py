@@ -51,7 +51,6 @@ class LoginView(View):
         print("get", request)
         if not request.user.is_anonymous:
             return redirect(reverse('public'))
-
         return render(request, 'Iconicity/start.html', { 'login_form':  AuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
     def post(self,request):
@@ -86,6 +85,27 @@ class LoginView(View):
 
             login(request, User)
             return redirect('public')
+
+        # Go back to start.html
+        # When the login fails 
+
+
+        print("\n")
+        print("signup form: ")
+        for i in signup_form:
+            print(i.name)
+            print(i.value())
+
+        print("\n")
+
+        print("login form: ")
+        for i in login_form:
+            print(i.name)
+            print(i.value())
+        print("\n")
+
+        
+        print("Username/Password not correct")
 
         return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
