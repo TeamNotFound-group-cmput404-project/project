@@ -74,7 +74,7 @@
             </button>
           </form>
           
-          <form action="{% url 'comment_form' %}" method="GET">
+          <form action="{% url 'comment_form' %}" method="POST">
             {% csrf_token %}
             <button class="button", 
             type="submit", name="ppid", style="float:left;", value={{i.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>

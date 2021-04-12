@@ -1734,7 +1734,7 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
-    print("ppid: ", ppid)
+    print("post_comments ppid: ", ppid)
     #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         context = {'form123': CommentsCreateForm(), "url": ppid}
@@ -1742,8 +1742,9 @@ def post_comments(request):
 
 
     pk_raw = request.POST.get('pk')
+    print("hereherehereherehereherehereherehereherehereherehere")
     for key, value in request.POST.items():
-        print('%s: %s' % (key, value) ) 
+        print('post_comments iterative: %s: %s' % (key, value) ) 
     
 
     currentUserProfile = UserProfile.objects.get(user=request.user)
@@ -1752,7 +1753,7 @@ def post_comments(request):
 
     post = None
     pk_new = None
-    print("pk_raw",pk_raw)
+    print("post_comment pk_raw: ",pk_raw)
     if pk_raw:
         if '/' in pk_raw:
             try:
