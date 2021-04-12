@@ -33,6 +33,7 @@ from rest_framework.permissions import IsAuthenticated
 from requests.auth import HTTPBasicAuth
 import base64
 import uuid
+import datetime
 from math import ceil
 #https://thecodinginterface.com/blog/django-auth-part1/
 
@@ -180,13 +181,22 @@ def mainPagePublic(request):
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
     new_list = [] 
+    time_check1 = datetime.datetime.now()
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-
+    print("new_list",new_list)
     externalPosts = getAllExternalPublicPosts()
-     
+    time_check2 = datetime.datetime.now()
+    print("timecheck2",time_check2-time_check1)
     
+    counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
+
+
+        if post["id"].endswith("/"):
+            
+            post["id"] = "%s"%post["id"][:-1]
+
 
         if post["contentType"] == "text/plain":
             # means the content part is all plain text, not image
@@ -235,16 +245,26 @@ def mainPagePublic(request):
                     comment["comment_author_name"] = comment["author"]["displayName"]
 
         if team10_host_url in post["id"]:
+
+
+                
             if post["id"].endswith("/"):
                 like_url = post["id"] + "likes/"
             else:
                 like_url = post["id"] + "/likes/"
+
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
-            print("mainPagePublic temp: ", temp.json())
+
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
+            
+            
+
+
 
         post['post_id'] = post['id'].split('/')[-1]
+        print("post_id",post['post_id'])
+        counter +=1
 
     new_list += externalPosts
     for post in new_list:
@@ -254,9 +274,11 @@ def mainPagePublic(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+    time_check15 = datetime.datetime.now()
     
+    print("before_reverse_check",time_check15-time_check1)
     # sort the posts from latest to oldest
-    new_list.reverse()
+    #new_list.reverse()
 
     # Each page shows 5 posts
     number = 5
@@ -266,7 +288,7 @@ def mainPagePublic(request):
 
     # Current page is 1 by default
     curr_page = 1
-    first_page = pagen.page(curr_page).object_list
+    first_page = pagen.page(1).object_list
 
     print("Iterate the new_list:")
 
@@ -274,27 +296,26 @@ def mainPagePublic(request):
     post_id_list = []
     
     for post in new_list:
-        print("post",post)
         post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
 
     # If the main page is requested after commenting of liking
-    try:
-        request.session['curr_post_id']
-    except:
-        pass
-    else:
-        curr_post_id = request.session['curr_post_id']
-        if curr_post_id:
-            curr_post_id = request.session['curr_post_id'].split('/')[-1]
-            print("curr_post_id:", curr_post_id)
-            if curr_post_id in post_id_list:
-                index = post_id_list.index(curr_post_id) + 1
-                print(index)
-                curr_page = int(ceil(index / number))
-                first_page = pagen.page(curr_page).object_list
-                request.session['curr_post_id'] = None
+    # try:
+    #     request.session['curr_post_id']
+    # except:
+    #     pass
+    # else:
+    #     curr_post_id = request.session['curr_post_id']
+    #     if curr_post_id:
+    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
+    #         print("curr_post_id:", curr_post_id)
+    #         if curr_post_id in post_id_list:
+    #             index = post_id_list.index(curr_post_id) + 1
+    #             print(index)
+    #             curr_page = int(ceil(index / number))
+    #             first_page = pagen.page(curr_page).object_list
+    #             request.session['curr_post_id'] = None
     
     page_range = pagen.page_range
     curProfile = getUserProfile(request.user)
@@ -305,15 +326,14 @@ def mainPagePublic(request):
         # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
-        'curr_page': curr_page,
+        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
         results = list(pagen.page(page_n).object_list)
-        print("---------")
-        print(results)
-        print("---------")
         return JsonResponse({"results":results})
+    time_check3 = datetime.datetime.now()
+    print("full_time_check",time_check3-time_check1)
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -782,11 +802,12 @@ def like_view(request):
     if team10_host_url in pk_raw:
         the_user_name = team10_name
         the_user_pass = team10_pass
+    print("team10",team10_host_url)
     print("pk_raw",pk_raw)
     print(the_user_name)
     print(the_user_pass)
     post_info = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass)).json()
-    print(post_info)
+
     if isinstance(post_info, list) or isinstance(post_info, tuple):
         post_info = post_info[0]
     post_author_url = post_info['author']['url']
@@ -811,10 +832,19 @@ def like_view(request):
                                 json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
     else:
+        print("team10")
+        print(the_user_name,the_user_pass)
+        print(json.dumps(like_serializer))
+        print(full_inbox_url)
+        temp12 = json.loads(json.dumps(like_serializer))
+        temp12['type'] = 'Like'
+        print("sendout",temp12)
         response = requests.post(full_inbox_url,
                                 json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
-
+        print("response",response)
+        
+    # author/{AUTHOR_ID}/posts/{POST_ID}/comments/ endpoint
 
     # print("like inbox response",response)
     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
@@ -1011,7 +1041,7 @@ def mypost(request):
     number = 5
     pagen = Paginator(new_list,5)
     curr_page = 1
-    first_page = pagen.page(curr_page).object_list
+    first_page = pagen.page(1).object_list
     page_range = pagen.page_range
     
     github_username = getUserProfile(request.user).github.split("/")[-1]
@@ -1019,21 +1049,21 @@ def mypost(request):
     for post in new_list:
         post_id_list.append(str(post['post_id']))
 
-    try:
-        request.session['curr_post_id']
-    except:
-        pass
-    else:
-        curr_post_id = request.session['curr_post_id']
-        if curr_post_id:
-            curr_post_id = request.session['curr_post_id'].split('/')[-1]
-            print("curr_post_id:", curr_post_id)
-            if curr_post_id in post_id_list:
-                index = post_id_list.index(curr_post_id) + 1
-                print(index)
-                curr_page = int(ceil(index / number))
-                first_page = pagen.page(curr_page).object_list
-                request.session['curr_post_id'] = None
+    # try:
+    #     request.session['curr_post_id']
+    # except:
+    #     pass
+    # else:
+    #     curr_post_id = request.session['curr_post_id']
+    #     if curr_post_id:
+    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
+    #         print("curr_post_id:", curr_post_id)
+    #         if curr_post_id in post_id_list:
+    #             index = post_id_list.index(curr_post_id) + 1
+    #             print(index)
+    #             curr_page = int(ceil(index / number))
+    #             first_page = pagen.page(curr_page).object_list
+    #             request.session['curr_post_id'] = None
 
     context = {
         # 'posts': new_list,
@@ -1042,7 +1072,7 @@ def mypost(request):
         'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
         'github_username': github_username,
-        'curr_page': curr_page,
+        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1066,10 +1096,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
         if allFollowers != []:
             # now it should be a list of urls of the external followers
             # should like [url1, url2]
-            print("all", allFollowers)
+
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
-                    print("in")
+
                     full_url = user['url']
                     if user['url'][-1]=="/":
                         full_url += "posts/"
@@ -1080,11 +1110,10 @@ def getAllFollowExternalAuthorPosts(currentUser):
                     if team10_host_url in full_url:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
-                    print("getAllFollowExternalAuthorPosts: ", full_url)
                     temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-                    print(temp)
+
                     responseJsonlist = temp.json()
-                    print(responseJsonlist)
+
                     if team10_host_url in full_url:
                         post_list += responseJsonlist['posts']
                     else:
@@ -1122,8 +1151,14 @@ def getAllExternalPublicPosts():
             posts = temp.json()['posts']
         else:
             posts = temp.json()
+        new_one = []
+        for i in posts:
+            if i['visibility'] != "PUBLIC":
+                continue
+            else:
+                new_one.append(i)
 
-        allPosts += posts
+        allPosts += new_one
     return allPosts
 
 # by Shway, to get all remote authors from all connected servers:
@@ -1143,7 +1178,6 @@ def getAllExternalAuthors():
             the_user_name = team10_name
             the_user_pass = team10_pass
             full_url += "s/"
-        print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if temp.status_code < 400:
             if team10_host_url in host_url:
@@ -1245,7 +1279,7 @@ def following(request):
                     post['image'] = abs_imgpath
 
     # sort the posts from latest to oldest
-    new_list.reverse()
+    # new_list.reverse()
 
     # Each page shows 5 posts
     number = 5
@@ -1255,7 +1289,7 @@ def following(request):
 
     # Current page is 1 by default
     curr_page = 1
-    first_page = pagen.page(curr_page).object_list
+    first_page = pagen.page(1).object_list
 
     print("Iterate the new_list:")
 
@@ -1268,21 +1302,21 @@ def following(request):
     # print(post_id_list)
 
     # If the main page is requested after commenting of liking
-    try:
-        request.session['curr_post_id']
-    except:
-        pass
-    else:
-        curr_post_id = request.session['curr_post_id']
-        if curr_post_id:
-            curr_post_id = request.session['curr_post_id'].split('/')[-1]
-            print("curr_post_id:", curr_post_id)
-            if curr_post_id in post_id_list:
-                index = post_id_list.index(curr_post_id) + 1
-                print(index)
-                curr_page = int(ceil(index / number))
-                first_page = pagen.page(curr_page).object_list
-                request.session['curr_post_id'] = None
+    # try:
+    #     request.session['curr_post_id']
+    # except:
+    #     pass
+    # else:
+    #     curr_post_id = request.session['curr_post_id']
+    #     if curr_post_id:
+    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
+    #         print("curr_post_id:", curr_post_id)
+    #         if curr_post_id in post_id_list:
+    #             index = post_id_list.index(curr_post_id) + 1
+    #             print(index)
+    #             curr_page = int(ceil(index / number))
+    #             first_page = pagen.page(curr_page).object_list
+    #             request.session['curr_post_id'] = None
 
     page_range = pagen.page_range
     context = {
@@ -1292,7 +1326,7 @@ def following(request):
         # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
-        'curr_page': curr_page,
+        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1460,7 +1494,7 @@ def friends(request):
 
     # Current page is 1 by default
     curr_page = 1
-    first_page = pagen.page(curr_page).object_list
+    first_page = pagen.page(1).object_list
 
     print("Iterate the postList:")
 
@@ -1496,7 +1530,7 @@ def friends(request):
         'page_range':page_range,
         'UserProfile': userProfile,
         'myself': str(userProfile.url),
-        'curr_page': curr_page,
+        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1593,7 +1627,13 @@ class Inboxs(APIView):
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
                     # means it's local like author              
                     # means add this man's id to the like list.
-                    post_obj.like.add(local_author_profile.user)
+                    if post_obj.external_likes == {}:
+                        post_obj.external_likes['urls'] = []
+                    external_author_url = data_json["author"]["url"]
+                    post_obj.external_likes['urls'].append(external_author_url)
+                    print("external",post_obj.external_likes['urls'])
+                    print("new like user",local_author_profile.user)
+                    #post_obj.like.add(local_author_profile.user)
                     like_obj = Like()
                     like_obj.context= data_json["context"]
                     like_obj.object = data_json["object"]
@@ -1609,9 +1649,10 @@ class Inboxs(APIView):
                 else:
                     # means it's a external author
                     external_author_url = data_json["author"]["url"]
-                    if post_obj.external_likes == {} or post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
-                        # means add this man's id to the external like list.
+                    if post_obj.external_likes == {}:
                         post_obj.external_likes['urls'] = []
+                    if post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                        # means add this man's id to the external like list.
                         post_obj.external_likes['urls'].append(external_author_url)
                         like_obj = Like()
                         like_obj.context= data_json["context"]
