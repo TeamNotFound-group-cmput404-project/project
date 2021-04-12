@@ -1694,7 +1694,6 @@ def post_comments(request):
                     #form.post = post_id
                     #form.author = currentUserProfile.url
                     #form.save()
-                    
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
