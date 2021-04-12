@@ -1113,7 +1113,7 @@ def getAllExternalAuthors():
             full_url += "s"
         print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-        if temp.status < 400:
+        if temp.status_code < 400:
             if team10_host_url in host_url:
                 authors = temp.json()['authors']
             else:
