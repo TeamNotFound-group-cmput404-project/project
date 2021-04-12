@@ -1765,6 +1765,8 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
+                    # modified here by Shway:
+                    comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
                     print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
@@ -1804,6 +1806,8 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
+                    # modified here by Shway:
+                    comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
                     the_user_name = auth_user
                     the_user_pass = auth_pass
