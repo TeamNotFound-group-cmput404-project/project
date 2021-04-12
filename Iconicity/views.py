@@ -87,25 +87,25 @@ class LoginView(View):
             return redirect('public')
 
         # Go back to start.html
-        # When the login fails 
+        # When the login/signup fails, retrieve data
+        login_details = {}
+        signup_details = {}
 
-
-        print("\n")
-        print("signup form: ")
-        for i in signup_form:
-            print(i.name)
-            print(i.value())
-
-        print("\n")
-
-        print("login form: ")
         for i in login_form:
-            print(i.name)
-            print(i.value())
-        print("\n")
+            login_details[str(i.name)] = i.value()
 
-        
-        print("Username/Password not correct")
+        for i in signup_form:
+            signup_details[str(i.name)] = i.value()
+
+        print("login_details: ")
+        print(login_details)
+    
+        print("signup_details: ")
+        print(signup_details)
+
+        # Login Problem
+
+
 
         return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
 
