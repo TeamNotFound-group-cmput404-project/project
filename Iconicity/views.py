@@ -1368,6 +1368,7 @@ def friends(request):
 
     new_list = PostSerializer(tmp_list, many=True).data
     externalFriends = getExternalUserFriends(request.user)
+    print("friends externalUserFriends: ", externalFriends)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
             full_url = each_url
