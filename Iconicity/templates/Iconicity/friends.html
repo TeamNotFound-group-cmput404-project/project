@@ -78,10 +78,10 @@
             {% csrf_token %}
             {% if i.id != '' and i.id != None %}
               <button class="button", 
-              type="submit", name="pk", style="float:left;", value={{i.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+              type="submit", name="ppid", style="float:left;", value={{i.id}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
             {% else %}
               <button class="button", 
-              type="submit", name="pk", style="float:left;", value={{i.origin}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
+              type="submit", name="ppid", style="float:left;", value={{i.source}}><i class="fa fa-comment-o" style="font-size:20px;"></i></button>
             {% endif%}
           </form>
 
