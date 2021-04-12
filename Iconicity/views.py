@@ -1140,6 +1140,7 @@ def getAllExternalPublicPosts():
             posts = temp.json()['posts']
         else:
             posts = temp.json()
+        print("getAllExternalPublicPosts posts: ", posts)
         new_one = []
         for i in posts:
             if i['visibility'] != "PUBLIC":
