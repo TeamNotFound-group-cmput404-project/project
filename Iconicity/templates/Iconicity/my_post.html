@@ -52,7 +52,7 @@
             <h5>By: {{ i.author_display_name}}</h5><br>
             <hr class="w3-clear">
             {% if i.contentType == "text/plain" %}
-              <p>{{ i.content }}</p>
+              <p>{{ i.content }} </p>
             {% endif %}
             {% if i.contentType == "text/markdown" %}
               <p class="toMarkdown" id="{{ i.post_id }}">{{ i.content }}</p>
@@ -63,12 +63,14 @@
                   <img src="{{i.image}}">
                 {% endif %}
               </div>
+            
+            </div>
               <hr class="w3-clear">
-
+              <br>
+              <br>
               <!-- Below are the like, comment and repost buttons -->
               <form action="{% url 'like_post_mypost' %}" method="POST">
                 {% csrf_token %}
-
                 <button class="button", 
                 style = "float:left;",type="submit", name="pk", value={{i.id}}>
                 <i class="fa fa-heart-o" style="font-size:20px;" ></i>
