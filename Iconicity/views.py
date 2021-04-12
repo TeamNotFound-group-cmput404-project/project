@@ -212,6 +212,7 @@ def mainPagePublic(request):
             else:
                 like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            print("mainPagePublic temp: ", temp.json())
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
