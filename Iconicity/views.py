@@ -191,7 +191,8 @@ def mainPagePublic(request):
     counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
-        
+
+
         if post["id"].endswith("/"):
             
             post["id"] = "%s"%post["id"][:-1]
@@ -263,6 +264,7 @@ def mainPagePublic(request):
 
 
         post['post_id'] = post['id'].split('/')[-1]
+        print("post_id",post['post_id'])
         counter +=1
 
     new_list += externalPosts
@@ -330,9 +332,6 @@ def mainPagePublic(request):
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
         results = list(pagen.page(page_n).object_list)
-        print("---------")
-        print(results)
-        print("---------")
         return JsonResponse({"results":results})
     time_check3 = datetime.datetime.now()
     print("full_time_check",time_check3-time_check1)
@@ -1153,8 +1152,14 @@ def getAllExternalPublicPosts():
             posts = temp.json()['posts']
         else:
             posts = temp.json()
+        new_one = []
+        for i in posts:
+            if i['visibility'] != "PUBLIC":
+                continue
+            else:
+                new_one.append(i)
 
-        allPosts += posts
+        allPosts += new_one
     return allPosts
 
 # by Shway, to get all remote authors from all connected servers:
