@@ -1136,7 +1136,7 @@ class AuthorById(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        userProfile = UserProfile.objects.get(pk=author_id)
+        userProfile = UserProfile.objects.get(pk = author_id)
         serializer = GETProfileSerializer(userProfile)
         return Response(serializer.data)
 
