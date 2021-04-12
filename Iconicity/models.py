@@ -168,7 +168,9 @@ class Post(models.Model):
 
     host = models.URLField(default="")
     def count_like(self):
+        print(self.external_likes,self.like.count())
         if self.external_likes != {}:
+            
             return self.like.count() + len(self.external_likes['urls'])
         return self.like.count()
 
