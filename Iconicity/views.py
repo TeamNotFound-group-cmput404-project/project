@@ -1101,16 +1101,16 @@ def getAllExternalAuthors():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "author/"
+            full_url = host_url + "author"
         else:
-            full_url = host_url + "/author/"
+            full_url = host_url + "/author"
         # for connecting to other teams:
         the_user_name = auth_user
         the_user_pass = auth_pass
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-            full_url += "s"
+            full_url += "s/"
         print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if temp.status_code < 400:
