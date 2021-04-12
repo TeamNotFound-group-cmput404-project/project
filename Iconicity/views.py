@@ -1384,6 +1384,7 @@ def friends(request):
                 the_user_name = team10_name
                 the_user_pass = team10_pass
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+            print("friends posts: ", posts)
             postList += posts
     postList += new_list  
     for post in new_list:
