@@ -1198,7 +1198,9 @@ def following(request):
                 like_url = post["id"] + "likes/"
             else:
                 like_url = post["id"] + "/likes/"
-            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            print("before getting team 10 likes")
+            temp = requests.get(like_url, auth = HTTPBasicAuth(team10_name, team10_pass))
+            print("after getting team 10 likes")
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
