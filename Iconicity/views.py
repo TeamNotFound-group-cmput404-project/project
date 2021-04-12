@@ -1655,7 +1655,6 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
-    print("post_comments ppid: ", ppid)
     #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         
@@ -1839,7 +1838,8 @@ class Comments(APIView):
         # only two things need to be pass through request are the comment content
         # and the url of the author that write the comment on your post. 
         comment.comment = request.data['comment']
-        comment.author = json.loads(request.data['author'])
+        # modified here by Shway
+        comment.author = request.data['author']
         comment.save()
         return Response([],status=201)
 
