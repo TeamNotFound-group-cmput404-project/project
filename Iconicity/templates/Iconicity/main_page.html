@@ -174,13 +174,15 @@ const csrf = getCookie('csrftoken');
           
           // ajax
           $.ajax({
-            type: "POST",
-                // url:"{% url 'public' %}", // name of url
-                data : {    
-                href: this.href,
+            
+                url:'public?'+ jQuery.param({page_n : page_n}),
+                type: "POST",
+                data : jQuery.param({    
+                // href: this.href,
                 page_n : page_n, //page_number
                 csrfmiddlewaretoken: '{{ csrf_token }}',
-            },
+            }),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
             success: function (resp) {
               //loop
               $('#posts').html('')
