@@ -122,8 +122,9 @@ class LoginView(View):
                 login(request, user)
                 return redirect('public')
             else:
-                messages.error(request,'Your account is not verified by the admin.')
-                return redirect(reverse('login'))
+                # messages.error(request,'Your account is not verified by the admin.')
+                return render(request, 'Iconicity/start.html', 
+                { 'login_form': login_form, 'signup_form':signup_form, 'state': "not_active" })
 
         # Go back to start.html
         # When the login/signup fails, retrieve data
@@ -136,17 +137,17 @@ class LoginView(View):
         for i in signup_form:
             signup_details[str(i.name)] = i.value()
 
-        print("login_details: ")
-        print(login_details)
-    
-        print("signup_details: ")
-        print(signup_details)
-
         # Login Problem
+        if login_details['username'] and login_details['password']:
+            print("login problem")
+            state = 'login_problem'
 
+        # Signup problem
+        if signup_details['email'] or signup_details['password1'] or signup_details['password2'] or signup_details['github']:
+            state = 'signup_problem'
 
-
-        return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
+        return render(request, 'Iconicity/start.html', 
+        { 'login_form': login_form, 'signup_form':signup_form, 'state':state })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 

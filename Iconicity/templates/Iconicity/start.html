@@ -11,7 +11,10 @@
     <link rel="icon" href="/media/images/logo.png">
     <link href="https://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/start.css' %}"/>
+    <link rel="stylesheet" href="{% static 'alertifyjs/css/alertify.min.css' %}"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'alertifyjs/alertify.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascript/start.js' %}"></script>
   </head>
 
@@ -77,11 +80,13 @@
               <!-- <div class = "help">{{ field.help_text }}</div> -->
               
               
-                {% for error in field.errors %}
-                  {% if error != '' or error != null %}
-                  <div class = "error">{{ error}}</div>
-                  {% endif %}
-                {% endfor %}
+              {% for error in field.errors %}
+                {% if state == 'signup_problem' %}
+                  <p class = "error" style="color: #D55560">{{ error}}</p>
+                {% endif %}
+              {% endfor %}
+
+              <br>
             </p>
           {% endfor %}
           
@@ -93,6 +98,28 @@
           
         </form>
       </div>
+      
+      {% if state == 'not_active' %}
+        <script>
+          alertify.alert('Iconicity', 'Registration successful: pending admin approval!',);
+        </script>
+      {% endif %}
+
+      {% if state == 'login_problem' %}
+        <script>
+          alertify.alert('Iconicity', 'Incorrect login details or account pending approval!',);
+        </script>
+      {% endif %}
+
+      {% if state == 'signup_problem' %}
+        <script>
+          alertify.alert('Iconicity', 'Invailid sign-up details!');
+          $(".register-box").show();
+          $(".login-box").hide();
+          $(".register-tab").addClass("active");
+          $(".login-tab").removeClass("active");
+        </script>
+      {% endif %}
       
     </div>
   </body>
