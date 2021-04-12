@@ -94,7 +94,7 @@
           {% csrf_token %}
           <button class="button", 
               type="submit", 
-              style="float:left;",
+              
               name="ppid", 
               value={{i.source}}>
               <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
@@ -103,7 +103,7 @@
         <form action="{% url 'repost' %}" method="POST">
           {% csrf_token %}
           <button class="button", 
-            style = "float:left;",
+            
             type="submit", name="pk", value={{i.source}}>
             <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
           </button>
@@ -111,7 +111,7 @@
 
         <form action="{% url 'repost_to_friend' %}" method="POST">
           {% csrf_token %}
-          <button class="button", style="float:left;", type="submit", name="pk", value={{i.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+          <button class="button", type="submit", name="pk", value={{i.source}}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
         </form>
         <br>
         <p>{{i.like_count}} liked this post.</p>
