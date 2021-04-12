@@ -196,6 +196,7 @@ def mainPagePublic(request):
                 with open("Iconicity"+path, "wb") as fh:
                     fh.write(base64.decodebytes(str.encode(post['content'])))
                 post['image'] = path
+
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
             print("inside")
             post['author_display_name'] = post['author']['displayName']
@@ -207,9 +208,9 @@ def mainPagePublic(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
+                like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
@@ -1075,9 +1076,9 @@ def getAllExternalPublicPosts():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "posts"
+            full_url = host_url + "posts/"
         else:
-            full_url = host_url + "/posts"
+            full_url = host_url + "/posts/"
         the_user_name = auth_user
         the_user_pass = auth_pass
         if team10_host_url in host_url:
@@ -1100,9 +1101,9 @@ def getAllExternalAuthors():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "author"
+            full_url = host_url + "author/"
         else:
-            full_url = host_url + "/author"
+            full_url = host_url + "/author/"
         # for connecting to other teams:
         the_user_name = auth_user
         the_user_pass = auth_pass
@@ -1193,9 +1194,9 @@ def following(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
+                like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
@@ -1292,9 +1293,9 @@ def getExternalUserFriends(currentUser):
         if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
             full_url = user['url']
             if user['url'][-1] == "/":
-                full_url += "followers"
+                full_url += "followers/"
             else:
-                full_url += "/followers"
+                full_url += "/followers/"
             # now check whether you are also his/hers followee.
             the_user_name = auth_user
             the_user_pass = auth_pass
@@ -1393,9 +1394,9 @@ def friends(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
+                like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
@@ -1534,7 +1535,6 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        #data_json = json.loads(request.data['obj'])
         data_json = request.data
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
