@@ -161,7 +161,7 @@ const csrf = getCookie('csrftoken');
         $("a#page").click(function(event){
           event.preventDefault();
           var page_n =$(this).attr('href');
-         
+          console.log(page_n);
           // Remove highlight on the other pages
           var all_pages = document.querySelectorAll('[id=page]');
           for (let i of all_pages){
@@ -175,8 +175,9 @@ const csrf = getCookie('csrftoken');
           // ajax
           $.ajax({
             type: "POST",
-                url:"{% url 'public' %}", // name of url
+                // url:"{% url 'public' %}", // name of url
                 data : {    
+                href: this.href,
                 page_n : page_n, //page_number
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             },
@@ -208,13 +209,15 @@ const csrf = getCookie('csrftoken');
                 if( val.contentType=="text/markdown"){
                   post_content = `<p class="toMarkdown" id="${ val.post_id }">${val.content }</p>`
                 }
+
                 var button = ``;
-                if(val.id != ''&& val.id != null){
+
+                if(val.source != ''&& val.source != null){
                   button = `<button class="button", 
-            style = "float:left;",type="submit", name="pk", value=${val.id}>`
+                            style = "float:left;",type="submit", name="pk", value=${val.source}>`
                 }else{
                   button = `<button class="button", 
-            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
                 }
         
                 $('#posts').append(`

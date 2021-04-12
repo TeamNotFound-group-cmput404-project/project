@@ -2,6 +2,7 @@ from django.shortcuts import render, resolve_url, reverse, get_object_or_404,red
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from .models import *
 from .config import *
+from django.urls import resolve
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from rest_framework.views import APIView
@@ -76,6 +77,7 @@ class LoginView(View):
 
         return render(request, 'Iconicity/start.html', { 'login_form':  PickyAuthenticationForm, 'signup_form': SignUpForm(request.POST) })
 
+
     def post(self,request):
         print("post", request)
         login_form = PickyAuthenticationForm(request, data=request.POST)
@@ -120,10 +122,32 @@ class LoginView(View):
                 login(request, user)
                 return redirect('public')
             else:
-                messages.error(request,'Your account is not verified by the admin.')
-                return redirect(reverse('login'))
+                # messages.error(request,'Your account is not verified by the admin.')
+                return render(request, 'Iconicity/start.html', 
+                { 'login_form': login_form, 'signup_form':signup_form, 'state': "not_active" })
 
-        return render(request, 'Iconicity/start.html', { 'login_form': login_form, 'signup_form':signup_form })
+        # Go back to start.html
+        # When the login/signup fails, retrieve data
+        login_details = {}
+        signup_details = {}
+
+        for i in login_form:
+            login_details[str(i.name)] = i.value()
+
+        for i in signup_form:
+            signup_details[str(i.name)] = i.value()
+
+        # Login Problem
+        if login_details['username'] and login_details['password']:
+            print("login problem")
+            state = 'login_problem'
+
+        # Signup problem
+        if signup_details['email'] or signup_details['password1'] or signup_details['password2'] or signup_details['github']:
+            state = 'signup_problem'
+
+        return render(request, 'Iconicity/start.html', 
+        { 'login_form': login_form, 'signup_form':signup_form, 'state':state })
 
 # citation:https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html#sign-up-with-profile-model
 
@@ -184,7 +208,11 @@ def mainPagePublic(request):
             post_id = [i for i in post['id'].split('/') if i][-1]
             file_name = post_id+".png"
             folder_path = "/media/images/"
-            path = folder_path+file_name
+            if os.path.isdir("Iconicity"+folder_path):
+                path = folder_path+file_name
+            else:
+                os.mkdir("Iconicity"+folder_path)
+                path = folder_path+file_name
             # first, check this image exists.
             
             if os.path.exists("Iconicity"+path):
@@ -280,6 +308,9 @@ def mainPagePublic(request):
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
         results = list(pagen.page(page_n).object_list)
+        print("---------")
+        print(results)
+        print("---------")
         return JsonResponse({"results":results})
     return render(request, 'Iconicity/main_page.html', context)
 
