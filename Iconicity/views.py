@@ -1367,6 +1367,7 @@ def friends(request):
         tmp_list += getPosts(user, visibility="FRIENDS")
 
     new_list = PostSerializer(tmp_list, many=True).data
+    postList += new_list
     externalFriends = getExternalUserFriends(request.user)
     print("friends externalUserFriends: ", externalFriends)
     if externalFriends and externalFriends !=[]:
@@ -1386,8 +1387,8 @@ def friends(request):
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
             print("friends posts: ", posts)
             postList += posts
-    postList += new_list  
-    for post in new_list:
+    
+    for post in postList:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
         if post["contentType"] == "text/plain":
@@ -1440,7 +1441,7 @@ def friends(request):
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
-    for post in new_list:
+    for post in postList:
         if post['image'] is not None:
             if "socialdistributionproject" not in post['author']['host']:
                 imghost = post['origin'].split('.com')[0]
@@ -1449,23 +1450,23 @@ def friends(request):
     userProfile = getUserProfile(request.user)
 
     # sort the posts from latest to oldest
-    new_list.reverse()
+    postList.reverse()
 
     # Each page shows 5 posts
     number = 5
 
     # Paginator
-    pagen = Paginator(new_list,5)
+    pagen = Paginator(postList,5)
 
     # Current page is 1 by default
     curr_page = 1
     first_page = pagen.page(curr_page).object_list
 
-    print("Iterate the new_list:")
+    print("Iterate the postList:")
 
     # Get a list of post id
     post_id_list = []
-    for post in new_list:
+    for post in postList:
         post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
