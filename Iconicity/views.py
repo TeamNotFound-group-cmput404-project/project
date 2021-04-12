@@ -1776,7 +1776,7 @@ def post_comments(request):
                     # modified here by Shway:
                     # comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
-                    comment_serializer['post_id'] = comment_serializer['id']
+                    #comment_serializer['post_id'] = comment_serializer['id']
                     print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
