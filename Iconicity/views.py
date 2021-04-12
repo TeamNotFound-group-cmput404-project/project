@@ -1202,7 +1202,7 @@ class AuthorById(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        userProfile = UserProfile.objects.get(pk=author_id)
+        userProfile = UserProfile.objects.get(pk = author_id)
         serializer = GETProfileSerializer(userProfile)
         return Response(serializer.data)
 
@@ -1396,12 +1396,15 @@ def friends(request):
     # get all the posts posted by the current user
     postList = []
     friends_test = getUserFriend(request.user)
+    print("friends friends test: ", friends_test)
     tmp_list = []
     for user in friends_test:
         tmp_list += getPosts(user, visibility="FRIENDS")
 
     new_list = PostSerializer(tmp_list, many=True).data
+    postList += new_list
     externalFriends = getExternalUserFriends(request.user)
+    print("friends externalUserFriends: ", externalFriends)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
             full_url = each_url
@@ -1417,9 +1420,10 @@ def friends(request):
                 the_user_name = team10_name
                 the_user_pass = team10_pass
             posts = requests.get(full_url, auth=HTTPBasicAuth(auth_user, auth_pass)).json()
+            print("friends posts: ", posts)
             postList += posts
-    postList += new_list  
-    for post in new_list:
+    
+    for post in postList:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
         if post["contentType"] == "text/plain":
@@ -1472,7 +1476,7 @@ def friends(request):
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
-    for post in new_list:
+    for post in postList:
         if post['image'] is not None:
             if "socialdistributionproject" not in post['author']['host']:
                 imghost = post['origin'].split('.com')[0]
@@ -1481,23 +1485,23 @@ def friends(request):
     userProfile = getUserProfile(request.user)
 
     # sort the posts from latest to oldest
-    # new_list.reverse()
+    postList.reverse()
 
     # Each page shows 5 posts
     number = 5
 
     # Paginator
-    pagen = Paginator(new_list,5)
+    pagen = Paginator(postList,5)
 
     # Current page is 1 by default
     curr_page = 1
     first_page = pagen.page(1).object_list
 
-    print("Iterate the new_list:")
+    print("Iterate the postList:")
 
     # Get a list of post id
     post_id_list = []
-    for post in new_list:
+    for post in postList:
         post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
@@ -1518,7 +1522,7 @@ def friends(request):
                 curr_page = int(ceil(index / number))
                 first_page = pagen.page(curr_page).object_list
                 request.session['curr_post_id'] = None
-
+    print("friends first_page: ", first_page)
     page_range = pagen.page_range
     context = {
         # 'posts': postList,
@@ -1719,9 +1723,10 @@ class FriendPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        authorProfile = UserProfile.objects.get(pk=author_id)
-        friendPosts = Post.objects.filter(author=authorProfile.user)
-        return Response(PostSerializer(friendPosts, many=True).data)
+        authorProfile = UserProfile.objects.get(pk = author_id)
+        friendPosts = Post.objects.filter(author = authorProfile.user)
+        print("FriendPostsByAuthor friendPosts: ", friendPosts)
+        return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
@@ -1760,7 +1765,6 @@ def post_comments(request):
                     #form.post = post_id
                     #form.author = currentUserProfile.url
                     #form.save()
-                    
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
@@ -1774,11 +1778,11 @@ def post_comments(request):
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
-                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                            auth = HTTPBasicAuth(the_user_name, the_user_pass))
                     else:
                         response = requests.post(pk_raw+"/comments/",
                             json = comment_serializer, 
-                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                            auth = HTTPBasicAuth(the_user_name, the_user_pass))
 
                     print("response",response)
 
