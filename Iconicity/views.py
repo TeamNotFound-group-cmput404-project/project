@@ -1734,9 +1734,9 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
+    print("ppid: ", ppid)
     #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
-        
         context = {'form123': CommentsCreateForm(), "url": ppid}
         return render(request, 'Iconicity/comment_form.html', context)
 
@@ -1744,7 +1744,7 @@ def post_comments(request):
     pk_raw = request.POST.get('pk')
     for key, value in request.POST.items():
         print('%s: %s' % (key, value) ) 
-    print("ppid: ", ppid)
+    
 
     currentUserProfile = UserProfile.objects.get(user=request.user)
 
