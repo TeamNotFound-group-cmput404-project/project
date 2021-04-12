@@ -196,6 +196,7 @@ def mainPagePublic(request):
                 with open("Iconicity"+path, "wb") as fh:
                     fh.write(base64.decodebytes(str.encode(post['content'])))
                 post['image'] = path
+
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
             print("inside")
             post['author_display_name'] = post['author']['displayName']
@@ -207,10 +208,11 @@ def mainPagePublic(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
+                like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            print("mainPagePublic temp: ", temp.json())
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
@@ -450,17 +452,25 @@ def follow_someone(request):
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
+            #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
             else: full_followee_url = str(request.scheme) + "://" + followee_id
             # should send to inbox:
-            if full_followee_url[-1] == '/': full_followee_url += "inbox"
-            else: full_followee_url += '/inbox'
+            if full_followee_url[-1] == '/': full_followee_url += "inbox/"
+            else: full_followee_url += '/inbox/'
             # post the friend request to the external server's inbox
             print("this is the full followee_url: ", full_followee_url)
+            # send the requests:
+
+            '''
             post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
+                auth=HTTPBasicAuth(auth_user, auth_pass))
+            '''
+
+            post_data = requests.post(full_followee_url, json = frd_request_serialized,
                 auth=HTTPBasicAuth(auth_user, auth_pass))
             print("data responded: ", post_data)
         curProfile.save()
@@ -524,7 +534,7 @@ def follow_back(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
@@ -600,7 +610,7 @@ def remove_inbox_follow(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
@@ -653,10 +663,10 @@ class SendPrivatePostView(CreateView):
                 if receiver_id.startswith('http'): full_receiver_url = receiver_id
                 else: full_receiver_url = str(request.scheme) + "://" + receiver_id
                 # should send to inbox:
-                if full_receiver_url[-1] == '/': full_receiver_url += "inbox"
-                else: full_receiver_url += '/inbox'
+                if full_receiver_url[-1] == '/': full_receiver_url += "inbox/"
+                else: full_receiver_url += '/inbox/'
                 # send the private post to the external server's inbox
-                post_data = requests.post(full_receiver_url, data = {"obj":json.dumps(serializedPost)},
+                post_data = requests.post(full_receiver_url, json = serializedPost,
                     auth = HTTPBasicAuth(auth_user, auth_pass))
                 print("data responded: ", post_data)
             return redirect('all_profiles')
@@ -752,7 +762,7 @@ def like_view(request):
     full_inbox_url = post_author_url
     if post_author_url[-1] != "/":
         full_inbox_url += "/"
-    full_inbox_url += 'inbox'
+    full_inbox_url += 'inbox/'
     print("inbox url",full_inbox_url)
 
 
@@ -767,11 +777,11 @@ def like_view(request):
     if team10_host_url not in pk_raw:
         print(json.dumps(like_serializer))
         response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(like_serializer)}, 
+                                json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
     else:
         response = requests.post(full_inbox_url,
-                                data=json.dumps(like_serializer), 
+                                json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
 
@@ -794,19 +804,24 @@ def repost(request):
         the_user_pass = team10_pass
     print("repost pk_raw: ", pk_raw)
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-    post = json.loads(get_json_response.text)[0]
+    temp = get_json_response.text
+    # modified by Shway to fit team 10:
+    post = None
+    if team10_host_url in pk_raw: post = json.loads(temp)
+    else: post = json.loads(temp)[0]
     print("response_dict",post)
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'PUBLIC', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
-    img_path = post['image']
-    if img_path is not None:
-        img_path_dict = img_path.split("/")
-        new_path = ""
-        for i in range(2, len(img_path_dict)):
-            new_path = new_path + "/" + img_path_dict[i]
-    
+    img_path = None
+    if team10_host_url not in pk_raw:
+        img_path = post['image']
+        if img_path is not None:
+            img_path_dict = img_path.split("/")
+            new_path = ""
+            for i in range(2, len(img_path_dict)):
+                new_path = new_path + "/" + img_path_dict[i]
     if post_form.is_valid():
         post_form = post_form.save(commit=False)
         post_form.origin = post['origin']
@@ -841,13 +856,19 @@ def repost_to_friend(request):
         the_user_pass = team10_pass
     get_json_response = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
     print(json.loads(get_json_response.text))
-    post = json.loads(get_json_response.text)[0]
+
+    # modified here by Shway
+    post = None
+    if team10_host_url in pk_raw: post = json.loads(get_json_response.text)
+    else: post = json.loads(get_json_response.text)[0]
 
     ordinary_dict = {'title': post['title'], 'content': post['content'], 'visibility':'FRIENDS', 'contentType': post['contentType']}
     query_dict = QueryDict('', mutable=True)
     query_dict.update(ordinary_dict)
     post_form = PostsCreateForm(query_dict)
-    img_path = post['image']
+    img_path = None
+    if team10_host_url not in pk_raw:
+        img_path = post['image']
     if img_path is not None:
         img_path_dict = img_path.split("/")
         new_path = ""
@@ -1056,9 +1077,9 @@ def getAllExternalPublicPosts():
     full_url = ''
     for host_url in externalHosts:
         if host_url[-1] == "/":
-            full_url = host_url + "posts"
+            full_url = host_url + "posts/"
         else:
-            full_url = host_url + "/posts"
+            full_url = host_url + "/posts/"
         the_user_name = auth_user
         the_user_pass = auth_pass
         if team10_host_url in host_url:
@@ -1090,14 +1111,15 @@ def getAllExternalAuthors():
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-            full_url += "s"
+            full_url += "s/"
         print("getAllExternalAuthors full url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-        if team10_host_url in host_url:
-            authors = temp.json()['authors']
-        else:
-            authors = temp.json()
-        allAuthors += authors
+        if temp.status_code < 400:
+            if team10_host_url in host_url:
+                authors = temp.json()['authors']
+            else:
+                authors = temp.json()
+            allAuthors += authors
     return allAuthors
 
 class AllAuthors(APIView):
@@ -1174,10 +1196,12 @@ def following(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
-            temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+                like_url = post["id"] + "/likes/"
+            print("before getting team 10 likes")
+            temp = requests.get(like_url, auth = HTTPBasicAuth(team10_name, team10_pass))
+            print("after getting team 10 likes")
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
 
@@ -1207,7 +1231,8 @@ def following(request):
     # Get a list of post id
     post_id_list = []
     for post in new_list:
-        post_id_list.append(str(post['post_id']))
+        if team10_host_url not in post['id']:
+            post_id_list.append(str(post['post_id']))
     
     # print(post_id_list)
 
@@ -1273,9 +1298,9 @@ def getExternalUserFriends(currentUser):
         if len(UserProfile.objects.filter(url = user['url'])) == 0: # if external
             full_url = user['url']
             if user['url'][-1] == "/":
-                full_url += "followers"
+                full_url += "followers/"
             else:
-                full_url += "/followers"
+                full_url += "/followers/"
             # now check whether you are also his/hers followee.
             the_user_name = auth_user
             the_user_pass = auth_pass
@@ -1374,9 +1399,9 @@ def friends(request):
 
         if team10_host_url in post["id"]:
             if post["id"].endswith("/"):
-                like_url = post["id"] + "likes"
+                like_url = post["id"] + "likes/"
             else:
-                like_url = post["id"] + "/likes"
+                like_url = post["id"] + "/likes/"
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
@@ -1515,9 +1540,7 @@ class Inboxs(APIView):
         return Response(InboxSerializer(inbox).data)
 
     def post(self, request, author_id):
-        print(request.data['obj'])
-        print(type(request.data['obj']))
-        data_json = json.loads(request.data['obj'])
+        data_json = request.data
         print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
@@ -1636,6 +1659,7 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
+    #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         
         context = {'form123': CommentsCreateForm(), "url": ppid}
@@ -1670,23 +1694,28 @@ def post_comments(request):
                     #form.post = post_id
                     #form.author = currentUserProfile.url
                     #form.save()
+                    
+                    comment_obj = Comment()
+                    comment_obj.comment = form.cleaned_data['comment']
+                    comment_obj.author = author_json
+                    comment_obj.post = pk_raw
+                    comment_serializer = CommentSerializer(comment_obj).data
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
-                    
                     if pk_raw[-1] == "/":
-                        response = requests.post(pk_raw+"comments",
-                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
+                        response = requests.post(pk_raw+"comments/",
+                            json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
-
-
                     else:
-                        response = requests.post(pk_raw+"/comments",
-                            data={"comment":form.cleaned_data['comment'],"author":json.dumps(author_json)}, 
+                        response = requests.post(pk_raw+"/comments/",
+                            json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
+
                     print("response",response)
+
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
@@ -1700,7 +1729,7 @@ def post_comments(request):
                     full_inbox_url = post_author_url
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
-                    full_inbox_url += 'inbox'
+                    full_inbox_url += 'inbox/'
                     
                     
                     comment_obj = Comment()
@@ -1714,14 +1743,9 @@ def post_comments(request):
                         the_user_name = team10_name
                         the_user_pass = team10_pass
  
-                    if team10_host_url not in pk_raw:
-                        response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(comment_serializer)}, 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
-                    else:
-                         response = requests.post(full_inbox_url,
-                                data=json.dumps(comment_serializer), 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                    response = requests.post(full_inbox_url,
+                            json = comment_serializer, 
+                            auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
@@ -1760,7 +1784,7 @@ def post_comments(request):
                     full_inbox_url = post_author_url
                     if post_author_url[-1] != "/":
                         full_inbox_url += "/"
-                    full_inbox_url += 'inbox'
+                    full_inbox_url += 'inbox/'
                     print(author_json)
                     print(type(author_json))
                     comment_obj = Comment()
@@ -1776,12 +1800,12 @@ def post_comments(request):
                         the_user_pass = team10_pass
                     if team10_host_url not in pk_raw:
                         response = requests.post(full_inbox_url,
-                                data={"obj":json.dumps(comment_serializer)}, 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                                json = comment_serializer, 
+                                auth = HTTPBasicAuth(the_user_name, the_user_pass))
                     else:
                         response = requests.post(full_inbox_url,
-                                data=json.dumps(comment_serializer), 
-                                auth=HTTPBasicAuth(the_user_name, the_user_pass))
+                                json = comment_serializer, 
+                                auth = HTTPBasicAuth(the_user_name, the_user_pass))
 
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
@@ -1818,7 +1842,8 @@ class Comments(APIView):
         # only two things need to be pass through request are the comment content
         # and the url of the author that write the comment on your post. 
         comment.comment = request.data['comment']
-        comment.author = json.loads(request.data['author'])
+        # modified here by Shway
+        comment.author = request.data['author']
         comment.save()
         return Response([],status=201)
 
