@@ -214,10 +214,10 @@ const csrf = getCookie('csrftoken');
 
                 if(val.source != ''&& val.source != null){
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.source}>`
+                            style = "float:left;",type="submit", name="pk", value="${val.source}">`
                 }else{
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                            style = "float:left;",type="submit", name="pk", value="${val.origin}">`
                 }
         
                 $('#posts').append(`
@@ -248,7 +248,7 @@ const csrf = getCookie('csrftoken');
                         type="submit", 
                         style="float:left;",
                         name="ppid", 
-                        value=${val.source}>
+                        value="${val.source}">
                         <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
                   </form>
 
@@ -256,14 +256,14 @@ const csrf = getCookie('csrftoken');
                     {% csrf_token %}
                     <button class="button", 
                       style = "float:left;",
-                      type="submit", name="pk", value=${val.source}>
+                      type="submit", name="pk", value="${val.source}">
                       <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
                     </button>
                   </form>
 
                   <form action="{% url 'repost_to_friend' %}" method="POST">
                     {% csrf_token %}
-                    <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+                    <button class="button", style="float:left;", type="submit", name="pk", value="${val.source}"><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
                   </form><br>
                   <p>${val.like_count} liked this post.</p>
                   ${val.comments.map(comment => `${comment.comment_author_name}:${comment.comment}<br>`).join("")}
