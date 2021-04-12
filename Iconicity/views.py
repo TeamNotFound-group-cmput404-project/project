@@ -1655,7 +1655,7 @@ class FriendPostsByAuthor(APIView):
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
-    if ppid is None: ppid = request.POST.get('pk')
+    #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         
         context = {'form123': CommentsCreateForm(), "url": ppid}
