@@ -39,9 +39,6 @@
               <p>Github link: {{ item.actor.github }}</p>
               <p>Host link: {{ item.actor.host }}</p>
               <p>url: {{ item.actor.url }}</p>
-              <!--{% csrf_token %}-->
-              <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
-              name='accept_id' value='{{ item.id }}'>View Profile</button>
 
               <!--For to follow this user back-->
               <form action="{% url 'follow_back' %}" method='POST'>
