@@ -178,7 +178,6 @@ const csrf = getCookie('csrftoken');
                 url:'public?'+ jQuery.param({page_n : page_n}),
                 type: "POST",
                 data : jQuery.param({    
-                // href: this.href,
                 page_n : page_n, //page_number
                 csrfmiddlewaretoken: '{{ csrf_token }}',
             }),
@@ -187,16 +186,8 @@ const csrf = getCookie('csrftoken');
               //loop
               $('#posts').html('')
               $.each(resp.results, function(i, val) { 
-                //apending posts
-                // console.log(val);
                 var post_content = `<p>${val.content}</p>`;
-
-                            
-
                 var image = ``;
-               
-
-              
                 if (val.image != '' && val.image != null){
                   image = `<div class="w3-row-padding" style="margin:0 -16px">
                             <div class="w3-half">

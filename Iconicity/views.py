@@ -37,6 +37,10 @@ import datetime
 from math import ceil
 #https://thecodinginterface.com/blog/django-auth-part1/
 
+curr_page = 1
+curr_my_post = 1
+curr_following = 1
+curr_friends = 1
 def ajax(request):
     return render(request,"Iconicity/hello.html")
 
@@ -176,6 +180,7 @@ def signup(request):
 
 @login_required
 def mainPagePublic(request):
+    global curr_page
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
@@ -275,10 +280,18 @@ def mainPagePublic(request):
     # Paginator
     pagen = Paginator(new_list,5)
 
-    # Current page is 1 by default
-    curr_page = 1
-    first_page = pagen.page(1).object_list
+    page_n = request.POST.get('page_n',None)
+   
+    if page_n!=None:
+        curr_page = page_n
 
+
+
+    
+    first_page = pagen.page(curr_page).object_list
+
+    
+    
     print("Iterate the new_list:")
 
     # Get a list of post id
@@ -287,27 +300,11 @@ def mainPagePublic(request):
     for post in new_list:
         post_id_list.append(str(post['post_id']))
     
-    # print(post_id_list)
-
-    # If the main page is requested after commenting of liking
-    # try:
-    #     request.session['curr_post_id']
-    # except:
-    #     pass
-    # else:
-    #     curr_post_id = request.session['curr_post_id']
-    #     if curr_post_id:
-    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
-    #         print("curr_post_id:", curr_post_id)
-    #         if curr_post_id in post_id_list:
-    #             index = post_id_list.index(curr_post_id) + 1
-    #             print(index)
-    #             curr_page = int(ceil(index / number))
-    #             first_page = pagen.page(curr_page).object_list
-    #             request.session['curr_post_id'] = None
-    
+  
     page_range = pagen.page_range
     curProfile = getUserProfile(request.user)
+    
+    
     context = {
         'pagen':pagen,
         'first_page':first_page,
@@ -1009,7 +1006,7 @@ def profile(request):
 
 
 def mypost(request):
-
+    global curr_my_post
     if request.user.is_anonymous:
         return render(request,
                       'Iconicity/login.html',
@@ -1029,8 +1026,12 @@ def mypost(request):
 
     number = 5
     pagen = Paginator(new_list,5)
-    curr_page = 1
-    first_page = pagen.page(1).object_list
+
+    page_n = request.POST.get('page_n',None)
+    if page_n!=None:
+       curr_my_post = page_n
+    first_page = pagen.page(curr_my_post).object_list
+    
     page_range = pagen.page_range
     
     github_username = getUserProfile(request.user).github.split("/")[-1]
@@ -1204,6 +1205,7 @@ class AuthorById(APIView):
         return Response(serializer.data)
 
 def following(request):
+    global curr_following
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     userProfile = getUserProfile(request.user)
@@ -1286,8 +1288,11 @@ def following(request):
     pagen = Paginator(new_list,5)
 
     # Current page is 1 by default
-    curr_page = 1
-    first_page = pagen.page(1).object_list
+    page_n = request.POST.get('page_n',None)
+    if page_n!=None:
+       curr_following = page_n
+    first_page = pagen.page(curr_following).object_list
+    
 
     print("Iterate the new_list:")
 
@@ -1388,6 +1393,7 @@ def getExternalUserFriends(currentUser):
     return friendUrlList
 
 def friends(request):
+    global curr_friends
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
     # get all the posts posted by the current user
@@ -1401,6 +1407,7 @@ def friends(request):
     new_list = PostSerializer(tmp_list, many=True).data
     postList += new_list
     externalFriends = getExternalUserFriends(request.user)
+    
     print("friends externalUserFriends: ", externalFriends)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
@@ -1491,8 +1498,11 @@ def friends(request):
     pagen = Paginator(postList,5)
 
     # Current page is 1 by default
-    curr_page = 1
-    first_page = pagen.page(1).object_list
+
+    page_n = request.POST.get('page_n',None)
+    if page_n!=None:
+       curr_friends = page_n
+    first_page = pagen.page(curr_friends).object_list
 
     print("Iterate the postList:")
 
