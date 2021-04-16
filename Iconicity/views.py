@@ -274,8 +274,6 @@ def mainPagePublic(request):
     # sort the posts from latest to oldest
     #new_list.reverse()
 
-    print(new_list)
-
     for aPost in new_list:
         if aPost['unlisted']:
             new_list.remove(aPost)
