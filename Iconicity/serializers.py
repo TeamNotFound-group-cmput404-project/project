@@ -91,26 +91,33 @@ class PostSerializer(rest_serializers.ModelSerializer):
             return obj.content
 
 class CommentSerializer(rest_serializers.ModelSerializer):
+    type = rest_serializers.SerializerMethodField("get_type")
     id = rest_serializers.SerializerMethodField()
-    comment_author_name = rest_serializers.SerializerMethodField()
     author = rest_serializers.SerializerMethodField()
-    author_cache = None
+    published = rest_serializers.SerializerMethodField()
+    contentType = rest_serializers.SerializerMethodField()
+    comment = rest_serializers.SerializerMethodField()
     class Meta:
         model = Comment
-        fields = ('type', 'author','published','contentType','comment','id','comment_author_name')
-
-    def get_comment_author_name(self, obj):
-        temp = obj.author
-        return temp['displayName']
+        fields = ('type', 'author','published','contentType','comment','id')
  
+    def get_type(self, obj):
+        return obj.type
+
     def get_author(self, obj):
         return obj.author
-         
+        
+    def get_published(self, obj):
+        return obj.published
+
+    def get_contentType(self, obj):
+        return obj.contentType
+
+    def get_comment(self, obj):
+        return obj.comment
+
     def get_id(self, obj):
-        if obj.post[-1] == "/":
-            return str(obj.post) + "comments/" + str(obj.id)
-        else:
-            return str(obj.post) + "/comments/" + str(obj.id)
+        return obj.id
         
 
 class GETProfileSerializer(rest_serializers.ModelSerializer):

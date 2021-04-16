@@ -257,6 +257,18 @@ def mainPagePublic(request):
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
+            # modified by Shway to get the comments:
+            '''
+            if post["id"].endswith("/"):
+                comment_url = post["id"] + "comments/"
+            else:
+                comment_url = post["id"] + "/comments/"
+            temp = requests.get(comment_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            print('mainPagePublic comments: ', temp)
+            comment_list = temp.json()['comments']
+            post['comment'] = comment_list
+            '''
+
         post['post_id'] = post['id'].split('/')[-1]
         # print("post_id",post['post_id'])
         counter +=1
@@ -273,8 +285,6 @@ def mainPagePublic(request):
     # print("before_reverse_check",time_check15-time_check1)
     # sort the posts from latest to oldest
     #new_list.reverse()
-
-    print(new_list)
 
     for aPost in new_list:
         if aPost['unlisted']:
@@ -490,15 +500,16 @@ def follow_someone(request):
             print("Not local")
             # create a new friend request with the receiver the (external) followee_id
             actor = GETProfileSerializer(curProfile).data # prepare to send
-            object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
+            object_obj = UserProfile(type = 'author', id = followee_id, displayName = followee_displayName,
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
             # construct the new friend request:
-            newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
+            newFrdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
             #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
+            print('follow_someone frd_request_serialized: ', frd_request_serialized)
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
@@ -507,16 +518,16 @@ def follow_someone(request):
             if full_followee_url[-1] == '/': full_followee_url += "inbox/"
             else: full_followee_url += '/inbox/'
             # post the friend request to the external server's inbox
-            # print("this is the full followee_url: ", full_followee_url)
+            print("follow_someone full_followee_url: ", full_followee_url)
             # send the requests:
-
-            '''
-            post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
-                auth=HTTPBasicAuth(auth_user, auth_pass))
-            '''
-
+            the_user_name = auth_user
+            the_user_pass = auth_pass
+            if team10_host_url in full_followee_url:
+                print('follow_someone we used team 10 credentials!!!!')
+                the_user_name = team10_name
+                the_user_pass = team10_pass
             post_data = requests.post(full_followee_url, json = frd_request_serialized,
-                auth=HTTPBasicAuth(auth_user, auth_pass))
+                auth=HTTPBasicAuth(the_user_name, the_user_pass))
             # print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page
@@ -579,7 +590,7 @@ def follow_back(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and ((item['type'] == 'follow' or item['type'] == 'Follow') and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
@@ -654,8 +665,9 @@ def remove_inbox_follow(request):
                     print("did not find any inbox with id: ", full_id)
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
+        print('remove_inbox_follow cur_inbox: ', cur_inbox)
         for item in cur_inbox.items:
-            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and ((item['type'] == 'follow' or item['type'] == 'Follow') and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
@@ -710,7 +722,14 @@ class SendPrivatePostView(CreateView):
                 # should send to inbox:
                 if full_receiver_url[-1] == '/': full_receiver_url += "inbox/"
                 else: full_receiver_url += '/inbox/'
+                the_user_name = auth_user
+                the_user_pass = auth_pass
+                if team10_host_url in full_receiver_url:
+                    print('SendPrivatePostView we used team 10 credentials!!!!')
+                    the_user_name = team10_name
+                    the_user_pass = team10_pass
                 # send the private post to the external server's inbox
+                print('SendPrivatePostView serializedPost: ', serializedPost)
                 post_data = requests.post(full_receiver_url, json = serializedPost,
                     auth = HTTPBasicAuth(auth_user, auth_pass))
                 print("data responded: ", post_data)
@@ -1702,7 +1721,7 @@ class Inboxs(APIView):
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
-            elif data_json['type'] == "follow":
+            elif (data_json['type'] == "follow" or data_json['type'] == "Follow"):
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
@@ -1782,7 +1801,7 @@ def post_comments(request):
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
-                post = Post.objects.get(pk=pk_new)
+                post = Post.objects.get(pk = pk_new)
             except Exception as e:
                 # means that this is not on our server
                 print("not on server")
@@ -1799,16 +1818,21 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
-                    # comment_obj.contentType = 'text/markdown'
-                    comment_serializer = CommentSerializer(comment_obj).data
-                    #comment_serializer['post_id'] = comment_serializer['id']
-                    print("post_comments comment_serializer: ", comment_serializer)
+                    comment_id = str(comment_obj.id)
+                    if pk_raw[-1] == '/':
+                        comment_obj.id = pk_raw + "comments/" + comment_id
+                    else:
+                        comment_obj.id = pk_raw + '/comments/' + comment_id
+                    comment_obj.published = comment_obj.published.isoformat()
+                    comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
                     print('post_comments pk_raw: ', pk_raw)
+                    comment_serializer = CommentSerializer(comment_obj).data
+                    print("post_comments comment_serializer: ", comment_serializer)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
@@ -1841,14 +1865,19 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
-                    # comment_obj.contentType = 'text/markdown'
-                    comment_serializer = CommentSerializer(comment_obj).data
+                    comment_id = str(comment_obj.id)
+                    if pk_raw[-1] == '/':
+                        comment_obj.id = pk_raw + "comments/" + comment_id
+                    else:
+                        comment_obj.id = pk_raw + '/comments/' + comment_id
+                    comment_obj.published = comment_obj.published.isoformat()
+                    comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
- 
+                    comment_serializer = CommentSerializer(comment_obj).data
                     response = requests.post(full_inbox_url,
                             json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
@@ -1897,13 +1926,20 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
-                    comment_serializer = CommentSerializer(comment_obj).data
-                    print(comment_serializer)
+                    # modified here by Shway:
+                    comment_id = str(comment_obj.id)
+                    if pk_raw[-1] == '/':
+                        comment_obj.id = pk_raw + "comments/" + comment_id
+                    else:
+                        comment_obj.id = pk_raw + '/comments/' + comment_id
+                    comment_obj.published = comment_obj.published.isoformat()
+                    comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    comment_serializer = CommentSerializer(comment_obj).data
                     if team10_host_url not in pk_raw:
                         response = requests.post(full_inbox_url,
                                 json = comment_serializer, 
