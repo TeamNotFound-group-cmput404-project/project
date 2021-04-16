@@ -1246,7 +1246,13 @@ def following(request):
     page_n = request.POST.get('page_n',None)
     if page_n!=None:
        curr_following = page_n
-    first_page = pagen.page(curr_following).object_list
+   
+    try:
+        first_page = pagen.page(curr_following).object_list
+    except:
+        first_page = pagen.page(1).object_list
+    else:
+        pass
 
     # Get a list of post id
     post_id_list = []
@@ -1426,7 +1432,12 @@ def friends(request):
     page_n = request.POST.get('page_n',None)
     if page_n!=None:
        curr_friends = page_n
-    first_page = pagen.page(curr_friends).object_list
+    try:
+        first_page = pagen.page(curr_friends).object_list
+    except:
+        first_page = pagen.page(1).object_list
+    else:
+        pass
 
     print("Iterate the postList:")
 
