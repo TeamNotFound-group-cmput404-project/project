@@ -55,6 +55,7 @@ User Guideline:
 * Iconicity is blog posting website hosted on Heroku
 * To login, enter username and password then click sign in<br/>
 If you do not have an account, click sign up button to go to sign up page<br/>
+* As an admin, to enable the sign-up approval feature, login on https://iconicity-final.herokuapp.com/admin/, go to "Sign up confirms", click on "x", check the box named boolean and then save. For now, any new sign-up users will appear in "Users", click on the specific user you want to approve, go to the "Permission" section and check the "active" box, and then the user is approved.
 * After login, your profile is on the left side of the main page,
 to update, click "profile" then go to edit profile page then click update.<br/>
 * Your friends list is on the right side of the main page.<br/>
