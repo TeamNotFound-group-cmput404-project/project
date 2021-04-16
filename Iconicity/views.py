@@ -178,7 +178,8 @@ def signup(request):
   
     return render(request, 'Iconicity/start.html', {'signup_form': form})
 
-
+def get_published(post):
+    return post.get('published')
 @login_required
 def mainPagePublic(request):
     global curr_page
@@ -274,6 +275,7 @@ def mainPagePublic(request):
         # print("post_id",post['post_id'])
         counter +=1
     new_list += externalPosts
+    new_list.sort(key=get_published)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
