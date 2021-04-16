@@ -29,38 +29,9 @@
                 {% if i.image != '' and i.image != None %}
                 <img src="{{i.image}}">
                 {% endif %}
-
                 <hr class="w3-clear">
-                <br>
-                <br>
-                <!-- Below are the like, comment and repost buttons -->
-                <form action="{% url 'like_post_mypost' %}" method="POST">
-                    {% csrf_token %}
-                    <button class="button", 
-                    style = "float:left;",type="submit", name="pk", value={{i.id}}>
-                    <i class="fa fa-heart-o" style="font-size:20px;" ></i>
-                    </button>
-                </form>
-                <form action="{% url 'update_post' %}" method="POST">
-                    {% csrf_token %}
-                    <button class="button", 
-                    style = "float:left;",
-                    type="submit", name="pk", value={{i.id}}>
-                    <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
-                    </button>
-                </form>
-                <form action="{% url 'delete' %}" method="POST">
-                    {% csrf_token %}
-                    <button class="button", type="submit", name="pk",  value={{i.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
-                </form>
-                <br>
-                <p>{{i.like_count}} liked this post.</p>
-                {% for comment in i.comments %}  
-                    {{ comment.comment_author_name }}:
-                    {{ comment.comment }}
-                    <br>
-                {% endfor %}
-                <br>
+
+                <br><br>
             </div>
             {% endfor %}
 
