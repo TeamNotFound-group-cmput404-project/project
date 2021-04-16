@@ -1797,12 +1797,12 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
+                    comment_id = str(comment_obj.id)
                     comment_obj.published = comment_obj.published.isoformat()
                     comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
-                        comment_id = str(comment_obj.id)
                         if pk_raw[-1] == '/':
                             comment_obj.id = pk_raw + "comments/" + comment_id
                         else:
@@ -1844,12 +1844,12 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
+                    comment_id = str(comment_obj.id)
                     comment_obj.published = comment_obj.published.isoformat()
                     comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
-                        comment_id = str(comment_obj.id)
                         if pk_raw[-1] == '/':
                             comment_obj.id = pk_raw + "comments/" + comment_id
                         else:
@@ -1906,12 +1906,12 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
+                    comment_id = str(comment_obj.id)
                     comment_obj.published = comment_obj.published.isoformat()
                     comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
-                        comment_id = str(comment_obj.id)
                         if pk_raw[-1] == '/':
                             comment_obj.id = pk_raw + "comments/" + comment_id
                         else:
