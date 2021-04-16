@@ -180,6 +180,7 @@ def signup(request):
 
 def get_published(post):
     return post.get('published')
+
 @login_required
 def mainPagePublic(request):
     global curr_page
