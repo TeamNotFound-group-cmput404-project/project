@@ -1364,7 +1364,6 @@ def friends(request):
             # means the content part is all plain text, not image
             try:
                 image_field = post['image']
-
             except Exception:
                 # means this post has no image field, set image field to None.
                 post['image'] = ""
@@ -1418,7 +1417,6 @@ def friends(request):
                 post['image'] = abs_imgpath
     userProfile = getUserProfile(request.user)
 
-    # sort the posts from latest to oldest
     postList.reverse()
 
     # Each page shows 5 posts
@@ -1426,9 +1424,6 @@ def friends(request):
 
     # Paginator
     pagen = Paginator(postList,5)
-
-    # Current page is 1 by default
-
     page_n = request.POST.get('page_n',None)
     if page_n!=None:
        curr_friends = page_n
@@ -1440,10 +1435,6 @@ def friends(request):
     post_id_list = []
     for post in postList:
         post_id_list.append(str(post['post_id']))
-    
-    # print(post_id_list)
-
-    # If the main page is requested after commenting of liking
     try:
         request.session['curr_post_id']
     except:
@@ -1531,7 +1522,6 @@ class Inboxs(APIView):
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
             if data_json['type'] == "like":
-                print("likelikelikelikelikelikelikelikelikelikelikelikelikelikelike")
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
                 post_id = [i for i in post_url.split('/') if i][-1]
@@ -1542,10 +1532,12 @@ class Inboxs(APIView):
                     # means add this man's id to the like list.
                     if post_obj.external_likes == {}:
                         post_obj.external_likes['urls'] = []
-                    external_author_url = data_json["author"]["url"]
                     if post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
-                        # means add this man's id to the external like list.
+                        external_author_url = data_json["author"]["url"]
                         post_obj.external_likes['urls'].append(external_author_url)
+                        # print("external",post_obj.external_likes['urls'])
+                        # print("new like user",local_author_profile.user)
+                        #post_obj.like.add(local_author_profile.user)
                         like_obj = Like()
                         like_obj.context= data_json["context"]
                         like_obj.object = data_json["object"]
@@ -1556,9 +1548,9 @@ class Inboxs(APIView):
                         like_json = LikeSerializer(like_obj).data
                         inbox_obj.items.append(like_json)
                         inbox_obj.save()
+                        # print("here2", post_obj)
                         return Response(InboxSerializer(inbox_obj).data,status=201)
                     else:
-                        
                         # means this man liked the post before
                         # we should make him unlike this post
                         post_obj.external_likes['urls'].remove(external_author_url)
