@@ -258,6 +258,7 @@ def mainPagePublic(request):
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
             # modified by Shway to get the comments:
+            '''
             if post["id"].endswith("/"):
                 comment_url = post["id"] + "comments/"
             else:
@@ -266,6 +267,7 @@ def mainPagePublic(request):
             print('mainPagePublic comments: ', temp)
             comment_list = temp.json()['comments']
             post['comment'] = comment_list
+            '''
 
         post['post_id'] = post['id'].split('/')[-1]
         # print("post_id",post['post_id'])
