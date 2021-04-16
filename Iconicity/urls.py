@@ -38,6 +38,7 @@ urlpatterns = [
 	path('send_private_post', views.SendPrivatePostView.as_view(), name='send_private_post'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
 	
+
 	# Unlisted
 	path('unlisted/<str:post_id>/', views.unlisted_post, name='unlisted'),
 	path('unlisted/<str:post_id>', views.unlisted_post, name='unlisted'),

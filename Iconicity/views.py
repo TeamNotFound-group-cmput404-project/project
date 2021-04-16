@@ -175,6 +175,7 @@ def signup(request):
             return redirect('public')
     else:
         form = SignUpForm()
+  
     return render(request, 'Iconicity/start.html', {'signup_form': form})
 
 

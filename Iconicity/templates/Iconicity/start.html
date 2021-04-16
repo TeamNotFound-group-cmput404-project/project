@@ -17,22 +17,17 @@
     <script type="text/javascript" src="{% static 'alertifyjs/alertify.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascript/start.js' %}"></script>
   </head>
-
   <body>
-    
     <div class = "header">
       <h1>Iconicity</h1>
       <h2 id="logo-img" alt="Logo image"></h2>
     </div>
 
-
-    <div id="start">
-      <!-- Tab Buttons -->
-
-      <div id="tab-btn">
-        <a class="login-tab active">Sign In</a>
-        <a class="register-tab">Sign Up</a>
-      </div>
+<div id="start">
+  <div id="tab-btn">
+      <a class="login-tab active">Sign In</a>
+      <a class="register-tab">Sign Up</a>
+  </div>
 
       <!-- Login Form -->
       <div class="login-box">
@@ -44,13 +39,13 @@
               Username
             </label>
             <div class="control">
-              {{ login_form.username }}
+              {{login_form.username}}
             </div>
             <!-- <p class="help is-danger">{{ login_form.username.errors }}</p> -->
           </div>
-        
+
           <div class="field">
-            <label for="{{ login_form.password.id_for_label }}" class="">
+            <label for="{{login_form.password.id_for_label}}" class="">
               Password
             </label>
             <div class="control">
@@ -74,9 +69,9 @@
         <form method="post">
           {% csrf_token %}
           {% for field in signup_form %}
-            <p>
-              {{ field.label_tag }}
-              {{ field }}
+          <p>
+              {{field.label_tag}}
+              {{field}}
               <!-- <div class = "help">{{ field.help_text }}</div> -->
               
               
