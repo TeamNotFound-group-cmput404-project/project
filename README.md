@@ -107,6 +107,13 @@ Comment sections in comment_form.html, main_page.html, friends.html, follow.html
 
 post_form.html is refer to https://www.youtube.com/watch?v=m3efqF9abyg. <br/>
 
+Github activity feature is supported by Bloggify, https://github.com/Bloggify/github-calendar. <br/>
+
+Markdown is refer to https://github.com/showdownjs/showdown/wiki/Tutorial:-Markdown-editor-using-Showdown <br/>
+
+Login and sign-up combination is refer to https://dcodemania.com/post/tabbed-style-login-registration-form-css3-jquery <br/>
+
+Post pagination is refer to https://pytutorial.com/how-to-make-a-pagination-with-django-and-ajaxjquery <br/>
 
 RestAPI
 ========
