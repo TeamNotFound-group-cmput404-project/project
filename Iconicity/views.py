@@ -590,7 +590,7 @@ def follow_back(request):
                     return render(request, 'Iconicity/inbox.html', {'is_all_empty': True})
         cur_inbox = cur_inbox[0] # to get from a query set...
         for item in cur_inbox.items:
-            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and ((item['type'] == 'follow' or item['type'] == 'Follow') and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
@@ -667,7 +667,7 @@ def remove_inbox_follow(request):
         cur_inbox = cur_inbox[0] # to get from a query set...
         print('remove_inbox_follow cur_inbox: ', cur_inbox)
         for item in cur_inbox.items:
-            if item != {} and (item['type'] == 'follow' and (item['actor']['id'] == followee_id or
+            if item != {} and ((item['type'] == 'follow' or item['type'] == 'Follow') and (item['actor']['id'] == followee_id or
                 item['actor']['id'] == followee_url)):
                 cur_inbox.items.remove(item)
         cur_inbox.save()
