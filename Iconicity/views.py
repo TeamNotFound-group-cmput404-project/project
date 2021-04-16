@@ -1713,7 +1713,7 @@ class Inboxs(APIView):
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
-            elif data_json['type'] == "follow":
+            elif (data_json['type'] == "follow" or data_json['type'] == "Follow"):
                 print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
