@@ -721,6 +721,12 @@ class SendPrivatePostView(CreateView):
                 # should send to inbox:
                 if full_receiver_url[-1] == '/': full_receiver_url += "inbox/"
                 else: full_receiver_url += '/inbox/'
+                the_user_name = auth_user
+                the_user_pass = auth_pass
+                if team10_host_url in full_followee_url:
+                    print('SendPrivatePostView we used team 10 credentials!!!!')
+                    the_user_name = team10_name
+                    the_user_pass = team10_pass
                 # send the private post to the external server's inbox
                 post_data = requests.post(full_receiver_url, json = serializedPost,
                     auth = HTTPBasicAuth(auth_user, auth_pass))
