@@ -89,7 +89,7 @@
                 <br>
                 <p>{{i.like_count}} liked this post.</p>
                 {% for comment in i.comments %}  
-                    {{ comment.comment_author_name }}:
+                    {{ comment.author.displayName }}:
                     {{ comment.comment }}
                     <br>
                 {% endfor %}
@@ -212,7 +212,7 @@ const csrf = getCookie('csrftoken');
           <button class="button", type="submit", name="pk",  value=${val.id}><i class="fa fa-trash" style="font-size:20px;"></i></button>
         </form>
         <br>
-        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.comment_author_name}:${comment.comment}`).join("")}<br>`)
+        <p>${val.like_count} liked this post.</p>${val.comments.map(comment => `<br>${comment.author.displayName }:${comment.comment}`).join("")}<br>`)
         showInMarkdown();
                      });
                   },

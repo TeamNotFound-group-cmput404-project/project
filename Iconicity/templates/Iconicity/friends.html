@@ -99,12 +99,12 @@
           {% for comment in i.comments %}
             {% if i.visibility != 'PUBLIC' %}
               {% if myself == comment.author %}
-                {{ comment.comment_author_name }}:
+                {{ comment.author.displayName }}:
                 {{ comment.comment }}
                 <br>
               {% endif %}
             {% else %}
-              {{ comment.comment_author_name }}:
+              {{ comment.author.displayName }}:
               {{ comment.comment }}
               <br>
             {% endif %}
@@ -252,7 +252,7 @@ const csrf = getCookie('csrftoken');
                     <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
                   </form><br>
                   <p>${val.like_count} liked this post.</p>
-                  ${val.comments.map(comment => `${comment.comment_author_name}:${comment.comment}<br>`).join("")}
+                  ${val.comments.map(comment => `${ comment.author.displayName }:${comment.comment}<br>`).join("")}
                   <br>
                 `)
                 showInMarkdown();
