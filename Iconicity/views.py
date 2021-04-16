@@ -728,6 +728,7 @@ class SendPrivatePostView(CreateView):
                     the_user_name = team10_name
                     the_user_pass = team10_pass
                 # send the private post to the external server's inbox
+                print('SendPrivatePostView serializedPost: ', serializedPost)
                 post_data = requests.post(full_receiver_url, json = serializedPost,
                     auth = HTTPBasicAuth(auth_user, auth_pass))
                 print("data responded: ", post_data)
