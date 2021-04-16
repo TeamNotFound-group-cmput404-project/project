@@ -114,7 +114,6 @@ class LoginView(View):
                 user.is_active = False
             else:
                 user.is_active = True
-            print(user.is_active)
             user.save()
             username = signup_form.cleaned_data.get('username')
             raw_password = signup_form.cleaned_data.get('password1')
@@ -1537,7 +1536,7 @@ class Inboxs(APIView):
                         post_obj.external_likes['urls'].append(external_author_url)
                         # print("external",post_obj.external_likes['urls'])
                         # print("new like user",local_author_profile.user)
-                        #post_obj.like.add(local_author_profile.user)
+                        # post_obj.like.add(local_author_profile.user)
                         like_obj = Like()
                         like_obj.context= data_json["context"]
                         like_obj.object = data_json["object"]
@@ -1548,7 +1547,6 @@ class Inboxs(APIView):
                         like_json = LikeSerializer(like_obj).data
                         inbox_obj.items.append(like_json)
                         inbox_obj.save()
-                        # print("here2", post_obj)
                         return Response(InboxSerializer(inbox_obj).data,status=201)
                     else:
                         # means this man liked the post before
