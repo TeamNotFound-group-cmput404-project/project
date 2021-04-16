@@ -1798,7 +1798,6 @@ def post_comments(request):
                     comment_obj.post = pk_raw
                     # modified here by Shway:
                     comment_obj.contentType = 'text/markdown'
-                    comment_serializer = CommentSerializer(comment_obj).data
                     print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
@@ -1811,6 +1810,7 @@ def post_comments(request):
                         the_user_name = team10_name
                         the_user_pass = team10_pass
                     print('post_comments pk_raw: ', pk_raw)
+                    comment_serializer = CommentSerializer(comment_obj).data
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
@@ -1843,14 +1843,18 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
-                    # comment_obj.contentType = 'text/markdown'
-                    comment_serializer = CommentSerializer(comment_obj).data
+                    comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
+                        comment_id = str(comment_obj.id)
+                        if pk_raw[-1] == '/':
+                            comment_obj.id = pk_raw + "comments/" + comment_id
+                        else:
+                            comment_obj.id = pk_raw + '/comments/' + comment_id
                         the_user_name = team10_name
                         the_user_pass = team10_pass
- 
+                    comment_serializer = CommentSerializer(comment_obj).data
                     response = requests.post(full_inbox_url,
                             json = comment_serializer, 
                             auth=HTTPBasicAuth(the_user_name, the_user_pass))
