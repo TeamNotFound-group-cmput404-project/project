@@ -507,6 +507,7 @@ def follow_someone(request):
             # serialize the new friend request:
             #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
+            print('follow_someone frd_request_serialized: ', frd_request_serialized)
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
