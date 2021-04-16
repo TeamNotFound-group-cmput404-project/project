@@ -188,10 +188,10 @@ def mainPagePublic(request):
     new_list = [] 
     time_check1 = datetime.datetime.now()
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-    print("new_list",new_list)
+    # print("new_list",new_list)
     externalPosts = getAllExternalPublicPosts()
     time_check2 = datetime.datetime.now()
-    print("timecheck2",time_check2-time_check1)
+    # print("timecheck2",time_check2-time_check1)
     
     counter = 0
     for post in externalPosts:
@@ -234,14 +234,14 @@ def mainPagePublic(request):
             if os.path.exists("Iconicity"+path):
                 post['image'] = path
             else:
-                print("create new file")
+                # print("create new file")
                 # then write the dump file to an image file.
                 with open("Iconicity"+path, "wb") as fh:
                     fh.write(base64.decodebytes(str.encode(post['content'])))
                 post['image'] = path
 
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
-            print("inside")
+            # print("inside")
             post['author_display_name'] = post['author']['displayName']
         
         if post["comments"] is not None:
@@ -258,7 +258,7 @@ def mainPagePublic(request):
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
         post['post_id'] = post['id'].split('/')[-1]
-        print("post_id",post['post_id'])
+        # print("post_id",post['post_id'])
         counter +=1
     new_list += externalPosts
     for post in new_list:
@@ -270,10 +270,18 @@ def mainPagePublic(request):
                     post['image'] = abs_imgpath
     time_check15 = datetime.datetime.now()
     
-    print("before_reverse_check",time_check15-time_check1)
+    # print("before_reverse_check",time_check15-time_check1)
     # sort the posts from latest to oldest
     #new_list.reverse()
 
+    print(new_list)
+
+    for aPost in new_list:
+        if aPost['unlisted']:
+            new_list.remove(aPost)
+
+    # print(new_list)
+    
     # Each page shows 5 posts
     number = 5
 
@@ -292,7 +300,7 @@ def mainPagePublic(request):
 
     
     
-    print("Iterate the new_list:")
+    # print("Iterate the new_list:")
 
     # Get a list of post id
     post_id_list = []
@@ -319,7 +327,7 @@ def mainPagePublic(request):
         results = list(pagen.page(page_n).object_list)
         return JsonResponse({"results":results})
     time_check3 = datetime.datetime.now()
-    print("full_time_check",time_check3-time_check1)
+    # print("full_time_check",time_check3-time_check1)
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -368,12 +376,12 @@ def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
         # public can only see your public posts
-        print("getPosts(PUBLIC): ", user)
+        # print("getPosts(PUBLIC): ", user)
         if type(user) is dict: return list(Post.objects.filter(id = user['id'], visibility="PUBLIC"))
         else: return list(Post.objects.filter(author = user, visibility="PUBLIC"))
     elif visibility == "FRIENDS":
         # friends can see all your posts (public + friends posts)
-        print("getPosts(FRIENDS): ", user)
+        # print("getPosts(FRIENDS): ", user)
         if type(user) is dict: return list(Post.objects.filter(id = user['id']))
         else: return list(Post.objects.filter(author = user))
 
@@ -404,8 +412,8 @@ def delete_post(request):
             the_user_name = team10_name
             the_user_pass = team10_pass
         post = requests.get(pk_raw, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-        print(e)
-        print('post:', post)
+        # print(e)
+        # print('post:', post)
     return redirect("mypost")
 
 
@@ -415,13 +423,13 @@ class AddPostView(CreateView):
     # fields = "__all__"
     # Post.author = UserProfile.objects.values()['id']
     def post(self, request):
-        print("posting")
+        # print("posting")
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
-        print(form['image']) 
+        # print(form['image']) 
         # print(request.FILES)
         if form.is_valid():
-            print("posting...")
+            # print("posting...")
             form = form.save(commit=False)
             form.author = request.user
             userProfile = UserProfile.objects.get(user=request.user)
@@ -499,7 +507,7 @@ def follow_someone(request):
             if full_followee_url[-1] == '/': full_followee_url += "inbox/"
             else: full_followee_url += '/inbox/'
             # post the friend request to the external server's inbox
-            print("this is the full followee_url: ", full_followee_url)
+            # print("this is the full followee_url: ", full_followee_url)
             # send the requests:
 
             '''
@@ -509,7 +517,7 @@ def follow_someone(request):
 
             post_data = requests.post(full_followee_url, json = frd_request_serialized,
                 auth=HTTPBasicAuth(auth_user, auth_pass))
-            print("data responded: ", post_data)
+            # print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -521,7 +529,7 @@ def unfollow_someone(request):
         followee_id = request.POST.get('followee_id')
         curProfile = UserProfile.objects.get(user = request.user)
         # remove the uid from current user's follow:
-        print(followee_id)
+        # print(followee_id)
         curProfile.remove_follow_by_id(followee_id)
         curProfile.save()
         # stay on the same page
@@ -1143,13 +1151,13 @@ def getAllExternalPublicPosts():
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-        print("getAllExternalPublicPosts full_url: ", full_url)
+        # print("getAllExternalPublicPosts full_url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if team10_host_url in host_url:
             posts = temp.json()['posts']
         else:
             posts = temp.json()
-        print("getAllExternalPublicPosts posts: ", posts)
+        # print("getAllExternalPublicPosts posts: ", posts)
         new_one = []
         for i in posts:
             if i['visibility'] != "PUBLIC":
@@ -1214,7 +1222,7 @@ def following(request):
     new_list = []
     new_list += PostSerializer(postList, many=True).data
     new_list += getAllFollowExternalAuthorPosts(request.user)
-    print(getAllFollowExternalAuthorPosts(request.user))
+    # print(getAllFollowExternalAuthorPosts(request.user))
     for post in new_list:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
 
@@ -1350,7 +1358,7 @@ def getUserFriend(currentUser):
             friends = otherUserProfile.get_followers()
             for userInfo in friends:
                 if userProfile.url == userInfo['url']:
-                    print("getUserFriend: ", otherUserProfile.user)
+                    # print("getUserFriend: ", otherUserProfile.user)
                     friendList.append(otherUserProfile.user)
                     break
     return friendList
@@ -1375,8 +1383,8 @@ def getExternalUserFriends(currentUser):
             if team10_host_url in full_url:
                 the_user_name = team10_name
                 the_user_pass = team10_pass
-            print('url: ', full_url)
-            print('user name: ', the_user_name)
+            # print('url: ', full_url)
+            # print('user name: ', the_user_name)
             try:
                 raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
 
@@ -1389,7 +1397,7 @@ def getExternalUserFriends(currentUser):
                     if userProfile.url == userInfo['url']:
                         friendUrlList.append(user['url'])
                         break
-    print("getExternalUserFriends: ", friendUrlList)
+    # print("getExternalUserFriends: ", friendUrlList)
     return friendUrlList
 
 def friends(request):
@@ -1399,7 +1407,7 @@ def friends(request):
     # get all the posts posted by the current user
     postList = []
     friends_test = getUserFriend(request.user)
-    print("friends friends test: ", friends_test)
+    # print("friends friends test: ", friends_test)
     tmp_list = []
     for user in friends_test:
         tmp_list += getPosts(user, visibility="FRIENDS")
@@ -1408,7 +1416,7 @@ def friends(request):
     postList += new_list
     externalFriends = getExternalUserFriends(request.user)
     
-    print("friends externalUserFriends: ", externalFriends)
+    # print("friends externalUserFriends: ", externalFriends)
     if externalFriends and externalFriends !=[]:
         for each_url in externalFriends:
             full_url = each_url
@@ -1522,14 +1530,14 @@ def friends(request):
         curr_post_id = request.session['curr_post_id']
         if curr_post_id:
             curr_post_id = request.session['curr_post_id'].split('/')[-1]
-            print("curr_post_id:", curr_post_id)
+            # print("curr_post_id:", curr_post_id)
             if curr_post_id in post_id_list:
                 index = post_id_list.index(curr_post_id) + 1
-                print(index)
+                # print(index)
                 curr_page = int(ceil(index / number))
                 first_page = pagen.page(curr_page).object_list
                 request.session['curr_post_id'] = None
-    print("friends first_page: ", first_page)
+    # print("friends first_page: ", first_page)
     page_range = pagen.page_range
     context = {
         # 'posts': postList,
@@ -1618,18 +1626,18 @@ class Inboxs(APIView):
 
     def post(self, request, author_id):
         data_json = request.data
-        print("data_json", data_json)
+        # print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
-            print("inbox_obj: ", inbox_obj)
+            # print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "like":
                 print("likelikelikelikelikelikelikelikelikelikelikelikelikelikelike")
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
-                print("url",post_url)
+                # print("url",post_url)
                 post_id = [i for i in post_url.split('/') if i][-1]
-                print("id",post_id)
+                # print("id",post_id)
                 post_obj = Post.objects.get(pk=post_id)
                 
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
@@ -1639,8 +1647,8 @@ class Inboxs(APIView):
                         post_obj.external_likes['urls'] = []
                     external_author_url = data_json["author"]["url"]
                     post_obj.external_likes['urls'].append(external_author_url)
-                    print("external",post_obj.external_likes['urls'])
-                    print("new like user",local_author_profile.user)
+                    # print("external",post_obj.external_likes['urls'])
+                    # print("new like user",local_author_profile.user)
                     #post_obj.like.add(local_author_profile.user)
                     like_obj = Like()
                     like_obj.context= data_json["context"]
@@ -1652,7 +1660,7 @@ class Inboxs(APIView):
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items.append(like_json)
                     inbox_obj.save()
-                    print("here2", post_obj)
+                    # print("here2", post_obj)
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
@@ -1719,7 +1727,7 @@ class AllPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        print("AllPostsByAuthor: ", author_id)
+        # print("AllPostsByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
@@ -1729,7 +1737,7 @@ class ExternalFollowersByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        print("ExternalFollowersByAuthor: ", author_id)
+        # print("ExternalFollowersByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(FollowersSerializer(authorProfile).data)
 
@@ -1739,12 +1747,12 @@ class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk = author_id)
         friendPosts = Post.objects.filter(author = authorProfile.user)
-        print("FriendPostsByAuthor friendPosts: ", friendPosts)
+        # print("FriendPostsByAuthor friendPosts: ", friendPosts)
         return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
-    print("post_comments ppid: ", ppid)
+    # print("post_comments ppid: ", ppid)
     #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         context = {'form123': CommentsCreateForm(), "url": ppid}
@@ -1968,3 +1976,18 @@ class Likes(APIView):
         likes = list(Like.objects.filter(object=post))
         serializer = LikeSerializer(likes,many=True)
         return Response(serializer.data)
+
+class Unlisted(APIView):
+    def get(self, request, post_id):
+        posts = Post.objects.filter(pk=post_id).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+
+def unlisted_post(request, post_id):
+    unlisted_post = Post.objects.filter(pk=post_id).all()
+    serializer = PostSerializer(unlisted_post, many=True)
+
+    # return render(request, 'Iconicity/start.html', 
+    #     { 'login_form': login_form, 'signup_form':signup_form, 'state':state })
+    return render(request, 'Iconicity/unlisted.html', {'first_page': serializer.data})
