@@ -275,7 +275,7 @@ def mainPagePublic(request):
         # print("post_id",post['post_id'])
         counter +=1
     new_list += externalPosts
-    new_list.sort(key=get_published)
+    new_list.sort(key=get_published, reverse=True)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
