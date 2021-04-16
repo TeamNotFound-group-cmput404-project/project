@@ -119,6 +119,10 @@ RestAPI
 ========
 https://github.com/TeamNotFound-group-cmput404-project/project/wiki/API-Documentation
 
+Ajax 
+========
+https://github.com/TeamNotFound-group-cmput404-project/project/wiki/Ajax-Documentation
+
 Contributors / Licensing
 ========================
 
