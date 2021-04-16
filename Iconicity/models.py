@@ -117,12 +117,12 @@ class Post(models.Model):
 
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
-                                   choices=[('text/plain', 'text/plain'),
-                                            ('text/markdown', 'text/markdown'),
+                                   choices=[('text/markdown', 'text/markdown'),
+                                            ('text/plain', 'text/plain'),
                                             ('application/base64', 'application/base64'),
                                             ('image/png;base64', 'image/png;base64'),
                                             ('image/jpeg;base64', 'image/jpeg;base64')],
-                                   default="")
+                                   default='text/markdown')
 
     # content itself
     content = models.TextField(default="")

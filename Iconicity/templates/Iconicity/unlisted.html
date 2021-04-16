@@ -1,0 +1,89 @@
+{% extends 'Iconicity/unlisted_base.html'%}
+{% load static %}
+{% block content %}
+<!-- Page Container -->
+<!-- By: Zhiqi Zhou-->
+
+<div class="w3-container w3-content" style="max-width:2000px; margin-top:80px">
+  <!-- The Grid -->
+    <!-- Middle Column -->
+    <!-- By: Zhiqi Zhou-->
+    <div class="w3-col m9" style="margin-left: 12%;">
+      <br>  
+      <div class="w3-row-padding;">     
+
+        <H1>Unlisted Post:</H1>
+        <div id="posts">
+            {% for i in first_page %}
+            <div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+                <h1>{{ i.title }}</h1><br>
+                <h5>By: {{ i.author_display_name}}</h5><br>
+                <hr class="w3-clear">
+                {% if i.contentType == "text/plain" %}
+                <p>{{ i.content }} </p>
+                {% endif %}
+                {% if i.contentType == "text/markdown" %}
+                <p class="toMarkdown" id="{{ i.post_id }}">{{ i.content }}</p>
+                {% endif %}
+
+                {% if i.image != '' and i.image != None %}
+                <img src="{{i.image}}">
+                {% endif %}
+
+                <hr class="w3-clear">
+                <br>
+                <br>
+                <!-- Below are the like, comment and repost buttons -->
+                <form action="{% url 'like_post_mypost' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", 
+                    style = "float:left;",type="submit", name="pk", value={{i.id}}>
+                    <i class="fa fa-heart-o" style="font-size:20px;" ></i>
+                    </button>
+                </form>
+                <form action="{% url 'update_post' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", 
+                    style = "float:left;",
+                    type="submit", name="pk", value={{i.id}}>
+                    <i class="fa fa-pencil-square-o" style="font-size:20px;"></i>
+                    </button>
+                </form>
+                <form action="{% url 'delete' %}" method="POST">
+                    {% csrf_token %}
+                    <button class="button", type="submit", name="pk",  value={{i.id}}><i class="fa fa-trash" style="font-size:20px;"></i></button>
+                </form>
+                <br>
+                <p>{{i.like_count}} liked this post.</p>
+                {% for comment in i.comments %}  
+                    {{ comment.comment_author_name }}:
+                    {{ comment.comment }}
+                    <br>
+                {% endfor %}
+                <br>
+            </div>
+            {% endfor %}
+
+            <script>
+            
+                function showInMarkdown(){
+                    var markdowns = document.getElementsByClassName("toMarkdown");
+                    for (let i of markdowns){
+                    text = i.innerHTML;
+                    converter = new showdown.Converter();
+                    html = converter.makeHtml(text);
+                    i.innerHTML = html;
+                    }
+                }
+                showInMarkdown();
+            </script>
+        </div>
+    </div>
+</div>
+      
+
+
+<br>
+
+
+{% endblock %}
