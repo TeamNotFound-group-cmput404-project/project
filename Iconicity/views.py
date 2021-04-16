@@ -505,7 +505,7 @@ def follow_someone(request):
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
             # construct the new friend request:
-            newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
+            newFrdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
             #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
