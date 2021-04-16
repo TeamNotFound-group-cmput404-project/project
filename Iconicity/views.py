@@ -1543,18 +1543,40 @@ class Inboxs(APIView):
                     if post_obj.external_likes == {}:
                         post_obj.external_likes['urls'] = []
                     external_author_url = data_json["author"]["url"]
-                    post_obj.external_likes['urls'].append(external_author_url)
-                    like_obj = Like()
-                    like_obj.context= data_json["context"]
-                    like_obj.object = data_json["object"]
-                    like_obj.summary = data_json["summary"]
-                    like_obj.author = data_json["author"]
-                    like_obj.save()
-                    post_obj.save()
-                    like_json = LikeSerializer(like_obj).data
-                    inbox_obj.items.append(like_json)
-                    inbox_obj.save()
-                    return Response(InboxSerializer(inbox_obj).data,status=201)
+                    if post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
+                        # means add this man's id to the external like list.
+                        post_obj.external_likes['urls'].append(external_author_url)
+                        like_obj = Like()
+                        like_obj.context= data_json["context"]
+                        like_obj.object = data_json["object"]
+                        like_obj.summary = data_json["summary"]
+                        like_obj.author = data_json["author"]
+                        like_obj.save()
+                        post_obj.save()
+                        like_json = LikeSerializer(like_obj).data
+                        inbox_obj.items.append(like_json)
+                        inbox_obj.save()
+                        return Response(InboxSerializer(inbox_obj).data,status=201)
+                    else:
+                        
+                        # means this man liked the post before
+                        # we should make him unlike this post
+                        post_obj.external_likes['urls'].remove(external_author_url)
+                        post_obj.save()
+                        return Response(InboxSerializer(inbox_obj).data,status=204)
+                    # external_author_url = data_json["author"]["url"]
+                    # post_obj.external_likes['urls'].append(external_author_url)
+                    # like_obj = Like()
+                    # like_obj.context= data_json["context"]
+                    # like_obj.object = data_json["object"]
+                    # like_obj.summary = data_json["summary"]
+                    # like_obj.author = data_json["author"]
+                    # like_obj.save()
+                    # post_obj.save()
+                    # like_json = LikeSerializer(like_obj).data
+                    # inbox_obj.items.append(like_json)
+                    # inbox_obj.save()
+                    # return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
                     external_author_url = data_json["author"]["url"]
