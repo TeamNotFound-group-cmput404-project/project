@@ -54,3 +54,6 @@ class TestForms(TestCase):
             }
         )
         self.assertTrue(form.is_valid())
+    print("---------------------------")
+    print("form test is done")
+    print("---------------------------")

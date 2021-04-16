@@ -8,22 +8,24 @@ from Iconicity.models import Post,FriendRequest,UserProfile
 
 
 class LoginAndSignUpTest(TestCase):
-	def setUp(self):
-		self.signup_url = reverse('signup')
-		self.login_url = reverse('login')
-		self.user = {
-			'email':'test@gmail.com',
-			'password':'123linyu',
-		    'username':'test',
-		}
-		User.objects.create_user(**self.user)
+    def setUp(self):
+        self.signup_url = reverse('signup')
+        self.login_url = reverse('login')
+        self.user = {
+            'email':'test@gmail.com',
+            'password':'123linyu',
+            'username':'test',
+        }
+        User.objects.create_user(**self.user)
 
-	def signup_success(self):
-		response = self.post(self.login_url,self.user)
-		self.assertEquals(response.status_code,200)
+    def signup_success(self):
+        response = self.post(self.login_url,self.user)
+        self.assertEquals(response.status_code,200)
 
-	def test_login(self):
-		response = self.client.post(self.login_url,self.user)
-		self.assertEquals(response.status_code,302)
+    def test_login(self):
+        response = self.client.post(self.login_url,self.user)
+        self.assertEquals(response.status_code,302)
     
-	
+    print("---------------------------")
+    print("register is done")
+    print("---------------------------")

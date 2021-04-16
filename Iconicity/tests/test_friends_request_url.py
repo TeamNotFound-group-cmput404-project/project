@@ -52,7 +52,9 @@ class TestUrls(SimpleTestCase):
         url = reverse('repost_to_friend')
         self.assertEquals(resolve(url).func, repost_to_friend)
         
-
+    print("---------------------------")
+    print("friends url is done")
+    print("---------------------------")
 
 
     

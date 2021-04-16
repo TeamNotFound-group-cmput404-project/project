@@ -17,4 +17,6 @@ class TestSetUp(TestCase):
     def tearDown(self):
         return super().tearDown()
 
-    
+    print("---------------------------")
+    print("set up is done")
+    print("---------------------------")
