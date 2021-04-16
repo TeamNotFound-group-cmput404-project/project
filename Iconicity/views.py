@@ -505,7 +505,7 @@ def follow_someone(request):
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
             # construct the new friend request:
-            newFrdRequest = FriendRequest(type = "follow", summary = summary, actor = actor, object = object)
+            newFrdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, object = object)
             # serialize the new friend request:
             #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
@@ -520,9 +520,14 @@ def follow_someone(request):
             # post the friend request to the external server's inbox
             print("follow_someone full_followee_url: ", full_followee_url)
             # send the requests:
-
+            the_user_name = auth_user
+            the_user_pass = auth_pass
+            if team10_host_url in full_followee_url:
+                print('follow_someone we used team 10 credentials!!!!')
+                the_user_name = team10_name
+                the_user_pass = team10_pass
             post_data = requests.post(full_followee_url, json = frd_request_serialized,
-                auth=HTTPBasicAuth(auth_user, auth_pass))
+                auth=HTTPBasicAuth(the_user_name, the_user_pass))
             # print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page
