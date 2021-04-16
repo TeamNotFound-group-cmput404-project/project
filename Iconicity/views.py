@@ -1905,13 +1905,20 @@ def post_comments(request):
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
-                    comment_serializer = CommentSerializer(comment_obj).data
-                    print(comment_serializer)
+                    # modified here by Shway:
+                    comment_obj.published = comment_obj.published.isoformat()
+                    comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
+                        comment_id = str(comment_obj.id)
+                        if pk_raw[-1] == '/':
+                            comment_obj.id = pk_raw + "comments/" + comment_id
+                        else:
+                            comment_obj.id = pk_raw + '/comments/' + comment_id
                         the_user_name = team10_name
                         the_user_pass = team10_pass
+                    comment_serializer = CommentSerializer(comment_obj).data
                     if team10_host_url not in pk_raw:
                         response = requests.post(full_inbox_url,
                                 json = comment_serializer, 
