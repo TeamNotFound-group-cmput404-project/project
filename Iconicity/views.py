@@ -1780,7 +1780,7 @@ def post_comments(request):
         if '/' in pk_raw:
             try:
                 pk_new = [i for i in pk_raw.split('/') if i][-1]
-                post = Post.objects.get(pk=pk_new)
+                post = Post.objects.get(pk = pk_new)
             except Exception as e:
                 # means that this is not on our server
                 print("not on server")
@@ -1797,13 +1797,17 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
-                    # comment_obj.contentType = 'text/markdown'
+                    comment_obj.contentType = 'text/markdown'
                     comment_serializer = CommentSerializer(comment_obj).data
-                    #comment_serializer['post_id'] = comment_serializer['id']
                     print("post_comments comment_serializer: ", comment_serializer)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
+                        comment_id = str(comment_obj.id)
+                        if pk_raw[-1] == '/':
+                            comment_obj.id = pk_raw + "comments/" + comment_id
+                        else:
+                            comment_obj.id = pk_raw + '/comments/' + comment_id
                         the_user_name = team10_name
                         the_user_pass = team10_pass
                     print('post_comments pk_raw: ', pk_raw)
