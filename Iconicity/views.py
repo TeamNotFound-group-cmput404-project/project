@@ -263,6 +263,7 @@ def mainPagePublic(request):
             else:
                 comment_url = post["id"] + "/comments/"
             temp = requests.get(comment_url, auth=HTTPBasicAuth(team10_name, team10_pass))
+            print('mainPagePublic comments: ', temp)
             comment_list = temp.json()['comments']
             post['comment'] = comment_list
 
