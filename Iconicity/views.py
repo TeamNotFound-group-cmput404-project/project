@@ -498,7 +498,7 @@ def follow_someone(request):
             print("Not local")
             # create a new friend request with the receiver the (external) followee_id
             actor = GETProfileSerializer(curProfile).data # prepare to send
-            object_obj = UserProfile(type = 'follow', id = followee_id, displayName = followee_displayName,
+            object_obj = UserProfile(type = 'author', id = followee_id, displayName = followee_displayName,
                 github = followee_github, host = followee_host, url = followee_url)
             object = GETProfileSerializer(object_obj).data
             curProfile.add_follow(object) # add the followee to current profile follow
