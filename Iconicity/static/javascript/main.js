@@ -1,3 +1,4 @@
+// FROM https://github.com/showdownjs/showdown/wiki/Tutorial:-Markdown-editor-using-Showdown
 function showInMarkdown(){
     var markdowns = document.getElementsByClassName("toMarkdown");
     for (let i of markdowns){
@@ -7,4 +8,4 @@ function showInMarkdown(){
       i.innerHTML = html;
     }
   }
- 
+// ENDFROM

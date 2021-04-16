@@ -103,12 +103,7 @@
       <br><div class="center">
         <div class="pagination">
           {% for i in page_range %}
-            <!-- Initialize coloring on pagination -->
-            <!-- {% if i == curr_page %} -->
-            <!-- <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a> -->
-            <!-- {% else %} -->
             <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
-            <!-- {% endif %} -->
           {% endfor %}
         </div>
       </div>
@@ -118,21 +113,23 @@
       <!-- This is the end of a post -->
 
       <script>
+        // Reference: https://docs.djangoproject.com/en/3.1/ref/csrf/
         function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
+            return cookieValue;
         }
-    }
-    return cookieValue;
-}
+        
 const csrf = getCookie('csrftoken');
         $("a#page").click(function(event){
           event.preventDefault();
