@@ -1064,7 +1064,14 @@ def mypost(request):
     page_n = request.POST.get('page_n',None)
     if page_n!=None:
        curr_my_post = page_n
-    first_page = pagen.page(curr_my_post).object_list
+    if page_n!=None:
+        curr_my_post = page_n
+    try:
+        first_page = pagen.page(curr_my_post).object_list
+    except:
+        first_page = pagen.page(1).object_list
+    else:
+        pass
     
     page_range = pagen.page_range
     
