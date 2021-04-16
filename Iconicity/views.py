@@ -1476,15 +1476,6 @@ class Posts(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         # get all posts with visibility == "PUBLIC"
-        '''
-        if request.user.is_authenticated:
-            posts = Post.objects.filter(visibility = "PUBLIC").all()
-            serializer = PostSerializer(posts, many=True)
-            return Response(serializer.data)
-        else:
-            # the user is unauthorized
-            return HttpResponse('Unauthorized', status=401)
-        '''
 
         posts = Post.objects.filter(visibility = "PUBLIC").all()
         serializer = PostSerializer(posts, many=True)
@@ -1497,14 +1488,7 @@ class PostById(APIView):
         posts = Post.objects.filter(pk=post_id).all()
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-        '''
-        if request.user.is_authenticated:
-            posts = Post.objects.filter(pk=post_id).all()
-            serializer = PostSerializer(posts, many=True)
-            return Response(serializer.data)
-        else:
-            # the user is unauthorized
-            return HttpResponse('Unauthorized', status=401)'''
+
 
     def post(self, request, post_id, author_id):
         '''
@@ -1654,6 +1638,15 @@ class FriendPostsByAuthor(APIView):
         return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
+    redirect_path = '/public'
+    if request.path == "/friends/like":
+        redirect_path = "/friends"
+    elif request.path == "/mypost/like":
+        redirect_path = "/mypost"
+    elif request.path == "/public/like":
+        redirect_path = "/public"
+    elif request.path == "/following/like":
+        redirect_path = "/following"
     ppid = request.POST.get('ppid')
     if ppid:
         context = {'form123': CommentsCreateForm(), "url": ppid}
@@ -1701,9 +1694,7 @@ def post_comments(request):
                     if team10_host_url in pk_raw:
                         the_user_name = team10_name
                         the_user_pass = team10_pass
-                    print('post_comments pk_raw: ', pk_raw)
                     comment_serializer = CommentSerializer(comment_obj).data
-                    print("post_comments comment_serializer: ", comment_serializer)
                     if pk_raw[-1] == "/":
                         response = requests.post(pk_raw+"comments/",
                             json = comment_serializer, 
@@ -1712,7 +1703,6 @@ def post_comments(request):
                         response = requests.post(pk_raw+"/comments/",
                             json = comment_serializer, 
                             auth = HTTPBasicAuth(the_user_name, the_user_pass))
-                    print("response",response)
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
@@ -1754,11 +1744,9 @@ def post_comments(request):
                     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
                     request.session['curr_post_id'] = pk_raw
                     # END FROM
-                    print("request.session: ", request.session)
-                    return redirect('public')
+                    return redirect(redirect_path)
                     
                 else:
-                    print(form.errors)
                     form = CommentsCreateForm(request.POST)
                 
                 context = {
