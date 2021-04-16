@@ -1810,7 +1810,7 @@ def post_comments(request):
                     request.session['curr_post_id'] = pk_raw
                     # END FROM
                     print("request.session: ", request.session.items())
-                    return redirect('public')
+                    return redirect(redirect_path)
                     
                 else:
                     print(form.errors)
