@@ -218,7 +218,7 @@ def mainPagePublic(request):
             else:
                 pass
 
-        elif post["contentType"] =="image/png;base64":
+        elif "image/png;base64" in post["content"]:
             # means it's a image in the content
             # means this post has no image field, probably this is from external server.
             # in this case, we will save the image to local and use the absolute
@@ -236,12 +236,15 @@ def mainPagePublic(request):
             
             if os.path.exists("Iconicity"+path):
                 post['image'] = path
+                post['content'] = ""
             else:
                 # print("create new file")
                 # then write the dump file to an image file.
+                image_content = post['content'].split('image/png;base64,')[1]
                 with open("Iconicity"+path, "wb") as fh:
-                    fh.write(base64.decodebytes(str.encode(post['content'])))
+                    fh.write(base64.decodebytes(str.encode(image_content)))
                 post['image'] = path
+                post['content'] = ""
 
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
             # print("inside")
