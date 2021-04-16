@@ -723,7 +723,7 @@ class SendPrivatePostView(CreateView):
                 else: full_receiver_url += '/inbox/'
                 the_user_name = auth_user
                 the_user_pass = auth_pass
-                if team10_host_url in full_followee_url:
+                if team10_host_url in full_receiver_url:
                     print('SendPrivatePostView we used team 10 credentials!!!!')
                     the_user_name = team10_name
                     the_user_pass = team10_pass
