@@ -1540,10 +1540,10 @@ class Inboxs(APIView):
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
                     # means it's local like author              
                     # means add this man's id to the like list.
+                    external_author_url = data_json["author"]["url"]
                     if post_obj.external_likes == {}:
                         post_obj.external_likes['urls'] = []
                     if post_obj.external_likes == {"urls":[]} or data_json["author"]["url"] not in post_obj.external_likes['urls']:
-                        external_author_url = data_json["author"]["url"]
                         post_obj.external_likes['urls'].append(external_author_url)
                         # print("external",post_obj.external_likes['urls'])
                         # print("new like user",local_author_profile.user)
