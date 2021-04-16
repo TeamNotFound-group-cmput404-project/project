@@ -515,13 +515,8 @@ def follow_someone(request):
             if full_followee_url[-1] == '/': full_followee_url += "inbox/"
             else: full_followee_url += '/inbox/'
             # post the friend request to the external server's inbox
-            # print("this is the full followee_url: ", full_followee_url)
+            print("follow_someone full_followee_url: ", full_followee_url)
             # send the requests:
-
-            '''
-            post_data = requests.post(full_followee_url, data={"obj":json.dumps(frd_request_serialized)},
-                auth=HTTPBasicAuth(auth_user, auth_pass))
-            '''
 
             post_data = requests.post(full_followee_url, json = frd_request_serialized,
                 auth=HTTPBasicAuth(auth_user, auth_pass))
