@@ -1797,6 +1797,7 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
+                    comment_obj.datetime = comment_obj.datetime.isoformat()
                     comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
@@ -1843,6 +1844,7 @@ def post_comments(request):
                     comment_obj.author = author_json
                     comment_obj.post = pk_raw
                     # modified here by Shway:
+                    comment_obj.datetime = comment_obj.datetime.isoformat()
                     comment_obj.contentType = 'text/markdown'
                     the_user_name = auth_user
                     the_user_pass = auth_pass
