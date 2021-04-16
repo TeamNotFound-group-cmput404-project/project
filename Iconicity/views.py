@@ -187,34 +187,26 @@ def mainPagePublic(request):
     # https://docs.djangoproject.com/en/3.1/topics/serialization/
     if request.user.is_anonymous:
         return render(request, 'Iconicity/login.html', { 'form':  AuthenticationForm })
-    #string = str(request.scheme) + "://" + str(request.get_host())+"/posts/"
+  
     new_list = [] 
     time_check1 = datetime.datetime.now()
     new_list += PostSerializer(list(Post.objects.all()),many=True).data
-    # print("new_list",new_list)
     externalPosts = getAllExternalPublicPosts()
     time_check2 = datetime.datetime.now()
-    # print("timecheck2",time_check2-time_check1)
+
     
     counter = 0
     for post in externalPosts:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
-
-
         if post["id"].endswith("/"):
-            
             post["id"] = "%s"%post["id"][:-1]
-
-
         if post["contentType"] == "text/plain":
             # means the content part is all plain text, not image
             try:
                 image_field = post['image']
-
             except Exception:
                 # means this post has no image field, set image field to None.
                 post['image'] = ""
-
             else:
                 pass
 
@@ -237,14 +229,12 @@ def mainPagePublic(request):
             if os.path.exists("Iconicity"+path):
                 post['image'] = path
             else:
-                # print("create new file")
                 # then write the dump file to an image file.
                 with open("Iconicity"+path, "wb") as fh:
                     fh.write(base64.decodebytes(str.encode(post['content'])))
                 post['image'] = path
 
         if post['author']['host'] in team10_host_url or team10_host_url in post['author']['host']:
-            # print("inside")
             post['author_display_name'] = post['author']['displayName']
         
         if post["comments"] is not None:
@@ -260,20 +250,8 @@ def mainPagePublic(request):
             temp = requests.get(like_url, auth=HTTPBasicAuth(team10_name, team10_pass))
             like_list = temp.json()['likes']
             post['like_count'] = len(like_list)
-            # modified by Shway to get the comments:
-            '''
-            if post["id"].endswith("/"):
-                comment_url = post["id"] + "comments/"
-            else:
-                comment_url = post["id"] + "/comments/"
-            temp = requests.get(comment_url, auth=HTTPBasicAuth(team10_name, team10_pass))
-            print('mainPagePublic comments: ', temp)
-            comment_list = temp.json()['comments']
-            post['comment'] = comment_list
-            '''
 
         post['post_id'] = post['id'].split('/')[-1]
-        # print("post_id",post['post_id'])
         counter +=1
     new_list += externalPosts
     new_list.sort(key=get_published, reverse=True)
@@ -285,37 +263,18 @@ def mainPagePublic(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
     time_check15 = datetime.datetime.now()
-    
-    # print("before_reverse_check",time_check15-time_check1)
-    # sort the posts from latest to oldest
-    #new_list.reverse()
 
     for aPost in new_list:
         if aPost['unlisted']:
             new_list.remove(aPost)
-
-    # print(new_list)
-    
     # Each page shows 5 posts
     number = 5
-
     # Paginator
     pagen = Paginator(new_list,5)
-
     page_n = request.POST.get('page_n',None)
-   
     if page_n!=None:
         curr_page = page_n
-
-
-
-    
     first_page = pagen.page(curr_page).object_list
-
-    
-    
-    # print("Iterate the new_list:")
-
     # Get a list of post id
     post_id_list = []
     
@@ -331,17 +290,14 @@ def mainPagePublic(request):
         'pagen':pagen,
         'first_page':first_page,
         'page_range':page_range,
-        # 'posts': new_list,
         'UserProfile': curProfile,
         'myself': str(request.user),
-        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
         results = list(pagen.page(page_n).object_list)
         return JsonResponse({"results":results})
     time_check3 = datetime.datetime.now()
-    # print("full_time_check",time_check3-time_check1)
     return render(request, 'Iconicity/main_page.html', context)
 
 
@@ -389,13 +345,9 @@ def getUserProfile(currentUser):
 def getPosts(user, visibility="PUBLIC"):
     assert visibility in ["PUBLIC","FRIENDS"],"Not valid visibility for posts, check getPosts method in views.py"
     if visibility == "PUBLIC":
-        # public can only see your public posts
-        # print("getPosts(PUBLIC): ", user)
         if type(user) is dict: return list(Post.objects.filter(id = user['id'], visibility="PUBLIC"))
         else: return list(Post.objects.filter(author = user, visibility="PUBLIC"))
     elif visibility == "FRIENDS":
-        # friends can see all your posts (public + friends posts)
-        # print("getPosts(FRIENDS): ", user)
         if type(user) is dict: return list(Post.objects.filter(id = user['id']))
         else: return list(Post.objects.filter(author = user))
 
@@ -440,8 +392,6 @@ class AddPostView(CreateView):
         # print("posting")
         template = "Iconicity/post_form.html"
         form = PostsCreateForm(request.POST, request.FILES,)
-        # print(form['image']) 
-        # print(request.FILES)
         if form.is_valid():
             # print("posting...")
             form = form.save(commit=False)
@@ -510,10 +460,7 @@ def follow_someone(request):
             curProfile.add_follow(object) # add the followee to current profile follow
             # construct the new friend request:
             newFrdRequest = FriendRequest(type = "Follow", summary = summary, actor = actor, object = object)
-            # serialize the new friend request:
-            #frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
             frd_request_serialized = FriendRequestSerializer(newFrdRequest).data
-            print('follow_someone frd_request_serialized: ', frd_request_serialized)
             # API from the other server
             full_followee_url = ''
             if followee_id.startswith('http'): full_followee_url = followee_id
@@ -532,7 +479,6 @@ def follow_someone(request):
                 the_user_pass = team10_pass
             post_data = requests.post(full_followee_url, json = frd_request_serialized,
                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
-            # print("data responded: ", post_data)
         curProfile.save()
         # stay on the same page
         return redirect(request.META.get('HTTP_REFERER'))
@@ -543,8 +489,6 @@ def unfollow_someone(request):
     if request.method == 'POST':
         followee_id = request.POST.get('followee_id')
         curProfile = UserProfile.objects.get(user = request.user)
-        # remove the uid from current user's follow:
-        # print(followee_id)
         curProfile.remove_follow_by_id(followee_id)
         curProfile.save()
         # stay on the same page
@@ -860,10 +804,7 @@ def like_view(request):
                                 json = like_serializer, 
                                 auth=HTTPBasicAuth(the_user_name, the_user_pass))
         print("response",response)
-        
-    # author/{AUTHOR_ID}/posts/{POST_ID}/comments/ endpoint
 
-    # print("like inbox response",response)
     # FROM: https://stackoverflow.com/questions/49721830/django-redirect-with-additional-parameters
     request.session['curr_post_id'] = pk_raw
     print(pk_raw)
@@ -1083,22 +1024,6 @@ def mypost(request):
     for post in new_list:
         post_id_list.append(str(post['post_id']))
 
-    # try:
-    #     request.session['curr_post_id']
-    # except:
-    #     pass
-    # else:
-    #     curr_post_id = request.session['curr_post_id']
-    #     if curr_post_id:
-    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
-    #         print("curr_post_id:", curr_post_id)
-    #         if curr_post_id in post_id_list:
-    #             index = post_id_list.index(curr_post_id) + 1
-    #             print(index)
-    #             curr_page = int(ceil(index / number))
-    #             first_page = pagen.page(curr_page).object_list
-    #             request.session['curr_post_id'] = None
-
     context = {
         # 'posts': new_list,
         'pagen':pagen,
@@ -1125,12 +1050,9 @@ def getAllFollowExternalAuthorPosts(currentUser):
         print(e)
         return []
     if userProfile:
-        #print("in")
         allFollowers = userProfile.get_followers()
         if allFollowers != []:
             # now it should be a list of urls of the external followers
-            # should like [url1, url2]
-
             for user in allFollowers:
                 if len(UserProfile.objects.filter(url = user['id'])) == 0: # if external
 
@@ -1165,7 +1087,6 @@ def getAllFollowExternalAuthorPosts(currentUser):
 
 
 def getAllConnectedServerHosts():
-    # return a list [hosturl1, hosturl2...]
     return [i.get_host() for i in list(ExternalServer.objects.all())]
 
 def getAllPublicPostsCurrentUser():
@@ -1187,13 +1108,11 @@ def getAllExternalPublicPosts():
         if team10_host_url in host_url:
             the_user_name = team10_name
             the_user_pass = team10_pass
-        # print("getAllExternalPublicPosts full_url: ", full_url)
         temp = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
         if team10_host_url in host_url:
             posts = temp.json()['posts']
         else:
             posts = temp.json()
-        # print("getAllExternalPublicPosts posts: ", posts)
         new_one = []
         for i in posts:
             if i['visibility'] != "PUBLIC":
@@ -1261,19 +1180,16 @@ def following(request):
     # print(getAllFollowExternalAuthorPosts(request.user))
     for post in new_list:
         # https://stackoverflow.com/questions/2323128/convert-string-in-base64-to-image-and-save-on-filesystem-in-python
-
         if post["contentType"] == "text/plain":
             # means the content part is all plain text, not image
             try:
                 image_field = post['image']
-
             except Exception:
                 # means this post has no image field, set image field to None.
                 post['image'] = ""
 
             else:
                 pass
-
         elif post["contentType"] =="image/png;base64":
             # means it's a image in the content
             # means this post has no image field, probably this is from external server.
@@ -1322,9 +1238,6 @@ def following(request):
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
 
-    # sort the posts from latest to oldest
-    # new_list.reverse()
-
     # Each page shows 5 posts
     number = 5
 
@@ -1345,35 +1258,15 @@ def following(request):
     for post in new_list:
         if team10_host_url not in post['id']:
             post_id_list.append(str(post['post_id']))
-    
-    # print(post_id_list)
 
-    # If the main page is requested after commenting of liking
-    # try:
-    #     request.session['curr_post_id']
-    # except:
-    #     pass
-    # else:
-    #     curr_post_id = request.session['curr_post_id']
-    #     if curr_post_id:
-    #         curr_post_id = request.session['curr_post_id'].split('/')[-1]
-    #         print("curr_post_id:", curr_post_id)
-    #         if curr_post_id in post_id_list:
-    #             index = post_id_list.index(curr_post_id) + 1
-    #             print(index)
-    #             curr_page = int(ceil(index / number))
-    #             first_page = pagen.page(curr_page).object_list
-    #             request.session['curr_post_id'] = None
 
     page_range = pagen.page_range
     context = {
         'pagen':pagen,
         'first_page':first_page,
         'page_range':page_range,
-        # 'posts': new_list,
         'UserProfile': userProfile,
         'myself': str(request.user),
-        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
