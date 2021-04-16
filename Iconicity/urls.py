@@ -35,8 +35,14 @@ urlpatterns = [
 	path('unfollow_someone', views.unfollow_someone, name='unfollow_someone'),
 	path('follow_back', views.follow_back, name='follow_back'),
 	path('inbox', views.inbox_view, name='inbox'),
+	path('send_private_post', views.SendPrivatePostView.as_view(), name='send_private_post'),
 	path('all_profiles', views.UserProfileListView.as_view(), name='all_profiles'),
 	
+
+	# Unlisted
+	path('unlisted/<str:post_id>/', views.unlisted_post, name='unlisted'),
+	path('unlisted/<str:post_id>', views.unlisted_post, name='unlisted'),
+
 	# APIs
     path(r'posts/', views.Posts().as_view()),
     path(r'posts', views.Posts().as_view()),
@@ -60,4 +66,7 @@ urlpatterns = [
  	#https://iconicity-test-a.herokuapp.com/author/b058b053-4766-4c6a-acaf-561c08badf64/posts/00db788e-45af-49eb-8350-f1c507eb42d0
 	path(r'author/<str:author_id>/friendposts/', views.FriendPostsByAuthor().as_view()),
 	path(r'author/<str:author_id>/friendposts', views.FriendPostsByAuthor().as_view()),
+	# Unlisted
+	# path(r'unlisted/<str:post_id>/', views.Unlisted().as_view()),
+	# path(r'unlisted/<str:post_id>', views.Unlisted().as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

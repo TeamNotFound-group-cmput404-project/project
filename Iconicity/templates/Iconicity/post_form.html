@@ -8,18 +8,19 @@
     <!-- By: Zhiqi Zhou-->
         <br><br><br><br><br><br><br><br>
         <div class="w3-col m7" style="margin-left: 22%; margin-right: auto;">
-            <h1>Add Blog Post</h1>
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p}}
-                <button>Post</button>
-             </form>
-
-          <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+            <div class="w3-container w3-card w3-white w3-round w3-margin">
+                <br>
+                <h1>Add Blog Post</h1>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p}}
+                    <button type='submit' name='followee_id' value="normalPost">Post</button>
+                    <br><br><br>
+                </form>
+            </div>
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         </div>
-
 <!-- End Page Container -->
 </div>
 <br>
-
 {% endblock %}

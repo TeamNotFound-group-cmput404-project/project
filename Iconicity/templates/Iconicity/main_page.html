@@ -78,13 +78,10 @@
         <!-- Below are the like, comment and repost buttons -->
         <form action="{% url 'like_post_public' %}" method="POST">
           {% csrf_token %}
-          {% if i.source != '' and i.source != None %}
-            <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{i.source}}>
-          {% else %}
-            <button class="button", 
-            style = "float:left;",type="submit", name="pk", value={{i.origin}}>
-          {% endif%}
+          
+          <button class="button", 
+          style = "float:left;",type="submit", name="pk", value={{i.id}}>
+          
           <i class="fa fa-heart-o" style="font-size:20px;" ></i>
           </button>
 
@@ -116,7 +113,7 @@
         <br>
         <p>{{i.like_count}} liked this post.</p>
         {% for comment in i.comments %}  
-          {{ comment.comment_author_name }}:
+          {{ comment.author.displayName }}:
           {{ comment.comment }}
           <br>
         {% endfor %}
@@ -133,11 +130,11 @@
       <div class="pagination">
         {% for i in page_range %}
           <!-- Initialize coloring on pagination -->
-          {% if i == curr_page %}
-          <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
-          {% else %}
+          <!-- {% if i == curr_page %} --> 
+          <!-- <a id = "page" class="active" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a> -->
+          <!-- {% else %} -->
           <a id = "page" style="margin-left: 5px; font-size: 20px;" href = "{{ i }}">{{i}}</a>
-          {% endif %}
+          <!-- {% endif %} -->
         {% endfor %}
       </div>
     </div>
@@ -177,27 +174,20 @@ const csrf = getCookie('csrftoken');
           
           // ajax
           $.ajax({
-            type: "POST",
-                // url:"{% url 'public' %}", // name of url
-                data : {    
-                href: this.href,
+            
+                url:'public?'+ jQuery.param({page_n : page_n}),
+                type: "POST",
+                data : jQuery.param({    
                 page_n : page_n, //page_number
                 csrfmiddlewaretoken: '{{ csrf_token }}',
-            },
+            }),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
             success: function (resp) {
               //loop
               $('#posts').html('')
               $.each(resp.results, function(i, val) { 
-                //apending posts
-                // console.log(val);
                 var post_content = `<p>${val.content}</p>`;
-
-                            
-
                 var image = ``;
-               
-
-              
                 if (val.image != '' && val.image != null){
                   image = `<div class="w3-row-padding" style="margin:0 -16px">
                             <div class="w3-half">
@@ -217,10 +207,10 @@ const csrf = getCookie('csrftoken');
 
                 if(val.source != ''&& val.source != null){
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.source}>`
+                            style = "float:left;",type="submit", name="pk", value="${val.source}">`
                 }else{
                   button = `<button class="button", 
-                            style = "float:left;",type="submit", name="pk", value=${val.origin}>`
+                            style = "float:left;",type="submit", name="pk", value="${val.origin}">`
                 }
         
                 $('#posts').append(`
@@ -251,7 +241,7 @@ const csrf = getCookie('csrftoken');
                         type="submit", 
                         style="float:left;",
                         name="ppid", 
-                        value=${val.source}>
+                        value="${val.source}">
                         <i class="fa fa-comment-o" style="font-size:20px;"></i></button>
                   </form>
 
@@ -259,14 +249,14 @@ const csrf = getCookie('csrftoken');
                     {% csrf_token %}
                     <button class="button", 
                       style = "float:left;",
-                      type="submit", name="pk", value=${val.source}>
+                      type="submit", name="pk", value="${val.source}">
                       <i class="fa fa-paper-plane-o" style="font-size:20px;"></i>
                     </button>
                   </form>
 
                   <form action="{% url 'repost_to_friend' %}" method="POST">
                     {% csrf_token %}
-                    <button class="button", style="float:left;", type="submit", name="pk", value=${val.source}><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
+                    <button class="button", style="float:left;", type="submit", name="pk", value="${val.source}"><i class="fa fa-share-alt" style="font-size:20px;"></i></button>
                   </form><br>
                   <p>${val.like_count} liked this post.</p>
                   ${val.comments.map(comment => `${comment.comment_author_name}:${comment.comment}<br>`).join("")}
@@ -296,15 +286,15 @@ const csrf = getCookie('csrftoken');
       <!-- Profile -->
       <div class="w3-card w3-round w3-white" >
         <div class="w3-container">
-          <h4 class="w3-center w3-margin-top">Follower List of {{ request.user }}:</h4>
+          <h4 class="w3-center w3-margin-top">Follow List of {{ request.user }}:</h4>
           <hr>
           {% for friend in UserProfile.get_followers %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
+            <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
           {% endfor %}
           {% for friend in UserProfile.get_external_follows %}
-          <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
+            <p><i class="fa fa-user-o fa-fw w3-margin-right w3-text-theme"></i>{{ friend.displayName }}</p>
           {% endfor %}
-          <h5 class="w3-center w3-margin-top">You have {{ UserProfile.get_number_of_followers }} followers.</h5>
+          <h5 class="w3-center w3-margin-top">You are following {{ UserProfile.get_number_of_followers }} users.</h5>
         </div>
       </div>
     </div>

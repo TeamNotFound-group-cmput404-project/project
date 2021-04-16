@@ -9,7 +9,6 @@
 <meta charset="UTF-8">
 
 <!-- Showdown -->
-<script language="JavaScript" type="text/javascript" src="static/javascript/main.js"></script>
 <script src="https://cdn.rawgit.com/showdownjs/showdown/1.0.1/dist/showdown.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script
@@ -23,46 +22,15 @@
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" type="text/css" href = "{% static 'css/main.css' %}">
-<link rel="stylesheet" type="text/javascript" href = "{% static 'javascript/main.js' %}">
 <body class="w3-theme-l3">
 <!-- Navbar -->
 <!-- By: Zhiqi Zhou-->
 <div class="w3-top">
   <div class="w3-bar w3-theme-d2 w3-left-align w3-large">
-   <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-   <!-- Public Post Button -->
-   <a href="public" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Public"><i class="fa fa-globe"></i> Public</a>
 
-   <!-- Friends Post Button -->
-   <a href="friends" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Friends"><i class="fa fa-users"></i> Friends</a>
-
-   <!-- Following Post Button -->
-   <a href="following" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Following"><i class="fa fa-star"></i> Following</a>
-
-   <!-- My Post Button -->
-   <a href="mypost" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="My Post"><i class="fa fa-user"></i> My Post</a>
-
-   <!-- Notification Button -->
-   <a href="inbox" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Inbox"><i class="fa fa-bell"></i> Inbox</a>
-
-
-
-
-   <!-- Search Input -->
-   <a href="all_profiles" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"><i class="fa fa-search"></i> Users</a>
 
    <!-- Logo -->
 
-   <!-- Sign out Bottom -->
-   <div class="w3-dropdown-hover w3-hide-small w3-right">
-     <button class="w3-button w3-padding-large"><i class="fa fa-user-circle"></i></button>
-     <div class="w3-dropdown-content w3-card-4 w3-bar-block " style="right:0">
-      <form id="logoutform" action="{% url 'logout' %}" method='POST'>
-        {% csrf_token %}
-        <a href="#" class="w3-bar-item w3-button" onClick="document.getElementById('logoutform').submit()">Sign Out</a>
-      </form>
-     </div>
-   </div>
 
   </div>
  </div>

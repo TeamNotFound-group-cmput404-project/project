@@ -117,12 +117,12 @@ class Post(models.Model):
 
     # contentType field, support different kinds of type choices
     contentType = models.CharField(max_length=40,
-                                   choices=[('text/plain', 'text/plain'),
-                                            ('text/markdown', 'text/markdown'),
+                                   choices=[('text/markdown', 'text/markdown'),
+                                            ('text/plain', 'text/plain'),
                                             ('application/base64', 'application/base64'),
                                             ('image/png;base64', 'image/png;base64'),
                                             ('image/jpeg;base64', 'image/jpeg;base64')],
-                                   default="")
+                                   default='text/markdown')
 
     # content itself
     content = models.TextField(default="")
@@ -168,7 +168,9 @@ class Post(models.Model):
 
     host = models.URLField(default="")
     def count_like(self):
+        print(self.external_likes,self.like.count())
         if self.external_likes != {}:
+            
             return self.like.count() + len(self.external_likes['urls'])
         return self.like.count()
 
@@ -266,3 +268,5 @@ class ExternalServer(models.Model):
     def get_host(self):
         return self.host
 
+class SignUpConfirm(models.Model):
+    boolean = models.BooleanField(default=False)

@@ -26,7 +26,16 @@
           <console class="log" style = "margin-left:20px;">>>>>>>>>>>>>>>>>>>></console>
           <p>Github link: {{ profile.github }}</p>
           <p>Host link: {{ profile.host }}</p>
-          <button type="button" class="w3-button w3-theme-d1 w3-margin-bottom">View Profile</button>
+          <!--by Shway Wang, the private post function-->
+          <form action="{% url 'send_private_post' %}" method='GET'>
+            {% csrf_token %}
+            <input type="hidden" name="receiver_host" value="{{ profile.host }}">
+            <input type="hidden" name="receiver_github" value="{{ profile.github }}">
+            <input type="hidden" name="receiver_displayName" value="{{ profile.displayName }}">
+            <input type="hidden" name="receiver_url" value="{{ profile.url }}">
+            <button type='submit' class="w3-button w3-theme-d1 w3-margin-bottom"
+            name='receiver_id' value="{{ profile.id }}" style ="margin-left:20px;width:20%;">Send This User a Private Post</button>
+          </form>
           <!-- Now for the two buttons for adding and removing friends, also the notification if -->
           <!-- this person already has sent you a friend request -->
           <!-- Case 0: Follow and unfollow buttons -->
