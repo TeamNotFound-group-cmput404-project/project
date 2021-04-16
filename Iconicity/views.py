@@ -1031,6 +1031,12 @@ def mypost(request):
                     imghost = post['origin'].split('.com')[0]
                     abs_imgpath = imghost + '.com' + post['image']
                     post['image'] = abs_imgpath
+    
+    # Add url to unlisted posts
+    for aPost in new_list:
+        if aPost['unlisted']:
+            aPost['unlisted_url'] = (str(aPost['author']['host']) + "/unlisted/" + str(aPost['post_id']))
+
 
     number = 5
     pagen = Paginator(new_list,5)
