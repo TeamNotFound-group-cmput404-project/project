@@ -47,6 +47,11 @@ class TestUrls(SimpleTestCase):
     def test_like_post_following(self):
         url = reverse('like_post_following')
         self.assertEquals(resolve(url).func, like_view)
+    
+    def test_respost_to_friend(self):
+        url = reverse('repost_to_friend')
+        self.assertEquals(resolve(url).func, repost_to_friend)
+        
 
 
 
