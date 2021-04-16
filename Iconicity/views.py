@@ -990,7 +990,6 @@ def mypost(request):
     postList = getPosts(request.user, visibility="FRIENDS")
     new_list = []
     new_list += PostSerializer(postList, many=True).data
-    # print("mypost: ", new_list)
     for post in new_list:
         if 'image' in post:
             if post['image'] is not None:
@@ -1028,13 +1027,11 @@ def mypost(request):
         post_id_list.append(str(post['post_id']))
 
     context = {
-        # 'posts': new_list,
         'pagen':pagen,
         'first_page':first_page,
         'page_range':page_range,
         'UserProfile': getUserProfile(request.user),
         'github_username': github_username,
-        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1246,15 +1243,11 @@ def following(request):
 
     # Paginator
     pagen = Paginator(new_list,5)
-
     # Current page is 1 by default
     page_n = request.POST.get('page_n',None)
     if page_n!=None:
        curr_following = page_n
     first_page = pagen.page(curr_following).object_list
-    
-
-    print("Iterate the new_list:")
 
     # Get a list of post id
     post_id_list = []
@@ -1290,7 +1283,6 @@ def getUserFriend(currentUser):
             friends = otherUserProfile.get_followers()
             for userInfo in friends:
                 if userProfile.url == userInfo['url']:
-                    # print("getUserFriend: ", otherUserProfile.user)
                     friendList.append(otherUserProfile.user)
                     break
     return friendList
@@ -1315,11 +1307,9 @@ def getExternalUserFriends(currentUser):
             if team10_host_url in full_url:
                 the_user_name = team10_name
                 the_user_pass = team10_pass
-            # print('url: ', full_url)
-            # print('user name: ', the_user_name)
+
             try:
                 raw = requests.get(full_url, auth=HTTPBasicAuth(the_user_name, the_user_pass))
-
                 print('raw: ', raw)
                 friends = raw.json()
             except Exception as e:
@@ -1462,23 +1452,18 @@ def friends(request):
         curr_post_id = request.session['curr_post_id']
         if curr_post_id:
             curr_post_id = request.session['curr_post_id'].split('/')[-1]
-            # print("curr_post_id:", curr_post_id)
             if curr_post_id in post_id_list:
                 index = post_id_list.index(curr_post_id) + 1
-                # print(index)
                 curr_page = int(ceil(index / number))
                 first_page = pagen.page(curr_page).object_list
                 request.session['curr_post_id'] = None
-    # print("friends first_page: ", first_page)
     page_range = pagen.page_range
     context = {
-        # 'posts': postList,
         'pagen':pagen,
         'first_page':first_page,
         'page_range':page_range,
         'UserProfile': userProfile,
         'myself': str(userProfile.url),
-        # 'curr_page': curr_page,
     }
     if request.method == "POST":
         page_n = request.POST.get('page_n',None)
@@ -1558,18 +1543,14 @@ class Inboxs(APIView):
 
     def post(self, request, author_id):
         data_json = request.data
-        # print("data_json", data_json)
         local_author_profile = UserProfile.objects.get(pk=author_id)
         try:
             inbox_obj = Inbox.objects.get(author=local_author_profile.url)
-            # print("inbox_obj: ", inbox_obj)
             if data_json['type'] == "like":
                 print("likelikelikelikelikelikelikelikelikelikelikelikelikelikelike")
                 # if the type is “like” then add that like to the author’s inbox
                 post_url = data_json["object"]
-                # print("url",post_url)
                 post_id = [i for i in post_url.split('/') if i][-1]
-                # print("id",post_id)
                 post_obj = Post.objects.get(pk=post_id)
                 
                 if request.META['HTTP_HOST'] in data_json['author']['url']:
@@ -1579,9 +1560,6 @@ class Inboxs(APIView):
                         post_obj.external_likes['urls'] = []
                     external_author_url = data_json["author"]["url"]
                     post_obj.external_likes['urls'].append(external_author_url)
-                    # print("external",post_obj.external_likes['urls'])
-                    # print("new like user",local_author_profile.user)
-                    #post_obj.like.add(local_author_profile.user)
                     like_obj = Like()
                     like_obj.context= data_json["context"]
                     like_obj.object = data_json["object"]
@@ -1592,7 +1570,6 @@ class Inboxs(APIView):
                     like_json = LikeSerializer(like_obj).data
                     inbox_obj.items.append(like_json)
                     inbox_obj.save()
-                    # print("here2", post_obj)
                     return Response(InboxSerializer(inbox_obj).data,status=201)
                 else:
                     # means it's a external author
@@ -1621,7 +1598,6 @@ class Inboxs(APIView):
                         return Response(InboxSerializer(inbox_obj).data,status=204)
             
             elif (data_json['type'] == "post" or data_json['type'] == "Post"):
-                print("postpostpostpostpostpostpostpostpostpostpostpostpostpostpostpostpost")
                 # if the type is “post” then add that post to the author’s inbox
                 # add a post to the author_id's inbox
                 inbox_obj.items.append(data_json)
@@ -1629,14 +1605,12 @@ class Inboxs(APIView):
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif (data_json['type'] == "follow" or data_json['type'] == "Follow"):
-                print("followfollowfollowfollowfollowfollowfollowfollowfollowfollowfollowfollow")
                 # need to load the actor and object into objects:
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
 
             elif data_json['type'] == 'comment':
-                print("commentcommentcommentcommentcommentcommentcommentcommentcommentcomment")
                 inbox_obj.items.append(data_json)
                 inbox_obj.save()
                 return Response(InboxSerializer(inbox_obj).data,status=200)
@@ -1659,7 +1633,6 @@ class AllPostsByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        # print("AllPostsByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         posts = Post.objects.filter(author=authorProfile.user).all()
         serializer = PostSerializer(posts, many=True)
@@ -1669,7 +1642,6 @@ class ExternalFollowersByAuthor(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, author_id):
-        # print("ExternalFollowersByAuthor: ", author_id)
         authorProfile = UserProfile.objects.get(pk=author_id)
         return Response(FollowersSerializer(authorProfile).data)
 
@@ -1679,20 +1651,16 @@ class FriendPostsByAuthor(APIView):
     def get(self, request, author_id):
         authorProfile = UserProfile.objects.get(pk = author_id)
         friendPosts = Post.objects.filter(author = authorProfile.user)
-        # print("FriendPostsByAuthor friendPosts: ", friendPosts)
         return Response(PostSerializer(friendPosts, many = True).data)
 
 def post_comments(request):
     ppid = request.POST.get('ppid')
-    # print("post_comments ppid: ", ppid)
-    #if ppid is None: ppid = request.POST.get('pk')
     if ppid:
         context = {'form123': CommentsCreateForm(), "url": ppid}
         return render(request, 'Iconicity/comment_form.html', context)
 
 
     pk_raw = request.POST.get('pk')
-    print("hereherehereherehereherehereherehereherehereherehere")
     for key, value in request.POST.items():
         print('post_comments iterative: %s: %s' % (key, value) ) 
     
@@ -1716,10 +1684,6 @@ def post_comments(request):
                 post_id = pk_raw
                 form = CommentsCreateForm(request.POST)
                 if form.is_valid():
-                    #form = form.save(commit=False)
-                    #form.post = post_id
-                    #form.author = currentUserProfile.url
-                    #form.save()
                     comment_obj = Comment()
                     comment_obj.comment = form.cleaned_data['comment']
                     comment_obj.author = author_json
@@ -1748,9 +1712,7 @@ def post_comments(request):
                         response = requests.post(pk_raw+"/comments/",
                             json = comment_serializer, 
                             auth = HTTPBasicAuth(the_user_name, the_user_pass))
-
                     print("response",response)
-
                     the_user_name = auth_user
                     the_user_pass = auth_pass
                     if team10_host_url in pk_raw:
