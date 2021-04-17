@@ -45,6 +45,18 @@ pip install markdown;
 Specification:
 ================
  https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
+ 
+ We are supposed to connect to Team 10 at https://socialdistributionproject.herokuapp.com/. The basic auth username is "server" and the password is "connect1234".
+
+And team 4 is connecting to our server at https://iconicity-test-a.herokuapp.com/ <br/>
+
+In case there is some difference between team10's API and the requirement specs, we also connect to our external server to test our API's functionality. The basic auth is: username: auth_user, password: authpass. You can also use it to login to admin.<br/>
+
+Our external server: https://iconicity-test-a.herokuapp.com/. <br/>
+
+To login https://iconicity-test-a.herokuapp.com/, you may use following valid account credentials, username:test1 password:123linyu or feel free to create your own. The basic auth is: username: auth_user, password: authpass. You can also use it to login to admin.<br/>
+
+To add an external server, just go to admin page and add a host in the ExternalServer class. If there is other specific authentication information, the config file in the source code and other parts need to be updated.<br/>
 
 Heroku Application URL:
 ================
