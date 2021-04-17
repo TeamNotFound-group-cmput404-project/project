@@ -48,7 +48,7 @@ Specification:
 
 Heroku Application URL:
 ================
-https://iconicity-part2.herokuapp.com/
+https://iconicity-final.herokuapp.com/
 
 User Guideline:
 ==================
