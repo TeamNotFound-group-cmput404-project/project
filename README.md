@@ -50,6 +50,10 @@ Heroku Application URL:
 ================
 https://iconicity-final.herokuapp.com/
 
+Test:
+================
+To run our testcases, using python3 manage.py test 
+
 User Guideline:
 ==================
 * Iconicity is blog posting website hosted on Heroku
