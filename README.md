@@ -48,7 +48,7 @@ Original specification: https://github.com/abramhindle/CMPUT404-project-socialdi
  
  We are supposed to connect to Team 10 at https://socialdistributionproject.herokuapp.com/. The basic auth username is "server" and the password is "connect1234".
 
-And team 4 is connecting to our server at https://iconicity-test-a.herokuapp.com/ <br/>
+And team 4 is connecting to our server at https://iconicity-part2.herokuapp.com/ <br/>
 
 In case there is some difference between team10's API and the requirement specs, we also connect to our external server to test our API's functionality. The basic auth is: username: auth_user, password: authpass. You can also use it to login to admin.<br/>
 
