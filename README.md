@@ -135,6 +135,8 @@ Markdown is refer to https://github.com/showdownjs/showdown/wiki/Tutorial:-Markd
 Login and sign-up combination is refer to https://dcodemania.com/post/tabbed-style-login-registration-form-css3-jquery <br/>
 
 Post pagination is refer to https://pytutorial.com/how-to-make-a-pagination-with-django-and-ajaxjquery <br/>
+Jquery and version is refer to https://stackoverflow.com/questions/51254596/how-to-get-the-integrity-value-for-a-jquery-version-for-script by 
+https://stackoverflow.com/users/8656248/mscdeveloper
 
 RestAPI
 ========
