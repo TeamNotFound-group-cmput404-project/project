@@ -59,8 +59,9 @@ To login https://iconicity-part2.herokuapp.com/, you may use following valid acc
 To add an external server, just go to admin page and add a host in the ExternalServer class. If there is other specific authentication information, the config file in the source code and other parts need to be updated.<br/>
 
 Note: 
-* Due to the Heroku server speed limit and different implementations on APIs, it usually takes 1-3 seconds to load content from team 10 server. <br/>
+* Due to the Heroku server speed limit and different implementations on APIs, it usually takes 1-3 seconds to load the public page since we are calling multiple APIs from team 10 server and our external server. <br/>
 * Please do not use "auth_user" to do any regular user activities.
+* Due to Heroku's setting, the image files uploaded to Heroku server cannot last for more than hour. Please be aware that your images may be lost.
 
 Heroku Application URL:
 ================
