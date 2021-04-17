@@ -44,7 +44,7 @@ pip install markdown;
 
 Specification:
 ================
- https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org
+Original specification: https://github.com/abramhindle/CMPUT404-project-socialdistribution/blob/master/project.org <br/>
  
  We are supposed to connect to Team 10 at https://socialdistributionproject.herokuapp.com/. The basic auth username is "server" and the password is "connect1234".
 
@@ -57,6 +57,10 @@ Our external server: https://iconicity-test-a.herokuapp.com/. <br/>
 To login https://iconicity-test-a.herokuapp.com/, you may use following valid account credentials, username:test1 password:123linyu or feel free to create your own. The basic auth is: username: auth_user, password: authpass. You can also use it to login to admin.<br/>
 
 To add an external server, just go to admin page and add a host in the ExternalServer class. If there is other specific authentication information, the config file in the source code and other parts need to be updated.<br/>
+
+Note: 
+* Due to the Heroku server speed limit and different implementations on APIs, it usually takes 1-3 seconds to load content from team 10 server. <br/>
+* Please do not use "auth_user" to do any regular user activities.
 
 Heroku Application URL:
 ================
@@ -71,7 +75,7 @@ User Guideline:
 * Iconicity is blog posting website hosted on Heroku
 * To login, enter username and password then click sign in<br/>
 If you do not have an account, click sign up button to go to sign up page<br/>
-* As an admin, to enable the sign-up approval feature, login on https://iconicity-final.herokuapp.com/admin/, go to "Sign up confirms", click on "x", check the box named boolean and then save. For now, any new sign-up users will appear in "Users", click on the specific user you want to approve, go to the "Permission" section and check the "active" box, and then the user is approved.
+* As an admin, to enable the sign-up approval feature, login on https://iconicity-final.herokuapp.com/admin/, go to class "Sign up confirms", click on "x", check the box named boolean and then save. For now, any new sign-up users will appear in class "Users". Click on the specific user you want to approve, go to the "Permission" section and check the "active" box, and then the user is approved.
 * After login, your profile is on the left side of the main page,
 to update, click "profile" then go to edit profile page then click update.<br/>
 * Your friends list is on the right side of the main page.<br/>
